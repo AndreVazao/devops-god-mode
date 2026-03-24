@@ -1,7 +1,10 @@
 from fastapi import APIRouter
 from app.config import settings
+from app.routes.github_scan import router as github_scan_router
 
 router = APIRouter()
+
+router.include_router(github_scan_router)
 
 @router.get("/health")
 def health():
