@@ -17,4 +17,4 @@ def config_status():
         "github": bool(settings.GITHUB_TOKEN),
         "vercel": bool(settings.VERCEL_TOKEN),
         "openai": bool(settings.OPENAI_KEY),
-    }
+}
