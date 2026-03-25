@@ -1,0 +1,87 @@
+{
+  "generated_from": "github_scan_bootstrap_v1",
+  "ecosystems": [
+    {
+      "key": "baribudos-ecosystem",
+      "display_name": "Baribudos Ecosystem",
+      "type": "single_product_view",
+      "repos": [
+        {
+          "full_name": "AndreVazao/baribudos-studio",
+          "role": "private_production_brain",
+          "runtime": "private_local_or_family_control_plane",
+          "stack": {
+            "runtimes": ["python", "node"],
+            "frameworks": ["fastapi"]
+          }
+        },
+        {
+          "full_name": "AndreVazao/baribudos-studio-website",
+          "role": "public_commerce_runtime",
+          "runtime": "public_cloud",
+          "stack": {
+            "runtimes": ["node"],
+            "frameworks": ["nextjs", "prisma", "react", "stripe"]
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "AndreVazao/baribudos-studio",
+          "target": "AndreVazao/baribudos-studio-website",
+          "type": "publishes_to"
+        },
+        {
+          "source": "AndreVazao/baribudos-studio-website",
+          "target": "AndreVazao/baribudos-studio",
+          "type": "consumes_catalog_from"
+        }
+      ],
+      "risk_flags": [
+        "website_recent_env_file_history",
+        "studio_website_contract_alignment_required"
+      ]
+    },
+    {
+      "key": "devops-meta-ecosystem",
+      "display_name": "DevOps Meta Ecosystem",
+      "type": "meta_governance_system",
+      "repos": [
+        {
+          "full_name": "AndreVazao/devops-god-mode",
+          "role": "meta_devops_orchestrator",
+          "runtime": "cloud_backend_mobile_first_panel",
+          "stack": {
+            "runtimes": ["python"],
+            "frameworks": ["render"]
+          }
+        },
+        {
+          "full_name": "AndreVazao/ai-devops-control-center",
+          "role": "devops_control_ui_or_service",
+          "runtime": "node_service_or_dashboard",
+          "stack": {
+            "runtimes": ["node"],
+            "frameworks": []
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "AndreVazao/devops-god-mode",
+          "target": "AndreVazao/ai-devops-control-center",
+          "type": "related_devops_surface"
+        }
+      ],
+      "risk_flags": [
+        "classification_needs_manual_confirmation"
+      ]
+    }
+  ],
+  "unclassified_repos": [
+    {
+      "full_name": "AndreVazao/A-teste",
+      "reason": "insufficient_structure_detected"
+    }
+  ]
+}
