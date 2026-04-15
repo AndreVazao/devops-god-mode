@@ -1,0 +1,36 @@
+name: Mobile Shell Artifact
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/mobile-shell-artifact-phase'
+    paths:
+      - 'frontend/mobile-shell/**'
+      - '.github/workflows/mobile-shell-artifact.yml'
+
+jobs:
+  package-mobile-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate shell files
+        run: |
+          test -f frontend/mobile-shell/index.html
+          test -f frontend/mobile-shell/app.js
+          test -f frontend/mobile-shell/styles.css
+          test -f frontend/mobile-shell/manifest.json
+
+      - name: Build artifact folder
+        run: |
+          rm -rf dist-mobile-shell
+          mkdir -p dist-mobile-shell
+          cp -R frontend/mobile-shell/* dist-mobile-shell/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: god-mode-mobile-shell
+          path: dist-mobile-shell
