@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>God Mode Mobile Shell</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">DevOps God Mode</p>
+          <h1>Mobile Shell</h1>
+        </div>
+        <button id="refreshStatusButton" class="ghost-button">Atualizar</button>
+      </header>
+
+      <main class="main-content">
+        <section class="card status-card">
+          <div class="card-header">
+            <h2>Estado</h2>
+            <span id="backendBadge" class="badge badge-warning">por validar</span>
+          </div>
+          <div class="status-grid">
+            <div>
+              <p class="label">Backend</p>
+              <p id="backendStatusValue" class="value">—</p>
+            </div>
+            <div>
+              <p class="label">Perfil</p>
+              <p id="backendProfileValue" class="value">—</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card cockpit-card">
+          <div class="card-header">
+            <h2>Cockpit móvel</h2>
+            <span class="badge">mobile-first</span>
+          </div>
+
+          <label class="field">
+            <span>Repo alvo</span>
+            <input id="repoInput" type="text" value="AndreVazao/baribudos-studio" />
+          </label>
+
+          <label class="field">
+            <span>Ficheiro alvo</span>
+            <input id="pathInput" type="text" value="app/main.py" />
+          </label>
+
+          <label class="field">
+            <span>Branch sugerida</span>
+            <input id="branchInput" type="text" value="feature/mobile-shell-test" />
+          </label>
+
+          <label class="field">
+            <span>Pedido</span>
+            <textarea id="requestInput" rows="8">Repo AndreVazao/baribudos-studio. Substitui o ficheiro app/main.py por isto:
+```python
+print('ok')
+```</textarea>
+          </label>
+
+          <div class="actions-row">
+            <button id="runMobileCockpitButton" class="primary-button">Gerar cockpit</button>
+            <button id="runExecutionButton" class="secondary-button">Gerar pipeline</button>
+          </div>
+        </section>
+
+        <section class="card response-card">
+          <div class="card-header">
+            <h2>Resumo</h2>
+            <span id="decisionBadge" class="badge badge-muted">sem decisão</span>
+          </div>
+          <div id="cardsContainer" class="cards-container"></div>
+          <pre id="responseOutput" class="response-output">Sem resposta ainda.</pre>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
