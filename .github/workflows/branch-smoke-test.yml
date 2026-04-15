@@ -1,0 +1,90 @@
+name: Branch Smoke Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/**'
+      - 'feat/**'
+      - 'fix/**'
+      - 'hotfix/**'
+
+jobs:
+  backend-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Syntax smoke check
+        run: |
+          python -m compileall .
+
+      - name: Import smoke check
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_KEY: test_key
+          GITHUB_TOKEN: test_github_token
+          VERCEL_TOKEN: test_vercel_token
+          OPENAI_KEY: test_openai_key
+        run: |
+          python - <<'PY'
+          import importlib
+          modules = [
+              'main',
+              'main_v13',
+              'main_ops_v1',
+              'app.routes.github_scan',
+              'app.routes.registry',
+              'app.routes.repo_tree_v13',
+              'app.routes.ops_v1',
+              'app.services.code_intake_parser_v1',
+              'app.services.git_ops_plan_v1',
+              'app.services.workflow_error_intake_v1',
+              'app.services.repo_tree_engine_v4',
+              'app.services.repo_tree_action_plan_v3',
+          ]
+          for name in modules:
+              importlib.import_module(name)
+              print(f'OK import: {name}')
+          PY
+
+      - name: FastAPI route surface check
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_KEY: test_key
+          GITHUB_TOKEN: test_github_token
+          VERCEL_TOKEN: test_vercel_token
+          OPENAI_KEY: test_openai_key
+        run: |
+          python - <<'PY'
+          from main_ops_v1 import app
+          paths = sorted(route.path for route in app.routes)
+          required = [
+              '/ops/status',
+              '/ops/code-intake',
+              '/ops/git-ops-plan',
+              '/ops/workflow-error-intake',
+              '/repo/tree/status',
+              '/repo/tree/preview',
+              '/repo/tree/action-plan',
+          ]
+          missing = [path for path in required if path not in paths]
+          if missing:
+              raise SystemExit(f'Missing routes: {missing}')
+          print('OK routes:', required)
+          PY
