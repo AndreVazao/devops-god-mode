@@ -52,6 +52,10 @@ const approvalCards = q("#approvalCards");
 const approvalEmptyState = q("#approvalEmptyState");
 const approvalCountBadge = q("#approvalCountBadge");
 
+const executionCards = q("#executionCards");
+const executionEmptyState = q("#executionEmptyState");
+const executionCountBadge = q("#executionCountBadge");
+
 function getBaseUrl() {
   return (apiInput.value || localStorage.getItem(KEY_API) || PRESETS.render.backend)
     .trim()
@@ -73,15 +77,8 @@ function saveUrls() {
 
 function applyPreset() {
   const preset = PRESETS[presetSelect.value] || PRESETS.render;
-
-  if (preset.backend) {
-    apiInput.value = preset.backend;
-  }
-
-  if (preset.shell) {
-    shellUrlInput.value = preset.shell;
-  }
-
+  if (preset.backend) apiInput.value = preset.backend;
+  if (preset.shell) shellUrlInput.value = preset.shell;
   presetValue.textContent = presetSelect.value;
   saveUrls();
   refreshStatus();
@@ -110,26 +107,19 @@ async function fetchJson(url, options = {}) {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
-
   const text = await response.text();
   let data = null;
-
   try {
     data = text ? JSON.parse(text) : null;
   } catch {
     data = { raw: text };
   }
-
-  if (!response.ok) {
-    throw new Error(JSON.stringify(data));
-  }
-
+  if (!response.ok) throw new Error(JSON.stringify(data));
   return data;
 }
 
 function renderCards(cards) {
   compactCards.innerHTML = "";
-
   cards.forEach((card) => {
     const article = document.createElement("article");
     article.className = "compact-card";
@@ -141,16 +131,10 @@ function renderCards(cards) {
 function renderDecision(decision) {
   decisionBadge.textContent = decision || "sem decisão";
   decisionBadge.className = "badge";
-
-  if (decision === "ok") {
-    decisionBadge.classList.add("badge-success");
-  } else if (decision === "altera") {
-    decisionBadge.classList.add("badge-warning");
-  } else if (decision === "rejeita") {
-    decisionBadge.classList.add("badge-danger");
-  } else {
-    decisionBadge.classList.add("badge-neutral");
-  }
+  if (decision === "ok") decisionBadge.classList.add("badge-success");
+  else if (decision === "altera") decisionBadge.classList.add("badge-warning");
+  else if (decision === "rejeita") decisionBadge.classList.add("badge-danger");
+  else decisionBadge.classList.add("badge-neutral");
 }
 
 function setQuickSummary(text) {
@@ -159,12 +143,9 @@ function setQuickSummary(text) {
 
 function setMode(mode) {
   localStorage.setItem(KEY_MODE, mode);
-
   q("#drivingModeBtn").classList.toggle("mode-btn-active", mode === "driving");
   q("#assistedModeBtn").classList.toggle("mode-btn-active", mode === "assisted");
-
   assistedFields.style.display = mode === "assisted" ? "block" : "none";
-
   modeSummary.textContent =
     mode === "driving"
       ? "Driving: menos distração, headline curta e decisão rápida."
@@ -176,11 +157,15 @@ function setApprovalCount(count) {
   approvalCountBadge.className = count > 0 ? "badge badge-warning" : "badge badge-success";
 }
 
+function setExecutionCount(count) {
+  executionCountBadge.textContent = `${count} monitorizadas`;
+  executionCountBadge.className = count > 0 ? "badge badge-info" : "badge badge-success";
+}
+
 function renderApprovalCards(requests) {
   approvalCards.innerHTML = "";
   approvalEmptyState.style.display = requests.length > 0 ? "none" : "block";
   setApprovalCount(requests.length);
-
   requests.forEach((request) => {
     const card = document.createElement("article");
     card.className = "approval-card";
@@ -188,7 +173,6 @@ function renderApprovalCards(requests) {
     const risk = request.risk_level || "n/a";
     const summary = request.summary || "Sem resumo";
     const details = request.details ? JSON.stringify(request.details, null, 2) : "{}";
-
     card.innerHTML = `
       <div class="approval-card-top">
         <div>
@@ -204,12 +188,43 @@ function renderApprovalCards(requests) {
         <button class="decision-btn" data-approval="${request.request_id}" data-response="REJEITA">REJEITA</button>
       </div>
     `;
-
     approvalCards.appendChild(card);
   });
-
   approvalCards.querySelectorAll("button[data-approval]").forEach((button) => {
     button.onclick = () => respondApproval(button.dataset.approval, button.dataset.response);
+  });
+}
+
+function renderExecutionCards(executions) {
+  executionCards.innerHTML = "";
+  executionEmptyState.style.display = executions.length > 0 ? "none" : "block";
+  setExecutionCount(executions.length);
+  executions.forEach((execution) => {
+    const card = document.createElement("article");
+    card.className = "execution-card";
+    const status = execution.status || "unknown";
+    const summary = execution.summary || "Sem resumo";
+    const repo = execution.repo_full_name || "repo desconhecida";
+    const path = execution.target_path || "sem ficheiro";
+    const approvalId = execution.approval_request_id || "sem approval";
+    card.innerHTML = `
+      <div class="execution-card-top">
+        <div>
+          <p class="label">${repo}</p>
+          <p class="value">${summary}</p>
+          <p class="helper-text">${path}</p>
+        </div>
+        <span class="badge ${status === "waiting_for_approval" ? "badge-warning" : status === "approved_to_continue" ? "badge-success" : status === "rejected" ? "badge-danger" : "badge-info"}">${status}</span>
+      </div>
+      <p class="helper-text">Approval: ${approvalId}</p>
+      <div class="action-row wrap-row compact-row">
+        <button class="secondary-btn" data-sync-execution="${execution.execution_id}">Sync estado</button>
+      </div>
+    `;
+    executionCards.appendChild(card);
+  });
+  executionCards.querySelectorAll("button[data-sync-execution]").forEach((button) => {
+    button.onclick = () => syncExecution(button.dataset.syncExecution);
   });
 }
 
@@ -217,15 +232,27 @@ async function refreshApprovals() {
   try {
     const data = await fetchJson(`${getBaseUrl()}/api/approval-broker/requests?status=pending`);
     renderApprovalCards(data.requests || []);
-    if ((data.requests || []).length === 0) {
-      setQuickSummary("Sem approvals pendentes.");
-    }
-  } catch (error) {
+    if ((data.requests || []).length === 0) setQuickSummary("Sem approvals pendentes.");
+  } catch {
     approvalCards.innerHTML = "";
     approvalEmptyState.style.display = "block";
     approvalEmptyState.textContent = "Erro ao carregar approvals.";
     setApprovalCount(0);
     setQuickSummary("Erro ao carregar approvals pendentes.");
+  }
+}
+
+async function refreshExecutions() {
+  try {
+    const data = await fetchJson(`${getBaseUrl()}/api/execution-gate/executions`);
+    renderExecutionCards(data.executions || []);
+    if ((data.executions || []).length === 0) setQuickSummary("Sem execuções monitorizadas.");
+  } catch {
+    executionCards.innerHTML = "";
+    executionEmptyState.style.display = "block";
+    executionEmptyState.textContent = "Erro ao carregar execuções.";
+    setExecutionCount(0);
+    setQuickSummary("Erro ao carregar execuções monitorizadas.");
   }
 }
 
@@ -237,8 +264,21 @@ async function respondApproval(requestId, response) {
     });
     setQuickSummary(`Approval ${data.request.request_id} atualizado para ${data.request.status}.`);
     await refreshApprovals();
-  } catch (error) {
+    await refreshExecutions();
+  } catch {
     setQuickSummary("Erro ao responder ao approval.");
+  }
+}
+
+async function syncExecution(executionId) {
+  try {
+    const data = await fetchJson(`${getBaseUrl()}/api/execution-gate/executions/${executionId}/sync`, {
+      method: "POST",
+    });
+    setQuickSummary(`Execução ${data.execution.execution_id} agora está em ${data.execution.status}.`);
+    await refreshExecutions();
+  } catch {
+    setQuickSummary("Erro ao sincronizar execução.");
   }
 }
 
@@ -246,26 +286,20 @@ async function refreshStatus() {
   connectionBadge.textContent = "a validar";
   connectionBadge.className = "badge badge-warning";
   presetValue.textContent = presetSelect.value;
-
   try {
     const root = await fetchJson(`${getBaseUrl()}/`);
     const ops = await fetchJson(`${getBaseUrl()}/ops/status`);
-
     backendStatusValue.textContent = root.status || "ok";
     backendProfileValue.textContent = ops.profile || root.profile || "desconhecido";
     profileBadge.textContent = ops.profile || "backend";
-
     connectionBadge.textContent = "online";
     connectionBadge.className = "badge badge-success";
-
     setQuickSummary(`Ligação OK em ${getBaseUrl()}`);
   } catch (error) {
     backendStatusValue.textContent = "erro";
     backendProfileValue.textContent = String(error.message).slice(0, 80);
-
     connectionBadge.textContent = "offline";
     connectionBadge.className = "badge badge-danger";
-
     setQuickSummary(`Falha na ligação a ${getBaseUrl()}`);
   }
 }
@@ -275,12 +309,10 @@ async function runCockpit() {
     method: "POST",
     body: JSON.stringify(buildPayload()),
   });
-
   cockpitOutput.textContent = JSON.stringify(data, null, 2);
   headlineBox.textContent = data.headline || data.next_step || "Ainda sem resposta.";
   renderDecision(data.decision);
   renderCards(data.compact_cards || []);
-
   setQuickSummary(`${data.headline || "Cockpit gerado"} | preset: ${presetSelect.value}`);
 }
 
@@ -289,13 +321,9 @@ async function runExecutionPipeline() {
     method: "POST",
     body: JSON.stringify(buildPayload()),
   });
-
   executionOutput.textContent = JSON.stringify(data, null, 2);
-  headlineBox.textContent =
-    data.next_step || (data.approval_shell || {}).headline || "Pipeline gerado.";
-
+  headlineBox.textContent = data.next_step || (data.approval_shell || {}).headline || "Pipeline gerado.";
   renderDecision((data.approval_shell || {}).decision);
-
   const summary = (data.approval_shell || {}).compact_summary || {};
   renderCards([
     { title: "Repo alvo", value: summary.repo },
@@ -303,7 +331,6 @@ async function runExecutionPipeline() {
     { title: "Branch", value: summary.branch },
     { title: "Operação", value: summary.operation },
   ]);
-
   setQuickSummary(`Pipeline gerado para ${summary.repo || "repo desconhecida"}`);
 }
 
@@ -315,57 +342,49 @@ function copySummary() {
     `Shell: ${shellUrlInput.value || localStorage.getItem(KEY_SHELL) || "—"}`,
     `Preset: ${presetSelect.value}`,
   ].join("\n");
-
-  navigator.clipboard
-    ?.writeText(text)
-    .then(() => setQuickSummary("Resumo copiado."))
-    .catch(() => setQuickSummary("Não foi possível copiar o resumo."));
+  navigator.clipboard?.writeText(text).then(() => setQuickSummary("Resumo copiado.")).catch(() => setQuickSummary("Não foi possível copiar o resumo."));
 }
 
 apiInput.value = localStorage.getItem(KEY_API) || PRESETS.render.backend;
 shellUrlInput.value = localStorage.getItem(KEY_SHELL) || PRESETS.local_pc.shell;
 presetSelect.value = localStorage.getItem(KEY_PRESET) || "render";
-
 setMode(localStorage.getItem(KEY_MODE) || "driving");
 refreshStatus();
 refreshApprovals();
+refreshExecutions();
 
 q("#refreshStatusBtn").onclick = () => {
   refreshStatus();
   refreshApprovals();
+  refreshExecutions();
 };
 q("#applyPresetBtn").onclick = applyPreset;
 q("#saveApiBtn").onclick = () => {
   saveUrls();
   refreshStatus();
   refreshApprovals();
+  refreshExecutions();
 };
 q("#statusBtn").onclick = refreshStatus;
 q("#refreshApprovalsBtn").onclick = refreshApprovals;
-
+q("#refreshExecutionsBtn").onclick = refreshExecutions;
 q("#drivingModeBtn").onclick = () => setMode("driving");
 q("#assistedModeBtn").onclick = () => setMode("assisted");
-
-q("#mobileCockpitBtn").onclick = () =>
-  runCockpit().catch((error) => {
-    cockpitOutput.textContent = error.message;
-    headlineBox.textContent = error.message;
-    renderDecision("rejeita");
-    renderCards([]);
-    setQuickSummary("Erro ao gerar cockpit.");
-  });
-
-q("#executionBtn").onclick = () =>
-  runExecutionPipeline().catch((error) => {
-    executionOutput.textContent = error.message;
-    headlineBox.textContent = error.message;
-    renderDecision("rejeita");
-    renderCards([]);
-    setQuickSummary("Erro ao gerar pipeline.");
-  });
-
+q("#mobileCockpitBtn").onclick = () => runCockpit().catch((error) => {
+  cockpitOutput.textContent = error.message;
+  headlineBox.textContent = error.message;
+  renderDecision("rejeita");
+  renderCards([]);
+  setQuickSummary("Erro ao gerar cockpit.");
+});
+q("#executionBtn").onclick = () => runExecutionPipeline().catch((error) => {
+  executionOutput.textContent = error.message;
+  headlineBox.textContent = error.message;
+  renderDecision("rejeita");
+  renderCards([]);
+  setQuickSummary("Erro ao gerar pipeline.");
+});
 q("#copySummaryBtn").onclick = copySummary;
-
 q("#approveOkBtn").onclick = () => setQuickSummary("Aprovação rápida: OK");
 q("#approveChangeBtn").onclick = () => setQuickSummary("Aprovação rápida: ALTERA");
 q("#approveRejectBtn").onclick = () => setQuickSummary("Aprovação rápida: REJEITA");
