@@ -36,44 +36,16 @@
           <h2>Backend</h2>
           <span id="profileBadge" class="badge badge-info">preset</span>
         </div>
-
         <div class="grid two-col">
-          <label class="field">
-            <span>Fonte de backend</span>
-            <select id="backendPresetSelect">
-              <option value="render">Render</option>
-              <option value="local_pc">PC local</option>
-              <option value="private_tunnel">Túnel privado/free</option>
-              <option value="manual">Manual</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>URL shell local/túnel</span>
-            <input id="shellUrlInput" type="url" placeholder="http://127.0.0.1:4173 ou URL do túnel" />
-          </label>
+          <label class="field"><span>Fonte de backend</span><select id="backendPresetSelect"><option value="render">Render</option><option value="local_pc">PC local</option><option value="private_tunnel">Túnel privado/free</option><option value="manual">Manual</option></select></label>
+          <label class="field"><span>URL shell local/túnel</span><input id="shellUrlInput" type="url" placeholder="http://127.0.0.1:4173 ou URL do túnel" /></label>
         </div>
-
-        <label class="field">
-          <span>API base</span>
-          <input id="apiBaseInput" type="url" placeholder="https://devops-god-mode-backend.onrender.com" />
-        </label>
-
+        <label class="field"><span>API base</span><input id="apiBaseInput" type="url" placeholder="https://devops-god-mode-backend.onrender.com" /></label>
         <div class="status-grid grid three-col">
-          <div>
-            <p class="label">Backend</p>
-            <p id="backendStatusValue" class="value">—</p>
-          </div>
-          <div>
-            <p class="label">Perfil</p>
-            <p id="backendProfileValue" class="value">—</p>
-          </div>
-          <div>
-            <p class="label">Preset</p>
-            <p id="backendPresetValue" class="value">render</p>
-          </div>
+          <div><p class="label">Backend</p><p id="backendStatusValue" class="value">—</p></div>
+          <div><p class="label">Perfil</p><p id="backendProfileValue" class="value">—</p></div>
+          <div><p class="label">Preset</p><p id="backendPresetValue" class="value">render</p></div>
         </div>
-
         <div class="action-row compact-row wrap-row">
           <button id="applyPresetBtn" class="secondary-btn">Aplicar preset</button>
           <button id="saveApiBtn" class="secondary-btn">Guardar URLs</button>
@@ -82,127 +54,58 @@
       </section>
 
       <section class="panel approvals-panel">
-        <div class="panel-title-row">
-          <h2>Aprovações</h2>
-          <span id="approvalCountBadge" class="badge badge-warning">0 pendentes</span>
-        </div>
+        <div class="panel-title-row"><h2>Aprovações</h2><span id="approvalCountBadge" class="badge badge-warning">0 pendentes</span></div>
         <p class="helper-text">Pedidos sensíveis do PC local podem ser aprovados aqui com contexto curto.</p>
-        <div class="action-row wrap-row compact-row">
-          <button id="refreshApprovalsBtn" class="secondary-btn">Atualizar approvals</button>
-        </div>
+        <div class="action-row wrap-row compact-row"><button id="refreshApprovalsBtn" class="secondary-btn">Atualizar approvals</button></div>
         <div id="approvalCards" class="approval-cards"></div>
         <div id="approvalEmptyState" class="empty-state">Sem approvals pendentes.</div>
       </section>
 
-      <section class="panel command-panel">
-        <div class="panel-title-row">
-          <h2>Pedido</h2>
-          <span class="badge badge-info">handsfree</span>
-        </div>
+      <section class="panel reconstructions-panel">
+        <div class="panel-title-row"><h2>Reconstruções</h2><span id="reconstructionCountBadge" class="badge badge-info">0 propostas</span></div>
+        <p class="helper-text">Propostas para montar repo de raiz a partir de conversas antigas aparecem aqui.</p>
+        <div class="action-row wrap-row compact-row"><button id="refreshReconstructionsBtn" class="secondary-btn">Atualizar reconstruções</button></div>
+        <div id="reconstructionCards" class="reconstruction-cards"></div>
+        <div id="reconstructionEmptyState" class="empty-state">Sem reconstruções propostas.</div>
+      </section>
 
-        <label class="field">
-          <span>Comando principal</span>
-          <textarea id="textInput" rows="7">Repo AndreVazao/baribudos-studio. Substitui o ficheiro app/main.py por isto:
+      <section class="panel command-panel">
+        <div class="panel-title-row"><h2>Pedido</h2><span class="badge badge-info">handsfree</span></div>
+        <label class="field"><span>Comando principal</span><textarea id="textInput" rows="7">Repo AndreVazao/baribudos-studio. Substitui o ficheiro app/main.py por isto:
 ```python
 print('ok')
-```</textarea>
-        </label>
-
+```</textarea></label>
         <div id="assistedFields" class="assisted-fields">
           <div class="grid two-col">
-            <label class="field">
-              <span>Repo alvo</span>
-              <input id="repoInput" type="text" value="AndreVazao/baribudos-studio" />
-            </label>
-
-            <label class="field">
-              <span>Ficheiro alvo</span>
-              <input id="pathInput" type="text" value="app/main.py" />
-            </label>
-
-            <label class="field">
-              <span>Branch sugerida</span>
-              <input id="branchInput" type="text" value="feature/handsfree-local-tunnel-test" />
-            </label>
-
-            <label class="field">
-              <span>Base branch</span>
-              <input id="baseBranchInput" type="text" value="main" />
-            </label>
-
-            <label class="field">
-              <span>Visibilidade</span>
-              <select id="visibilityInput">
-                <option value="private" selected>private</option>
-                <option value="public">public</option>
-              </select>
-            </label>
-
-            <label class="field">
-              <span>Ciclo</span>
-              <select id="lifecycleInput">
-                <option value="public_until_product_ready" selected>public_until_product_ready</option>
-                <option value="private_only">private_only</option>
-                <option value="public_only">public_only</option>
-              </select>
-            </label>
+            <label class="field"><span>Repo alvo</span><input id="repoInput" type="text" value="AndreVazao/baribudos-studio" /></label>
+            <label class="field"><span>Ficheiro alvo</span><input id="pathInput" type="text" value="app/main.py" /></label>
+            <label class="field"><span>Branch sugerida</span><input id="branchInput" type="text" value="feature/handsfree-local-tunnel-test" /></label>
+            <label class="field"><span>Base branch</span><input id="baseBranchInput" type="text" value="main" /></label>
+            <label class="field"><span>Visibilidade</span><select id="visibilityInput"><option value="private" selected>private</option><option value="public">public</option></select></label>
+            <label class="field"><span>Ciclo</span><select id="lifecycleInput"><option value="public_until_product_ready" selected>public_until_product_ready</option><option value="private_only">private_only</option><option value="public_only">public_only</option></select></label>
           </div>
-
-          <label class="field">
-            <span>Repos relacionadas</span>
-            <textarea id="relatedReposInput" rows="3">AndreVazao/baribudos-studio
-AndreVazao/baribudos-studio-website</textarea>
-          </label>
+          <label class="field"><span>Repos relacionadas</span><textarea id="relatedReposInput" rows="3">AndreVazao/baribudos-studio
+AndreVazao/baribudos-studio-website</textarea></label>
         </div>
-
-        <div class="action-row wrap-row">
-          <button id="mobileCockpitBtn" class="primary-btn">Gerar cockpit</button>
-          <button id="executionBtn" class="secondary-btn">Gerar pipeline</button>
-          <button id="copySummaryBtn" class="ghost-btn">Copiar resumo</button>
-        </div>
+        <div class="action-row wrap-row"><button id="mobileCockpitBtn" class="primary-btn">Gerar cockpit</button><button id="executionBtn" class="secondary-btn">Gerar pipeline</button><button id="copySummaryBtn" class="ghost-btn">Copiar resumo</button></div>
       </section>
 
       <section class="panel cockpit-panel">
-        <div class="panel-title-row">
-          <h2>Cockpit</h2>
-          <span id="decisionBadge" class="badge badge-neutral">sem decisão</span>
-        </div>
-
+        <div class="panel-title-row"><h2>Cockpit</h2><span id="decisionBadge" class="badge badge-neutral">sem decisão</span></div>
         <div id="headlineBox" class="headline-box">Ainda sem resposta.</div>
         <div id="compactCards" class="compact-cards"></div>
-
-        <div class="action-buttons">
-          <button id="approveOkBtn" class="decision-btn">OK</button>
-          <button id="approveChangeBtn" class="decision-btn">ALTERA</button>
-          <button id="approveRejectBtn" class="decision-btn">REJEITA</button>
-        </div>
+        <div class="action-buttons"><button id="approveOkBtn" class="decision-btn">OK</button><button id="approveChangeBtn" class="decision-btn">ALTERA</button><button id="approveRejectBtn" class="decision-btn">REJEITA</button></div>
       </section>
 
       <section class="panel outputs-panel">
-        <div class="panel-title-row">
-          <h2>JSON</h2>
-          <span class="badge badge-info">debug</span>
-        </div>
-
+        <div class="panel-title-row"><h2>JSON</h2><span class="badge badge-info">debug</span></div>
         <div class="stacked-outputs">
-          <div>
-            <h3>Execution pipeline</h3>
-            <pre id="executionOutput" class="output-box"></pre>
-          </div>
-
-          <div>
-            <h3>Mobile cockpit</h3>
-            <pre id="cockpitOutput" class="output-box"></pre>
-          </div>
-
-          <div>
-            <h3>Resumo rápido</h3>
-            <pre id="quickSummaryOutput" class="output-box">Sem resumo ainda.</pre>
-          </div>
+          <div><h3>Execution pipeline</h3><pre id="executionOutput" class="output-box"></pre></div>
+          <div><h3>Mobile cockpit</h3><pre id="cockpitOutput" class="output-box"></pre></div>
+          <div><h3>Resumo rápido</h3><pre id="quickSummaryOutput" class="output-box">Sem resumo ainda.</pre></div>
         </div>
       </section>
     </div>
-
     <script src="./app.js"></script>
   </body>
 </html>
