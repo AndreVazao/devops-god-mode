@@ -1,0 +1,35 @@
+name: Mobile Hybrid Shell Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/mobile-hybrid-shell-next'
+    paths:
+      - 'frontend/mobile-shell/index.hybrid.html'
+      - 'frontend/mobile-shell/app.hybrid.js'
+      - 'frontend/mobile-shell/styles.hybrid.css'
+      - 'docs/mobile-first-cockpit-shell-port-note.md'
+      - '.github/workflows/mobile-hybrid-shell-smoke.yml'
+
+jobs:
+  smoke-mobile-hybrid-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required files
+        run: |
+          test -f frontend/mobile-shell/index.hybrid.html
+          test -f frontend/mobile-shell/app.hybrid.js
+          test -f frontend/mobile-shell/styles.hybrid.css
+          test -f docs/mobile-first-cockpit-shell-port-note.md
+
+      - name: Lightweight content checks
+        run: |
+          grep -q "Driving" frontend/mobile-shell/index.hybrid.html
+          grep -q "Assisted" frontend/mobile-shell/index.hybrid.html
+          grep -q "mobile-cockpit" frontend/mobile-shell/app.hybrid.js
+          grep -q "execution-pipeline" frontend/mobile-shell/app.hybrid.js
+          grep -q "mode-btn-active" frontend/mobile-shell/styles.hybrid.css
