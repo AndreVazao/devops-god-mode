@@ -13,7 +13,6 @@ on:
       - 'frontend/mobile-shell/app.handsfree.js'
       - 'frontend/mobile-shell/styles.handsfree.css'
       - 'frontend/mobile-shell/backend-presets.example.json'
-      - 'docs/promote-handsfree-primary-plan.md'
       - '.github/workflows/god-mode-unified-validation.yml'
 
 jobs:
@@ -29,7 +28,6 @@ jobs:
           test -f frontend/mobile-shell/app.js
           test -f frontend/mobile-shell/styles.css
           test -f frontend/mobile-shell/backend-presets.example.json
-          test -f docs/promote-handsfree-primary-plan.md
 
       - name: Validate current primary shell markers
         run: |
