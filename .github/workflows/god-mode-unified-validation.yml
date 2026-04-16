@@ -13,7 +13,6 @@ on:
       - 'frontend/mobile-shell/app.handsfree.js'
       - 'frontend/mobile-shell/styles.handsfree.css'
       - 'frontend/mobile-shell/backend-presets.example.json'
-      - 'docs/promote-handsfree-primary-plan.md'
       - '.github/workflows/god-mode-unified-validation.yml'
 
 jobs:
