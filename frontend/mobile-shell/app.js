@@ -1,0 +1,133 @@
+const D='https://devops-god-mode-backend.onrender.com';
+const K1='god_mode_api_base';
+const K2='god_mode_shell_mode';
+const q=s=>document.querySelector(s);
+const api=q('#apiBaseInput');
+const badge=q('#connectionBadge');
+const profile=q('#profileBadge');
+const bs=q('#backendStatusValue');
+const bp=q('#backendProfileValue');
+const db=q('#decisionBadge');
+const hb=q('#headlineBox');
+const cc=q('#compactCards');
+const ms=q('#modeSummary');
+const af=q('#assistedFields');
+const eo=q('#executionOutput');
+const co=q('#cockpitOutput');
+
+function base(){
+  return (api.value||localStorage.getItem(K1)||D).trim().replace(/\/$/,'');
+}
+
+function rel(){
+  return q('#relatedReposInput').value.split(/\n+/).map(v=>v.trim()).filter(Boolean);
+}
+
+function payload(){
+  return {
+    text:q('#textInput').value,
+    repo_full_name:q('#repoInput').value,
+    preferred_path:q('#pathInput').value,
+    proposed_branch:q('#branchInput').value,
+    registry_context:{
+      ecosystem_key:'baribudos-ecosystem',
+      related_repos:rel()
+    },
+    desired_visibility:q('#visibilityInput').value,
+    lifecycle_mode:q('#lifecycleInput').value,
+    build_strategy:'github_actions_free_public',
+    product_ready:false,
+    base_branch:q('#baseBranchInput').value
+  };
+}
+
+async function fj(u,o={}){
+  const r=await fetch(u,{headers:{'Content-Type':'application/json'},...o});
+  const t=await r.text();
+  const d=t?JSON.parse(t):null;
+  if(!r.ok) throw new Error(JSON.stringify(d));
+  return d;
+}
+
+function cards(a){
+  cc.innerHTML='';
+  a.forEach(c=>{
+    const x=document.createElement('article');
+    x.className='compact-card';
+    x.innerHTML='<p class="label">'+c.title+'</p><p class="value">'+(c.value||'—')+'</p>';
+    cc.appendChild(x);
+  });
+}
+
+function dec(v){
+  db.textContent=v||'sem decisão';
+  db.className='badge '+(v==='ok'?'badge-success':v==='altera'?'badge-warning':'badge-neutral');
+}
+
+function mode(v){
+  localStorage.setItem(K2,v);
+  q('#drivingModeBtn').classList.toggle('mode-btn-active',v==='driving');
+  q('#assistedModeBtn').classList.toggle('mode-btn-active',v==='assisted');
+  af.style.display=v==='assisted'?'block':'none';
+  ms.textContent=v==='driving'
+    ? 'Driving: foco em 1 comando e menos distração.'
+    : 'Assisted: mais campos e mais controlo manual.';
+}
+
+async function status(){
+  badge.textContent='a validar';
+  badge.className='badge badge-warning';
+  try{
+    const r=await fj(base()+'/');
+    const o=await fj(base()+'/ops/status');
+    bs.textContent=r.status||'ok';
+    bp.textContent=o.profile||r.profile||'desconhecido';
+    profile.textContent=o.profile||'backend';
+    badge.textContent='online';
+    badge.className='badge badge-success';
+  }catch(e){
+    bs.textContent='erro';
+    bp.textContent=String(e.message).slice(0,80);
+    badge.textContent='offline';
+    badge.className='badge badge-danger';
+  }
+}
+
+async function cockpit(){
+  const d=await fj(base()+'/ops/mobile-cockpit',{
+    method:'POST',
+    body:JSON.stringify(payload())
+  });
+  co.textContent=JSON.stringify(d,null,2);
+  hb.textContent=d.headline||d.next_step||'Ainda sem resposta.';
+  dec(d.decision);
+  cards(d.compact_cards||[]);
+}
+
+async function execp(){
+  const d=await fj(base()+'/ops/execution-pipeline',{
+    method:'POST',
+    body:JSON.stringify(payload())
+  });
+  eo.textContent=JSON.stringify(d,null,2);
+  hb.textContent=d.next_step||((d.approval_shell||{}).headline)||'Pipeline gerado.';
+  dec(((d.approval_shell||{}).decision));
+  const s=(d.approval_shell||{}).compact_summary||{};
+  cards([
+    {title:'Repo alvo',value:s.repo},
+    {title:'Ficheiro alvo',value:s.path},
+    {title:'Branch',value:s.branch},
+    {title:'Operação',value:s.operation}
+  ]);
+}
+
+api.value=localStorage.getItem(K1)||D;
+mode(localStorage.getItem(K2)||'driving');
+status();
+q('#refreshStatusBtn').onclick=status;
+q('#saveApiBtn').onclick=()=>{localStorage.setItem(K1,base());status();};
+q('#statusBtn').onclick=status;
+q('#drivingModeBtn').onclick=()=>mode('driving');
+q('#assistedModeBtn').onclick=()=>mode('assisted');
+q('#mobileCockpitBtn').onclick=()=>cockpit().catch(e=>{co.textContent=e.message;hb.textContent=e.message;dec('rejeita');cards([]);});
+q('#executionBtn').onclick=()=>execp().catch(e=>{eo.textContent=e.message;hb.textContent=e.message;dec('rejeita');cards([]);});
