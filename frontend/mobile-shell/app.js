@@ -111,10 +111,8 @@ async function fetchJson(url, options = {}) {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
-
   const text = await response.text();
   let data = null;
-
   try {
     data = text ? JSON.parse(text) : null;
   } catch {
@@ -154,7 +152,6 @@ function setMode(mode) {
   q("#drivingModeBtn").classList.toggle("mode-btn-active", mode === "driving");
   q("#assistedModeBtn").classList.toggle("mode-btn-active", mode === "assisted");
   assistedFields.style.display = mode === "assisted" ? "block" : "none";
-
   modeSummary.textContent =
     mode === "driving"
       ? "Driving: menos distração, headline curta e decisão rápida."
@@ -180,7 +177,6 @@ function renderApprovalCards(requests) {
   approvalCards.innerHTML = "";
   approvalEmptyState.style.display = requests.length > 0 ? "none" : "block";
   setApprovalCount(requests.length);
-
   requests.forEach((request) => {
     const card = document.createElement("article");
     card.className = "approval-card";
@@ -188,7 +184,6 @@ function renderApprovalCards(requests) {
     const risk = request.risk_level || "n/a";
     const summary = request.summary || "Sem resumo";
     const details = request.details ? JSON.stringify(request.details, null, 2) : "{}";
-
     card.innerHTML = `
       <div class="approval-card-top">
         <div>
@@ -204,10 +199,8 @@ function renderApprovalCards(requests) {
         <button class="decision-btn" data-approval="${request.request_id}" data-response="REJEITA">REJEITA</button>
       </div>
     `;
-
     approvalCards.appendChild(card);
   });
-
   approvalCards.querySelectorAll("button[data-approval]").forEach((button) => {
     button.onclick = () => respondApproval(button.dataset.approval, button.dataset.response);
   });
@@ -245,6 +238,8 @@ function renderExecutionCards(executions) {
     executionCards.appendChild(card);
   });
 
+    executionCards.appendChild(card);
+  });
   executionCards.querySelectorAll("button[data-sync-execution]").forEach((button) => {
     button.onclick = () => syncExecution(button.dataset.syncExecution);
   });
@@ -375,18 +370,14 @@ async function refreshStatus() {
   connectionBadge.textContent = "a validar";
   connectionBadge.className = "badge badge-warning";
   presetValue.textContent = presetSelect.value;
-
   try {
     const root = await fetchJson(`${getBaseUrl()}/`);
     const ops = await fetchJson(`${getBaseUrl()}/ops/status`);
-
     backendStatusValue.textContent = root.status || "ok";
     backendProfileValue.textContent = ops.profile || root.profile || "desconhecido";
     profileBadge.textContent = ops.profile || "backend";
-
     connectionBadge.textContent = "online";
     connectionBadge.className = "badge badge-success";
-
     setQuickSummary(`Ligação OK em ${getBaseUrl()}`);
   } catch (error) {
     backendStatusValue.textContent = "erro";
@@ -402,7 +393,6 @@ async function runCockpit() {
     method: "POST",
     body: JSON.stringify(buildPayload()),
   });
-
   cockpitOutput.textContent = JSON.stringify(data, null, 2);
   headlineBox.textContent = data.headline || data.next_step || "Ainda sem resposta.";
   renderDecision(data.decision);
@@ -415,11 +405,9 @@ async function runExecutionPipeline() {
     method: "POST",
     body: JSON.stringify(buildPayload()),
   });
-
   executionOutput.textContent = JSON.stringify(data, null, 2);
   headlineBox.textContent = data.next_step || (data.approval_shell || {}).headline || "Pipeline gerado.";
   renderDecision((data.approval_shell || {}).decision);
-
   const summary = (data.approval_shell || {}).compact_summary || {};
   renderCards([
     { title: "Repo alvo", value: summary.repo },
@@ -427,7 +415,6 @@ async function runExecutionPipeline() {
     { title: "Branch", value: summary.branch },
     { title: "Operação", value: summary.operation },
   ]);
-
   setQuickSummary(`Pipeline gerado para ${summary.repo || "repo desconhecida"}`);
 }
 
@@ -439,17 +426,12 @@ function copySummary() {
     `Shell: ${shellUrlInput.value || localStorage.getItem(KEY_SHELL) || "—"}`,
     `Preset: ${presetSelect.value}`,
   ].join("\n");
-
-  navigator.clipboard
-    ?.writeText(text)
-    .then(() => setQuickSummary("Resumo copiado."))
-    .catch(() => setQuickSummary("Não foi possível copiar o resumo."));
+  navigator.clipboard?.writeText(text).then(() => setQuickSummary("Resumo copiado.")).catch(() => setQuickSummary("Não foi possível copiar o resumo."));
 }
 
 apiInput.value = localStorage.getItem(KEY_API) || PRESETS.render.backend;
 shellUrlInput.value = localStorage.getItem(KEY_SHELL) || PRESETS.local_pc.shell;
 presetSelect.value = localStorage.getItem(KEY_PRESET) || "render";
-
 setMode(localStorage.getItem(KEY_MODE) || "driving");
 refreshStatus();
 refreshApprovals();
@@ -479,27 +461,21 @@ q("#refreshReconstructionsBtn").onclick = refreshReconstructions;
 
 q("#drivingModeBtn").onclick = () => setMode("driving");
 q("#assistedModeBtn").onclick = () => setMode("assisted");
-
-q("#mobileCockpitBtn").onclick = () =>
-  runCockpit().catch((error) => {
-    cockpitOutput.textContent = error.message;
-    headlineBox.textContent = error.message;
-    renderDecision("rejeita");
-    renderCards([]);
-    setQuickSummary("Erro ao gerar cockpit.");
-  });
-
-q("#executionBtn").onclick = () =>
-  runExecutionPipeline().catch((error) => {
-    executionOutput.textContent = error.message;
-    headlineBox.textContent = error.message;
-    renderDecision("rejeita");
-    renderCards([]);
-    setQuickSummary("Erro ao gerar pipeline.");
-  });
-
+q("#mobileCockpitBtn").onclick = () => runCockpit().catch((error) => {
+  cockpitOutput.textContent = error.message;
+  headlineBox.textContent = error.message;
+  renderDecision("rejeita");
+  renderCards([]);
+  setQuickSummary("Erro ao gerar cockpit.");
+});
+q("#executionBtn").onclick = () => runExecutionPipeline().catch((error) => {
+  executionOutput.textContent = error.message;
+  headlineBox.textContent = error.message;
+  renderDecision("rejeita");
+  renderCards([]);
+  setQuickSummary("Erro ao gerar pipeline.");
+});
 q("#copySummaryBtn").onclick = copySummary;
-
 q("#approveOkBtn").onclick = () => setQuickSummary("Aprovação rápida: OK");
 q("#approveChangeBtn").onclick = () => setQuickSummary("Aprovação rápida: ALTERA");
 q("#approveRejectBtn").onclick = () => setQuickSummary("Aprovação rápida: REJEITA");
