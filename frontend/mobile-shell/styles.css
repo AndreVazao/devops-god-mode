@@ -207,20 +207,23 @@ button {
   background: #111827;
 }
 
-.approval-cards {
+.approval-cards,
+.execution-cards {
   display: grid;
   gap: 12px;
   margin-top: 14px;
 }
 
-.approval-card {
+.approval-card,
+.execution-card {
   border: 1px solid #1e293b;
   border-radius: 14px;
   padding: 12px;
   background: #111827;
 }
 
-.approval-card-top {
+.approval-card-top,
+.execution-card-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
