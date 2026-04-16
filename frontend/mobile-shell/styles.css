@@ -207,6 +207,53 @@ button {
   background: #111827;
 }
 
+.approval-cards {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.approval-card {
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 12px;
+  background: #111827;
+}
+
+.approval-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.approval-details {
+  background: #020617;
+  color: #cbd5e1;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 10px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  margin: 0 0 12px;
+}
+
+.approval-action-buttons {
+  margin-bottom: 0;
+}
+
+.empty-state {
+  border: 1px dashed #334155;
+  border-radius: 14px;
+  padding: 14px;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.6);
+  margin-top: 14px;
+}
+
 .action-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -251,7 +298,8 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .action-buttons {
+  .action-buttons,
+  .approval-action-buttons {
     grid-template-columns: 1fr;
   }
 }
