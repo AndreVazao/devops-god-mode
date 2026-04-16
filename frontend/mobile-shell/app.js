@@ -48,6 +48,10 @@ const executionOutput = q("#executionOutput");
 const cockpitOutput = q("#cockpitOutput");
 const quickSummaryOutput = q("#quickSummaryOutput");
 
+const approvalCards = q("#approvalCards");
+const approvalEmptyState = q("#approvalEmptyState");
+const approvalCountBadge = q("#approvalCountBadge");
+
 function getBaseUrl() {
   return (apiInput.value || localStorage.getItem(KEY_API) || PRESETS.render.backend)
     .trim()
@@ -167,6 +171,77 @@ function setMode(mode) {
       : "Assisted: mais campos, mais contexto e mais controlo manual.";
 }
 
+function setApprovalCount(count) {
+  approvalCountBadge.textContent = `${count} pendentes`;
+  approvalCountBadge.className = count > 0 ? "badge badge-warning" : "badge badge-success";
+}
+
+function renderApprovalCards(requests) {
+  approvalCards.innerHTML = "";
+  approvalEmptyState.style.display = requests.length > 0 ? "none" : "block";
+  setApprovalCount(requests.length);
+
+  requests.forEach((request) => {
+    const card = document.createElement("article");
+    card.className = "approval-card";
+    const source = request.source || "origem desconhecida";
+    const risk = request.risk_level || "n/a";
+    const summary = request.summary || "Sem resumo";
+    const details = request.details ? JSON.stringify(request.details, null, 2) : "{}";
+
+    card.innerHTML = `
+      <div class="approval-card-top">
+        <div>
+          <p class="label">${source}</p>
+          <p class="value">${summary}</p>
+        </div>
+        <span class="badge ${risk === "high" ? "badge-danger" : risk === "medium" ? "badge-warning" : "badge-info"}">${risk}</span>
+      </div>
+      <pre class="approval-details">${details}</pre>
+      <div class="action-buttons approval-action-buttons">
+        <button class="decision-btn" data-approval="${request.request_id}" data-response="OK">OK</button>
+        <button class="decision-btn" data-approval="${request.request_id}" data-response="ALTERA">ALTERA</button>
+        <button class="decision-btn" data-approval="${request.request_id}" data-response="REJEITA">REJEITA</button>
+      </div>
+    `;
+
+    approvalCards.appendChild(card);
+  });
+
+  approvalCards.querySelectorAll("button[data-approval]").forEach((button) => {
+    button.onclick = () => respondApproval(button.dataset.approval, button.dataset.response);
+  });
+}
+
+async function refreshApprovals() {
+  try {
+    const data = await fetchJson(`${getBaseUrl()}/api/approval-broker/requests?status=pending`);
+    renderApprovalCards(data.requests || []);
+    if ((data.requests || []).length === 0) {
+      setQuickSummary("Sem approvals pendentes.");
+    }
+  } catch (error) {
+    approvalCards.innerHTML = "";
+    approvalEmptyState.style.display = "block";
+    approvalEmptyState.textContent = "Erro ao carregar approvals.";
+    setApprovalCount(0);
+    setQuickSummary("Erro ao carregar approvals pendentes.");
+  }
+}
+
+async function respondApproval(requestId, response) {
+  try {
+    const data = await fetchJson(`${getBaseUrl()}/api/approval-broker/requests/${requestId}/respond`, {
+      method: "POST",
+      body: JSON.stringify({ response, note: "respondido via mobile cockpit" }),
+    });
+    setQuickSummary(`Approval ${data.request.request_id} atualizado para ${data.request.status}.`);
+    await refreshApprovals();
+  } catch (error) {
+    setQuickSummary("Erro ao responder ao approval.");
+  }
+}
+
 async function refreshStatus() {
   connectionBadge.textContent = "a validar";
   connectionBadge.className = "badge badge-warning";
@@ -253,14 +328,20 @@ presetSelect.value = localStorage.getItem(KEY_PRESET) || "render";
 
 setMode(localStorage.getItem(KEY_MODE) || "driving");
 refreshStatus();
+refreshApprovals();
 
-q("#refreshStatusBtn").onclick = refreshStatus;
+q("#refreshStatusBtn").onclick = () => {
+  refreshStatus();
+  refreshApprovals();
+};
 q("#applyPresetBtn").onclick = applyPreset;
 q("#saveApiBtn").onclick = () => {
   saveUrls();
   refreshStatus();
+  refreshApprovals();
 };
 q("#statusBtn").onclick = refreshStatus;
+q("#refreshApprovalsBtn").onclick = refreshApprovals;
 
 q("#drivingModeBtn").onclick = () => setMode("driving");
 q("#assistedModeBtn").onclick = () => setMode("assisted");
