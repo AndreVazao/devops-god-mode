@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routes.approval_broker import router as approval_broker_router
+from app.routes.approval_gated_execution import router as approval_gated_execution_router
 from app.routes.github_scan import router as github_scan_router
 from app.routes.registry import router as registry_router
 
@@ -19,6 +20,7 @@ app.add_middleware(
 app.include_router(github_scan_router)
 app.include_router(registry_router)
 app.include_router(approval_broker_router)
+app.include_router(approval_gated_execution_router)
 
 @app.get("/")
 def root():
