@@ -1,0 +1,62 @@
+name: God Mode Unified Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/promote-handsfree-primary'
+    paths:
+      - 'frontend/mobile-shell/index.html'
+      - 'frontend/mobile-shell/app.js'
+      - 'frontend/mobile-shell/styles.css'
+      - 'frontend/mobile-shell/index.handsfree.html'
+      - 'frontend/mobile-shell/app.handsfree.js'
+      - 'frontend/mobile-shell/styles.handsfree.css'
+      - 'frontend/mobile-shell/backend-presets.example.json'
+      - 'docs/promote-handsfree-primary-plan.md'
+      - '.github/workflows/god-mode-unified-validation.yml'
+
+jobs:
+  validate-backend-and-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate core files
+        run: |
+          test -f frontend/mobile-shell/index.html
+          test -f frontend/mobile-shell/app.js
+          test -f frontend/mobile-shell/styles.css
+          test -f frontend/mobile-shell/backend-presets.example.json
+          test -f docs/promote-handsfree-primary-plan.md
+
+      - name: Validate current primary shell markers
+        run: |
+          grep -q "Mobile Hybrid Shell\|Mobile Handsfree Shell" frontend/mobile-shell/index.html
+          grep -q "Driving" frontend/mobile-shell/index.html
+          grep -q "Assisted" frontend/mobile-shell/index.html
+          grep -q "god_mode_shell_mode" frontend/mobile-shell/app.js
+          grep -q "apiBaseInput" frontend/mobile-shell/app.js
+          grep -q "mode-btn-active" frontend/mobile-shell/styles.css
+
+      - name: Validate optional handsfree prototype if present
+        run: |
+          if [ -f frontend/mobile-shell/index.handsfree.html ]; then
+            grep -q "Túnel privado/free" frontend/mobile-shell/index.handsfree.html
+            grep -q "backendPresetSelect" frontend/mobile-shell/index.handsfree.html
+          fi
+          if [ -f frontend/mobile-shell/app.handsfree.js ]; then
+            grep -q "KEY_PRESET" frontend/mobile-shell/app.handsfree.js
+            grep -q "applyPreset" frontend/mobile-shell/app.handsfree.js
+          fi
+          if [ -f frontend/mobile-shell/styles.handsfree.css ]; then
+            grep -q "three-col" frontend/mobile-shell/styles.handsfree.css
+          fi
+
+      - name: Validate backend presets
+        run: |
+          grep -q '"render"' frontend/mobile-shell/backend-presets.example.json
+          grep -q '"local_pc"' frontend/mobile-shell/backend-presets.example.json
+          grep -q '"private_tunnel"' frontend/mobile-shell/backend-presets.example.json
+          grep -q '"manual"' frontend/mobile-shell/backend-presets.example.json
