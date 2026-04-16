@@ -94,6 +94,19 @@
         <div id="approvalEmptyState" class="empty-state">Sem approvals pendentes.</div>
       </section>
 
+      <section class="panel executions-panel">
+        <div class="panel-title-row">
+          <h2>Execuções</h2>
+          <span id="executionCountBadge" class="badge badge-info">0 monitorizadas</span>
+        </div>
+        <p class="helper-text">Aqui vês o estado real das execuções sensíveis ligadas aos approvals.</p>
+        <div class="action-row wrap-row compact-row">
+          <button id="refreshExecutionsBtn" class="secondary-btn">Atualizar execuções</button>
+        </div>
+        <div id="executionCards" class="execution-cards"></div>
+        <div id="executionEmptyState" class="empty-state">Sem execuções monitorizadas.</div>
+      </section>
+
       <section class="panel command-panel">
         <div class="panel-title-row">
           <h2>Pedido</h2>
@@ -114,22 +127,18 @@ print('ok')
               <span>Repo alvo</span>
               <input id="repoInput" type="text" value="AndreVazao/baribudos-studio" />
             </label>
-
             <label class="field">
               <span>Ficheiro alvo</span>
               <input id="pathInput" type="text" value="app/main.py" />
             </label>
-
             <label class="field">
               <span>Branch sugerida</span>
               <input id="branchInput" type="text" value="feature/handsfree-local-tunnel-test" />
             </label>
-
             <label class="field">
               <span>Base branch</span>
               <input id="baseBranchInput" type="text" value="main" />
             </label>
-
             <label class="field">
               <span>Visibilidade</span>
               <select id="visibilityInput">
@@ -137,7 +146,6 @@ print('ok')
                 <option value="public">public</option>
               </select>
             </label>
-
             <label class="field">
               <span>Ciclo</span>
               <select id="lifecycleInput">
@@ -147,7 +155,6 @@ print('ok')
               </select>
             </label>
           </div>
-
           <label class="field">
             <span>Repos relacionadas</span>
             <textarea id="relatedReposInput" rows="3">AndreVazao/baribudos-studio
@@ -167,10 +174,8 @@ AndreVazao/baribudos-studio-website</textarea>
           <h2>Cockpit</h2>
           <span id="decisionBadge" class="badge badge-neutral">sem decisão</span>
         </div>
-
         <div id="headlineBox" class="headline-box">Ainda sem resposta.</div>
         <div id="compactCards" class="compact-cards"></div>
-
         <div class="action-buttons">
           <button id="approveOkBtn" class="decision-btn">OK</button>
           <button id="approveChangeBtn" class="decision-btn">ALTERA</button>
@@ -183,18 +188,15 @@ AndreVazao/baribudos-studio-website</textarea>
           <h2>JSON</h2>
           <span class="badge badge-info">debug</span>
         </div>
-
         <div class="stacked-outputs">
           <div>
             <h3>Execution pipeline</h3>
             <pre id="executionOutput" class="output-box"></pre>
           </div>
-
           <div>
             <h3>Mobile cockpit</h3>
             <pre id="cockpitOutput" class="output-box"></pre>
           </div>
-
           <div>
             <h3>Resumo rápido</h3>
             <pre id="quickSummaryOutput" class="output-box">Sem resumo ainda.</pre>
