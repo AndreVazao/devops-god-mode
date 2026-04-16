@@ -1,4 +1,4 @@
-name: Prune Old Artifacts Across Repos V2
+name: Prune Old Artifacts Across Repos
 
 on:
   workflow_dispatch:
@@ -39,8 +39,8 @@ jobs:
         env:
           GH_ADMIN_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
           OWNER: ${{ inputs.owner || 'AndreVazao' }}
-          OLDER_THAN_DAYS: ${{ inputs.older_than_days || '3' }}
-          KEEP_NEWEST: ${{ inputs.keep_newest || '5' }}
+          OLDER_THAN_DAYS: ${{ inputs.older_than_days || '2' }}
+          KEEP_NEWEST: ${{ inputs.keep_newest || '2' }}
           REPO_VISIBILITY: ${{ inputs.repo_visibility || 'all' }}
         run: |
           set -euo pipefail
