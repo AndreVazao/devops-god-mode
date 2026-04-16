@@ -1,0 +1,29 @@
+{
+  "default_mode": "render",
+  "presets": [
+    {
+      "key": "render",
+      "label": "Render",
+      "backend_url": "https://devops-god-mode-backend.onrender.com",
+      "shell_url": "https://YOUR-VERCEL-URL.vercel.app"
+    },
+    {
+      "key": "local_pc",
+      "label": "PC local",
+      "backend_url": "http://127.0.0.1:8787",
+      "shell_url": "http://127.0.0.1:4173"
+    },
+    {
+      "key": "private_tunnel",
+      "label": "Túnel privado/free",
+      "backend_url": "",
+      "shell_url": ""
+    },
+    {
+      "key": "manual",
+      "label": "Manual",
+      "backend_url": "",
+      "shell_url": ""
+    }
+  ]
+}
