@@ -1,0 +1,38 @@
+name: Mobile Execution Status Cockpit Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/mobile-execution-status-cockpit'
+    paths:
+      - 'docs/mobile-execution-status-cockpit-plan.md'
+      - 'frontend/mobile-shell/index.html'
+      - 'frontend/mobile-shell/app.js'
+      - 'frontend/mobile-shell/styles.css'
+      - '.github/workflows/mobile-execution-status-cockpit-smoke.yml'
+
+jobs:
+  smoke-mobile-execution-status-cockpit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate mobile execution status cockpit files
+        run: |
+          test -f docs/mobile-execution-status-cockpit-plan.md
+          test -f frontend/mobile-shell/index.html
+          test -f frontend/mobile-shell/app.js
+          test -f frontend/mobile-shell/styles.css
+
+      - name: Validate execution cockpit markers
+        run: |
+          grep -q "Execuções" frontend/mobile-shell/index.html
+          grep -q "refreshExecutionsBtn" frontend/mobile-shell/index.html
+          grep -q "executionCards" frontend/mobile-shell/index.html
+          grep -q "refreshExecutions" frontend/mobile-shell/app.js
+          grep -q "syncExecution" frontend/mobile-shell/app.js
+          grep -q "/api/execution-gate/executions" frontend/mobile-shell/app.js
+          grep -q "execution-card" frontend/mobile-shell/styles.css
+          grep -q "execution-card-top" frontend/mobile-shell/styles.css
