@@ -1,0 +1,25 @@
+{
+  "reconstruction_id": "recon_0001",
+  "source_type": "browser_ai_conversation",
+  "source_label": "ChatGPT conversa antiga sobre projeto X",
+  "status": "proposal_ready",
+  "messages_scanned": 84,
+  "code_blocks_found": 17,
+  "proposed_repo": {
+    "name": "project-x-rebuilt",
+    "tree": [
+      "backend/main.py",
+      "frontend/index.html",
+      "frontend/app.js",
+      "frontend/styles.css",
+      "README.md"
+    ]
+  },
+  "risks": [
+    "possible_duplicate_blocks",
+    "missing_config_files"
+  ],
+  "approval_required": true,
+  "created_at": "2026-04-16T18:45:00Z",
+  "updated_at": "2026-04-16T18:45:00Z"
+}
