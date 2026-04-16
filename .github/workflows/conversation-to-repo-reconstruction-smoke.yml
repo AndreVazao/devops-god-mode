@@ -1,0 +1,38 @@
+name: Conversation To Repo Reconstruction Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/conversation-to-repo-reconstruction'
+    paths:
+      - 'docs/conversation-to-repo-reconstruction-plan.md'
+      - 'backend/contracts/conversation_repo_reconstruction.example.json'
+      - 'backend/app/services/conversation_repo_reconstruction_service.py'
+      - 'backend/app/routes/conversation_repo_reconstruction.py'
+      - 'backend/main.py'
+      - '.github/workflows/conversation-to-repo-reconstruction-smoke.yml'
+
+jobs:
+  smoke-conversation-reconstruction:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate reconstruction files
+        run: |
+          test -f docs/conversation-to-repo-reconstruction-plan.md
+          test -f backend/contracts/conversation_repo_reconstruction.example.json
+          test -f backend/app/services/conversation_repo_reconstruction_service.py
+          test -f backend/app/routes/conversation_repo_reconstruction.py
+          test -f backend/main.py
+
+      - name: Validate reconstruction markers
+        run: |
+          grep -q "recon_0001" backend/contracts/conversation_repo_reconstruction.example.json
+          grep -q '"status": "proposal_ready"' backend/contracts/conversation_repo_reconstruction.example.json
+          grep -q "create_proposal" backend/app/services/conversation_repo_reconstruction_service.py
+          grep -q "approved_to_build_repo" backend/app/services/conversation_repo_reconstruction_service.py
+          grep -q "/api/conversation-reconstruction" backend/app/routes/conversation_repo_reconstruction.py
+          grep -q "conversation_repo_reconstruction_router" backend/main.py

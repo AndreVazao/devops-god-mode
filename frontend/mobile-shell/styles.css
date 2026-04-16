@@ -208,6 +208,8 @@ button {
 }
 
 .approval-cards,
+.execution-cards,
+.reconstruction-cards {
 .execution-cards {
   display: grid;
   gap: 12px;
@@ -215,6 +217,8 @@ button {
 }
 
 .approval-card,
+.execution-card,
+.reconstruction-card {
 .execution-card {
   border: 1px solid #1e293b;
   border-radius: 14px;
@@ -223,6 +227,8 @@ button {
 }
 
 .approval-card-top,
+.execution-card-top,
+.reconstruction-card-top {
 .execution-card-top {
   display: flex;
   justify-content: space-between;
