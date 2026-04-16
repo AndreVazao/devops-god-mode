@@ -1,0 +1,28 @@
+{
+  "session_id": "intake_0001",
+  "source_type": "browser_ai_conversation",
+  "source_url": "https://chatgpt.com/c/example-conversation",
+  "conversation_title": "Projeto X - conversa antiga",
+  "capture_status": "capturing",
+  "scroll_steps": 3,
+  "snippets": [
+    {
+      "snippet_id": "snip_0001",
+      "kind": "message_excerpt",
+      "text": "Criar backend FastAPI com approval broker."
+    }
+  ],
+  "code_blocks": [
+    {
+      "block_id": "code_0001",
+      "language": "python",
+      "suggested_path": "backend/main.py",
+      "content_preview": "from fastapi import FastAPI"
+    }
+  ],
+  "warnings": [
+    "possible_truncated_history"
+  ],
+  "created_at": "2026-04-16T21:30:00Z",
+  "updated_at": "2026-04-16T21:35:00Z"
+}
