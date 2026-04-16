@@ -81,6 +81,19 @@
         </div>
       </section>
 
+      <section class="panel approvals-panel">
+        <div class="panel-title-row">
+          <h2>Aprovações</h2>
+          <span id="approvalCountBadge" class="badge badge-warning">0 pendentes</span>
+        </div>
+        <p class="helper-text">Pedidos sensíveis do PC local podem ser aprovados aqui com contexto curto.</p>
+        <div class="action-row wrap-row compact-row">
+          <button id="refreshApprovalsBtn" class="secondary-btn">Atualizar approvals</button>
+        </div>
+        <div id="approvalCards" class="approval-cards"></div>
+        <div id="approvalEmptyState" class="empty-state">Sem approvals pendentes.</div>
+      </section>
+
       <section class="panel command-panel">
         <div class="panel-title-row">
           <h2>Pedido</h2>
