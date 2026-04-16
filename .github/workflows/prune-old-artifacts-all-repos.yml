@@ -20,7 +20,7 @@ on:
         required: false
         default: all
   schedule:
-    - cron: '41 3 * * *'
+    - cron: '43 3 * * *'
 
 jobs:
   prune-across-repos:
@@ -39,8 +39,8 @@ jobs:
         env:
           GH_ADMIN_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
           OWNER: ${{ inputs.owner || 'AndreVazao' }}
-          OLDER_THAN_DAYS: ${{ inputs.older_than_days || '3' }}
-          KEEP_NEWEST: ${{ inputs.keep_newest || '5' }}
+          OLDER_THAN_DAYS: ${{ inputs.older_than_days || '2' }}
+          KEEP_NEWEST: ${{ inputs.keep_newest || '2' }}
           REPO_VISIBILITY: ${{ inputs.repo_visibility || 'all' }}
         run: |
           set -euo pipefail
@@ -89,17 +89,29 @@ jobs:
           for full_name in $(echo "$repos_json" | jq -r '.[].full_name'); do
             echo "---"
             echo "Processing $full_name"
-            artifacts=$(api GET "https://api.github.com/repos/${full_name}/actions/artifacts?per_page=100")
-            total=$(echo "$artifacts" | jq '.artifacts | length')
+
+            artifact_page=1
+            repo_artifacts='[]'
+
+            while true; do
+              artifact_batch=$(api GET "https://api.github.com/repos/${full_name}/actions/artifacts?per_page=100&page=${artifact_page}")
+              batch_count=$(echo "$artifact_batch" | jq '.artifacts | length')
+              if [ "$batch_count" -eq 0 ]; then
+                break
+              fi
+              repo_artifacts=$(jq -s '.[0] + .[1]' <(echo "$repo_artifacts") <(echo "$artifact_batch" | jq '.artifacts'))
+              artifact_page=$((artifact_page + 1))
+            done
+
+            total=$(echo "$repo_artifacts" | jq 'length')
             echo "Artifacts found: $total"
 
             if [ "$total" -eq 0 ]; then
               continue
             fi
 
-            to_delete=$(echo "$artifacts" | jq --argjson cutoff "$cutoff_epoch" --argjson keep "$KEEP_NEWEST" '
-              .artifacts
-              | map(select(.expired == false))
+            to_delete=$(echo "$repo_artifacts" | jq --argjson cutoff "$cutoff_epoch" --argjson keep "$KEEP_NEWEST" '
+              map(select(.expired == false))
               | sort_by(.created_at) | reverse
               | to_entries
               | map(select(.key >= $keep))

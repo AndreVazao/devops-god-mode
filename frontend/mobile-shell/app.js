@@ -1,149 +1,133 @@
-const BACKEND_BASE_URL = "https://devops-god-mode-backend.onrender.com";
+const D='https://devops-god-mode-backend.onrender.com';
+const K1='god_mode_api_base';
+const K2='god_mode_shell_mode';
+const q=s=>document.querySelector(s);
+const api=q('#apiBaseInput');
+const badge=q('#connectionBadge');
+const profile=q('#profileBadge');
+const bs=q('#backendStatusValue');
+const bp=q('#backendProfileValue');
+const db=q('#decisionBadge');
+const hb=q('#headlineBox');
+const cc=q('#compactCards');
+const ms=q('#modeSummary');
+const af=q('#assistedFields');
+const eo=q('#executionOutput');
+const co=q('#cockpitOutput');
 
-const backendBadge = document.getElementById("backendBadge");
-const backendStatusValue = document.getElementById("backendStatusValue");
-const backendProfileValue = document.getElementById("backendProfileValue");
-const decisionBadge = document.getElementById("decisionBadge");
-const responseOutput = document.getElementById("responseOutput");
-const cardsContainer = document.getElementById("cardsContainer");
-
-const repoInput = document.getElementById("repoInput");
-const pathInput = document.getElementById("pathInput");
-const branchInput = document.getElementById("branchInput");
-const requestInput = document.getElementById("requestInput");
-
-const refreshStatusButton = document.getElementById("refreshStatusButton");
-const runMobileCockpitButton = document.getElementById("runMobileCockpitButton");
-const runExecutionButton = document.getElementById("runExecutionButton");
-
-async function fetchJson(url, options = {}) {
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
-  const text = await response.text();
-  let data = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = { raw: text };
-  }
-  if (!response.ok) {
-    throw new Error(JSON.stringify(data));
-  }
-  return data;
+function base(){
+  return (api.value||localStorage.getItem(K1)||D).trim().replace(/\/$/,'');
 }
 
-function buildPayload() {
+function rel(){
+  return q('#relatedReposInput').value.split(/\n+/).map(v=>v.trim()).filter(Boolean);
+}
+
+function payload(){
   return {
-    text: requestInput.value,
-    repo_full_name: repoInput.value,
-    preferred_path: pathInput.value,
-    proposed_branch: branchInput.value,
-    registry_context: {
-      ecosystem_key: "baribudos-ecosystem",
-      related_repos: [
-        "AndreVazao/baribudos-studio",
-        "AndreVazao/baribudos-studio-website",
-      ],
+    text:q('#textInput').value,
+    repo_full_name:q('#repoInput').value,
+    preferred_path:q('#pathInput').value,
+    proposed_branch:q('#branchInput').value,
+    registry_context:{
+      ecosystem_key:'baribudos-ecosystem',
+      related_repos:rel()
     },
-    desired_visibility: "private",
-    lifecycle_mode: "public_until_product_ready",
-    build_strategy: "github_actions_free_public",
-    product_ready: false,
-    base_branch: "main",
+    desired_visibility:q('#visibilityInput').value,
+    lifecycle_mode:q('#lifecycleInput').value,
+    build_strategy:'github_actions_free_public',
+    product_ready:false,
+    base_branch:q('#baseBranchInput').value
   };
 }
 
-function renderCompactCards(cards = []) {
-  cardsContainer.innerHTML = "";
-  cards.forEach((card) => {
-    const article = document.createElement("article");
-    article.className = "compact-card";
-    article.innerHTML = `
-      <p class="label">${card.title}</p>
-      <p class="value">${card.value || "—"}</p>
-    `;
-    cardsContainer.appendChild(article);
+async function fj(u,o={}){
+  const r=await fetch(u,{headers:{'Content-Type':'application/json'},...o});
+  const t=await r.text();
+  const d=t?JSON.parse(t):null;
+  if(!r.ok) throw new Error(JSON.stringify(d));
+  return d;
+}
+
+function cards(a){
+  cc.innerHTML='';
+  a.forEach(c=>{
+    const x=document.createElement('article');
+    x.className='compact-card';
+    x.innerHTML='<p class="label">'+c.title+'</p><p class="value">'+(c.value||'—')+'</p>';
+    cc.appendChild(x);
   });
 }
 
-function renderResponse(data) {
-  responseOutput.textContent = JSON.stringify(data, null, 2);
-
-  const decision = data?.decision || data?.approval_shell?.decision || "sem decisão";
-  decisionBadge.textContent = decision;
-  decisionBadge.className = "badge";
-  if (decision === "ok") decisionBadge.classList.add("badge-success");
-  else if (decision === "altera") decisionBadge.classList.add("badge-warning");
-  else if (decision === "rejeita") decisionBadge.classList.add("badge-muted");
-  else decisionBadge.classList.add("badge-muted");
-
-  if (data?.compact_cards) {
-    renderCompactCards(data.compact_cards);
-    return;
-  }
-
-  if (data?.approval_shell?.compact_summary) {
-    renderCompactCards([
-      { title: "Repo alvo", value: data.approval_shell.compact_summary.repo },
-      { title: "Ficheiro alvo", value: data.approval_shell.compact_summary.path },
-      { title: "Branch sugerida", value: data.approval_shell.compact_summary.branch },
-      { title: "Operação", value: data.approval_shell.compact_summary.operation },
-    ]);
-    return;
-  }
-
-  cardsContainer.innerHTML = "";
+function dec(v){
+  db.textContent=v||'sem decisão';
+  db.className='badge '+(v==='ok'?'badge-success':v==='altera'?'badge-warning':'badge-neutral');
 }
 
-async function refreshBackendStatus() {
-  backendBadge.textContent = "a validar";
-  backendBadge.className = "badge badge-warning";
-  try {
-    const root = await fetchJson(`${BACKEND_BASE_URL}/`);
-    const ops = await fetchJson(`${BACKEND_BASE_URL}/ops/status`);
-    backendStatusValue.textContent = root.status || "ok";
-    backendProfileValue.textContent = ops.profile || root.profile || "desconhecido";
-    backendBadge.textContent = "online";
-    backendBadge.className = "badge badge-success";
-  } catch (error) {
-    backendStatusValue.textContent = "erro";
-    backendProfileValue.textContent = String(error.message).slice(0, 80);
-    backendBadge.textContent = "offline";
-    backendBadge.className = "badge badge-danger";
+function mode(v){
+  localStorage.setItem(K2,v);
+  q('#drivingModeBtn').classList.toggle('mode-btn-active',v==='driving');
+  q('#assistedModeBtn').classList.toggle('mode-btn-active',v==='assisted');
+  af.style.display=v==='assisted'?'block':'none';
+  ms.textContent=v==='driving'
+    ? 'Driving: foco em 1 comando e menos distração.'
+    : 'Assisted: mais campos e mais controlo manual.';
+}
+
+async function status(){
+  badge.textContent='a validar';
+  badge.className='badge badge-warning';
+  try{
+    const r=await fj(base()+'/');
+    const o=await fj(base()+'/ops/status');
+    bs.textContent=r.status||'ok';
+    bp.textContent=o.profile||r.profile||'desconhecido';
+    profile.textContent=o.profile||'backend';
+    badge.textContent='online';
+    badge.className='badge badge-success';
+  }catch(e){
+    bs.textContent='erro';
+    bp.textContent=String(e.message).slice(0,80);
+    badge.textContent='offline';
+    badge.className='badge badge-danger';
   }
 }
 
-async function runMobileCockpit() {
-  const payload = buildPayload();
-  const data = await fetchJson(`${BACKEND_BASE_URL}/ops/mobile-cockpit`, {
-    method: "POST",
-    body: JSON.stringify(payload),
+async function cockpit(){
+  const d=await fj(base()+'/ops/mobile-cockpit',{
+    method:'POST',
+    body:JSON.stringify(payload())
   });
-  renderResponse(data);
+  co.textContent=JSON.stringify(d,null,2);
+  hb.textContent=d.headline||d.next_step||'Ainda sem resposta.';
+  dec(d.decision);
+  cards(d.compact_cards||[]);
 }
 
-async function runExecutionPipeline() {
-  const payload = buildPayload();
-  const data = await fetchJson(`${BACKEND_BASE_URL}/ops/execution-pipeline`, {
-    method: "POST",
-    body: JSON.stringify(payload),
+async function execp(){
+  const d=await fj(base()+'/ops/execution-pipeline',{
+    method:'POST',
+    body:JSON.stringify(payload())
   });
-  renderResponse(data);
+  eo.textContent=JSON.stringify(d,null,2);
+  hb.textContent=d.next_step||((d.approval_shell||{}).headline)||'Pipeline gerado.';
+  dec(((d.approval_shell||{}).decision));
+  const s=(d.approval_shell||{}).compact_summary||{};
+  cards([
+    {title:'Repo alvo',value:s.repo},
+    {title:'Ficheiro alvo',value:s.path},
+    {title:'Branch',value:s.branch},
+    {title:'Operação',value:s.operation}
+  ]);
 }
 
-refreshStatusButton.addEventListener("click", refreshBackendStatus);
-runMobileCockpitButton.addEventListener("click", () => runMobileCockpit().catch((error) => renderResponse({ error: error.message })));
-runExecutionButton.addEventListener("click", () => runExecutionPipeline().catch((error) => renderResponse({ error: error.message })));
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
-  });
-}
-
-refreshBackendStatus();
+api.value=localStorage.getItem(K1)||D;
+mode(localStorage.getItem(K2)||'driving');
+status();
+q('#refreshStatusBtn').onclick=status;
+q('#saveApiBtn').onclick=()=>{localStorage.setItem(K1,base());status();};
+q('#statusBtn').onclick=status;
+q('#drivingModeBtn').onclick=()=>mode('driving');
+q('#assistedModeBtn').onclick=()=>mode('assisted');
+q('#mobileCockpitBtn').onclick=()=>cockpit().catch(e=>{co.textContent=e.message;hb.textContent=e.message;dec('rejeita');cards([]);});
+q('#executionBtn').onclick=()=>execp().catch(e=>{eo.textContent=e.message;hb.textContent=e.message;dec('rejeita');cards([]);});
