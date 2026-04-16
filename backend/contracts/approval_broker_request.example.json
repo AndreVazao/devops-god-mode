@@ -1,0 +1,16 @@
+{
+  "request_id": "apr_0001",
+  "source": "browser_orchestration",
+  "action_type": "connector_permission",
+  "risk_level": "high",
+  "summary": "Pedido de autorização sensível detetado",
+  "details": {
+    "provider": "github",
+    "target": "connector_access",
+    "reason": "Necessário para executar operação pedida pelo utilizador",
+    "context": "Abrir acesso correto antes de continuar pipeline"
+  },
+  "requires_manual_confirmation": true,
+  "suggested_response": "ALTERA",
+  "allowed_responses": ["OK", "ALTERA", "REJEITA"]
+}
