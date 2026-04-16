@@ -1,0 +1,36 @@
+name: Mobile Shell Next Phase Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/mobile-shell-next-phase'
+    paths:
+      - 'docs/mobile-shell-next-phase-plan.md'
+      - 'frontend/mobile-shell/index.hybrid.html'
+      - 'frontend/mobile-shell/app.hybrid.js'
+      - 'frontend/mobile-shell/styles.hybrid.css'
+      - '.github/workflows/mobile-shell-next-phase-smoke.yml'
+
+jobs:
+  smoke-mobile-shell-next-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate next-phase files
+        run: |
+          test -f docs/mobile-shell-next-phase-plan.md
+          test -f frontend/mobile-shell/index.hybrid.html
+          test -f frontend/mobile-shell/app.hybrid.js
+          test -f frontend/mobile-shell/styles.hybrid.css
+
+      - name: Validate hybrid promotion markers
+        run: |
+          grep -q "Driving" frontend/mobile-shell/index.hybrid.html
+          grep -q "Assisted" frontend/mobile-shell/index.hybrid.html
+          grep -q "god_mode_shell_mode" frontend/mobile-shell/app.hybrid.js
+          grep -q "apiBaseInput" frontend/mobile-shell/app.hybrid.js
+          grep -q "mode-btn-active" frontend/mobile-shell/styles.hybrid.css
+          grep -q "Promover a linha híbrida" docs/mobile-shell-next-phase-plan.md
