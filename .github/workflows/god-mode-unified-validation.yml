@@ -2,35 +2,32 @@ name: God Mode Unified Validation
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
-      - 'feature/promote-handsfree-primary'
+      - main
+      - 'feature/**'
     paths:
-      - 'frontend/mobile-shell/index.html'
-      - 'frontend/mobile-shell/app.js'
-      - 'frontend/mobile-shell/styles.css'
-      - 'frontend/mobile-shell/index.handsfree.html'
-      - 'frontend/mobile-shell/app.handsfree.js'
-      - 'frontend/mobile-shell/styles.handsfree.css'
-      - 'frontend/mobile-shell/backend-presets.example.json'
-      - '.github/workflows/god-mode-unified-validation.yml'
+      - 'backend/**'
+      - 'frontend/**'
+      - 'docs/**'
+      - '.github/workflows/**'
 
 jobs:
-  validate-backend-and-shell:
+  validate-god-mode-unified:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate core files
+      - name: Validate frontend shell core
         run: |
           test -f frontend/mobile-shell/index.html
           test -f frontend/mobile-shell/app.js
           test -f frontend/mobile-shell/styles.css
           test -f frontend/mobile-shell/backend-presets.example.json
-
-      - name: Validate current primary shell markers
-        run: |
           grep -q "Mobile Hybrid Shell\|Mobile Handsfree Shell" frontend/mobile-shell/index.html
           grep -q "Driving" frontend/mobile-shell/index.html
           grep -q "Assisted" frontend/mobile-shell/index.html
@@ -38,23 +35,83 @@ jobs:
           grep -q "apiBaseInput" frontend/mobile-shell/app.js
           grep -q "mode-btn-active" frontend/mobile-shell/styles.css
 
-      - name: Validate optional handsfree prototype if present
+      - name: Validate backend contracts
         run: |
-          if [ -f frontend/mobile-shell/index.handsfree.html ]; then
-            grep -q "Túnel privado/free" frontend/mobile-shell/index.handsfree.html
-            grep -q "backendPresetSelect" frontend/mobile-shell/index.handsfree.html
-          fi
-          if [ -f frontend/mobile-shell/app.handsfree.js ]; then
-            grep -q "KEY_PRESET" frontend/mobile-shell/app.handsfree.js
-            grep -q "applyPreset" frontend/mobile-shell/app.handsfree.js
-          fi
-          if [ -f frontend/mobile-shell/styles.handsfree.css ]; then
-            grep -q "three-col" frontend/mobile-shell/styles.handsfree.css
-          fi
+          test -f backend/contracts/browser_conversation_intake.example.json
+          test -f backend/contracts/conversation_repo_reconstruction.example.json
+          test -f backend/contracts/local_patch_engine.example.json
+          test -f backend/contracts/patch_apply_preview.example.json
+          test -f backend/contracts/local_file_apply_runtime.example.json
+          test -f backend/contracts/real_local_write.example.json
+          test -f backend/contracts/write_verify_rollback.example.json
+          test -f backend/contracts/local_real_validator.example.json
+          grep -q '"session_id": "intake_0001"' backend/contracts/browser_conversation_intake.example.json
+          grep -q '"patch_id": "patch_0001"' backend/contracts/local_patch_engine.example.json
+          grep -q '"preview_id": "preview_0001"' backend/contracts/patch_apply_preview.example.json
+          grep -q '"apply_run_id": "apply_0001"' backend/contracts/local_file_apply_runtime.example.json
+          grep -q '"write_run_id": "write_0001"' backend/contracts/real_local_write.example.json
+          grep -q '"verify_run_id": "verify_0001"' backend/contracts/write_verify_rollback.example.json
+          grep -q '"validator_run_id": "validator_0001"' backend/contracts/local_real_validator.example.json
 
-      - name: Validate backend presets
+      - name: Validate backend services and routes
         run: |
-          grep -q '"render"' frontend/mobile-shell/backend-presets.example.json
-          grep -q '"local_pc"' frontend/mobile-shell/backend-presets.example.json
-          grep -q '"private_tunnel"' frontend/mobile-shell/backend-presets.example.json
-          grep -q '"manual"' frontend/mobile-shell/backend-presets.example.json
+          test -f backend/app/services/browser_conversation_intake_service.py
+          test -f backend/app/services/conversation_repo_reconstruction_service.py
+          test -f backend/app/services/local_code_patch_service.py
+          test -f backend/app/services/patch_apply_preview_service.py
+          test -f backend/app/services/local_file_apply_runtime_service.py
+          test -f backend/app/services/real_local_write_service.py
+          test -f backend/app/services/write_verify_rollback_service.py
+          test -f backend/app/services/local_real_validator_service.py
+          test -f backend/app/routes/browser_conversation_intake.py
+          test -f backend/app/routes/conversation_repo_reconstruction.py
+          test -f backend/app/routes/local_code_patch.py
+          test -f backend/app/routes/patch_apply_preview.py
+          test -f backend/app/routes/local_file_apply_runtime.py
+          test -f backend/app/routes/real_local_write.py
+          test -f backend/app/routes/write_verify_rollback.py
+          test -f backend/app/routes/local_real_validator.py
+          grep -q "create_session" backend/app/services/browser_conversation_intake_service.py
+          grep -q "create_proposal" backend/app/services/conversation_repo_reconstruction_service.py
+          grep -q "create_patch" backend/app/services/local_code_patch_service.py
+          grep -q "create_preview" backend/app/services/patch_apply_preview_service.py
+          grep -q "create_apply_run" backend/app/services/local_file_apply_runtime_service.py
+          grep -q "create_real_write" backend/app/services/real_local_write_service.py
+          grep -q "create_verify_run" backend/app/services/write_verify_rollback_service.py
+          grep -q "create_validator_run" backend/app/services/local_real_validator_service.py
+          grep -q "/api/browser-intake" backend/app/routes/browser_conversation_intake.py
+          grep -q "/api/conversation-reconstruction" backend/app/routes/conversation_repo_reconstruction.py
+          grep -q "/api/local-code-patch" backend/app/routes/local_code_patch.py
+          grep -q "/api/patch-apply-preview" backend/app/routes/patch_apply_preview.py
+          grep -q "/api/local-file-apply-runtime" backend/app/routes/local_file_apply_runtime.py
+          grep -q "/api/real-local-write" backend/app/routes/real_local_write.py
+          grep -q "/api/write-verify-rollback" backend/app/routes/write_verify_rollback.py
+          grep -q "/api/local-real-validator" backend/app/routes/local_real_validator.py
+
+      - name: Validate backend main wiring
+        run: |
+          test -f backend/main.py
+          grep -q "browser_conversation_intake_router" backend/main.py
+          grep -q "conversation_repo_reconstruction_router" backend/main.py
+          grep -q "local_code_patch_router" backend/main.py
+          grep -q "patch_apply_preview_router" backend/main.py
+          grep -q "local_file_apply_runtime_router" backend/main.py
+          grep -q "real_local_write_router" backend/main.py
+          grep -q "write_verify_rollback_router" backend/main.py
+          grep -q "local_real_validator_router" backend/main.py
+
+      - name: Validate docs and essential workflows
+        run: |
+          test -f docs/browser-conversation-intake-plan.md
+          test -f docs/conversation-to-repo-reconstruction-plan.md
+          test -f docs/local-code-patch-engine-plan.md
+          test -f docs/patch-apply-and-diff-plan.md
+          test -f docs/local-file-apply-runtime-plan.md
+          test -f docs/real-local-write-and-backup-plan.md
+          test -f docs/write-verify-and-rollback-plan.md
+          test -f docs/local-real-validators-plan.md
+          test -f .github/workflows/god-mode-unified-validation.yml
+          test -f .github/workflows/prune-old-artifacts-all-repos.yml
+          grep -q "Local Real Validators" docs/local-real-validators-plan.md
+          grep -q "Write Verify And Rollback" docs/write-verify-and-rollback-plan.md
+          grep -q "Real Local Write And Backup" docs/real-local-write-and-backup-plan.md
