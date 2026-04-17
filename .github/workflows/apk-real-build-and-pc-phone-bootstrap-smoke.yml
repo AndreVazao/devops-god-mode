@@ -1,0 +1,48 @@
+name: APK Real Build And PC Phone Bootstrap Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/apk-real-build-and-pc-phone-bootstrap'
+    paths:
+      - 'docs/android-mobile-build-plan.md'
+      - 'docs/apk-real-build-and-pc-phone-bootstrap-plan.md'
+      - 'backend/contracts/android_mobile_build_profile.example.json'
+      - 'backend/contracts/android_real_build_profile.example.json'
+      - 'backend/contracts/pc_phone_bootstrap_profile.example.json'
+      - 'backend/app/services/pc_phone_bootstrap_service.py'
+      - 'backend/app/routes/pc_phone_bootstrap.py'
+      - 'backend/main.py'
+      - '.github/workflows/android-mobile-build.yml'
+      - '.github/workflows/apk-real-build-and-pc-phone-bootstrap-smoke.yml'
+
+jobs:
+  smoke-apk-real-build-and-bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate APK real build and bootstrap files
+        run: |
+          test -f docs/android-mobile-build-plan.md
+          test -f docs/apk-real-build-and-pc-phone-bootstrap-plan.md
+          test -f backend/contracts/android_mobile_build_profile.example.json
+          test -f backend/contracts/android_real_build_profile.example.json
+          test -f backend/contracts/pc_phone_bootstrap_profile.example.json
+          test -f backend/app/services/pc_phone_bootstrap_service.py
+          test -f backend/app/routes/pc_phone_bootstrap.py
+          test -f backend/main.py
+          test -f .github/workflows/android-mobile-build.yml
+
+      - name: Validate APK real build and bootstrap markers
+        run: |
+          grep -q '"artifact_type": "apk"' backend/contracts/android_real_build_profile.example.json
+          grep -q '"pairing_mode": "qr_or_code"' backend/contracts/pc_phone_bootstrap_profile.example.json
+          grep -q "generate_pairing_payload" backend/app/services/pc_phone_bootstrap_service.py
+          grep -q "pc_phone_runtime_promoted" backend/app/services/pc_phone_bootstrap_service.py
+          grep -q "/api/pc-phone-bootstrap" backend/app/routes/pc_phone_bootstrap.py
+          grep -q "pc_phone_bootstrap_router" backend/main.py
+          grep -q "GodModeMobile.apk" .github/workflows/android-mobile-build.yml
+          grep -q "godmode-mobile-bootstrap.json" .github/workflows/android-mobile-build.yml
