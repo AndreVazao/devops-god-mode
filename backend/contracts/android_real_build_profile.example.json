@@ -1,0 +1,13 @@
+{
+  "build_id": "androidreal_0001",
+  "target_platform": "android_phone",
+  "artifact_type": "apk",
+  "app_mode": "mobile_cockpit_remote",
+  "entrypoint": "frontend/mobile-shell/index.html",
+  "packaging_tool": "android_webview_packaging_foundation",
+  "output_name": "GodModeMobile.apk",
+  "runtime_topology": "pc_and_phone_primary",
+  "build_status": "planned",
+  "created_at": "2026-04-17T16:40:00Z",
+  "updated_at": "2026-04-17T16:40:00Z"
+}
