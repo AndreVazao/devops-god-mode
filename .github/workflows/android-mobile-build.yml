@@ -1,0 +1,49 @@
+name: Android Mobile Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/android-apk-build-workflow'
+    paths:
+      - 'docs/android-mobile-build-plan.md'
+      - 'backend/contracts/android_mobile_build_profile.example.json'
+      - '.github/workflows/android-mobile-build.yml'
+
+jobs:
+  build-android-mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Prepare dist directory
+        run: mkdir -p dist
+
+      - name: Build placeholder APK bundle
+        run: |
+          printf 'Placeholder Android APK artifact for God Mode mobile packaging phase.\n' > dist/GodModeMobile.apk
+          ls -la dist
+
+      - name: Verify built file exists
+        run: |
+          test -f dist/GodModeMobile.apk
+
+      - name: Upload APK artifact if quota allows
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: godmode-android-apk
+          path: dist/GodModeMobile.apk
+
+      - name: Build summary
+        run: |
+          echo '## Android Mobile Build Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Placeholder mobile APK file was created in `dist/GodModeMobile.apk`.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Artifact upload is best-effort and may fail when GitHub Actions storage quota is exhausted.' >> "$GITHUB_STEP_SUMMARY"
