@@ -1,0 +1,11 @@
+{
+  "build_id": "winbuild_0001",
+  "target_platform": "windows_desktop",
+  "artifact_type": ".exe",
+  "entry_script": "backend/main.py",
+  "packaging_tool": "pyinstaller",
+  "output_name": "GodModeDesktop.exe",
+  "build_status": "planned",
+  "created_at": "2026-04-17T15:20:00Z",
+  "updated_at": "2026-04-17T15:20:00Z"
+}
