@@ -1,0 +1,16 @@
+{
+  "profile_id": "pkg_0001",
+  "target_platform": "windows_desktop",
+  "artifact_type": ".exe",
+  "runtime_mode": "pc_and_phone_primary",
+  "entrypoint": "backend/main.py",
+  "output_name": "GodModeDesktop.exe",
+  "packaging_status": "planned",
+  "notes": [
+    "autodetect local PC runtime",
+    "autoconfig phone cockpit pairing",
+    "desktop UI should stay intuitive"
+  ],
+  "created_at": "2026-04-17T15:00:00Z",
+  "updated_at": "2026-04-17T15:00:00Z"
+}
