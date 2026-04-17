@@ -1,0 +1,22 @@
+{
+  "topology_id": "topo_0001",
+  "primary_runtime": "pc_local",
+  "remote_client": "android_phone",
+  "render_role": "temporary_test_only",
+  "tunnel_mode": "private_free_tunnel",
+  "persistence_mode": "pc_local_primary",
+  "autodetect": {
+    "desktop_runtime": true,
+    "phone_pairing": true,
+    "tunnel_endpoint": true,
+    "local_paths": true
+  },
+  "autoconfig": {
+    "desktop_shortcut": true,
+    "first_run_wizard": false,
+    "zero_touch_defaults": true,
+    "phone_cockpit_profile": "simple_intuitive"
+  },
+  "created_at": "2026-04-17T15:02:00Z",
+  "updated_at": "2026-04-17T15:02:00Z"
+}
