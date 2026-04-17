@@ -1,0 +1,44 @@
+name: Windows Shortcut Autostart Scripts Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/windows-shortcut-autostart-scripts'
+    paths:
+      - 'docs/windows-shortcut-autostart-scripts-plan.md'
+      - 'backend/contracts/windows_bootstrap_script_profile.example.json'
+      - 'desktop/godmode_desktop_launcher.py'
+      - 'desktop/windows_shortcut_bootstrap.ps1'
+      - 'desktop/windows_autostart_bootstrap.ps1'
+      - 'desktop/windows_autostart_remove.ps1'
+      - '.github/workflows/windows-exe-real-build.yml'
+      - '.github/workflows/windows-shortcut-autostart-scripts-smoke.yml'
+
+jobs:
+  smoke-windows-shortcut-autostart-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Windows shortcut/autostart files
+        run: |
+          test -f docs/windows-shortcut-autostart-scripts-plan.md
+          test -f backend/contracts/windows_bootstrap_script_profile.example.json
+          test -f desktop/godmode_desktop_launcher.py
+          test -f desktop/windows_shortcut_bootstrap.ps1
+          test -f desktop/windows_autostart_bootstrap.ps1
+          test -f desktop/windows_autostart_remove.ps1
+          test -f .github/workflows/windows-exe-real-build.yml
+
+      - name: Validate Windows shortcut/autostart markers
+        run: |
+          grep -q '"script_type": "desktop_shortcut"' backend/contracts/windows_bootstrap_script_profile.example.json
+          grep -q 'desktop_shortcut_payload.json' desktop/windows_shortcut_bootstrap.ps1
+          grep -q 'desktop_autostart_payload.json' desktop/windows_autostart_bootstrap.ps1
+          grep -q 'GodModeDesktop-Autostart.cmd' desktop/windows_autostart_bootstrap.ps1
+          grep -q 'desktop_shortcut_payload.json' desktop/godmode_desktop_launcher.py
+          grep -q 'desktop_autostart_payload.json' desktop/godmode_desktop_launcher.py
+          grep -q 'windows_shortcut_bootstrap.ps1' .github/workflows/windows-exe-real-build.yml
+          grep -q 'windows_autostart_bootstrap.ps1' .github/workflows/windows-exe-real-build.yml
