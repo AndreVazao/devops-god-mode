@@ -1,0 +1,16 @@
+{
+  "preview_id": "preview_0001",
+  "patch_id": "patch_0001",
+  "apply_mode": "simulate_only",
+  "before_preview": "const button = null;",
+  "after_preview": "const button = document.querySelector('#refreshStatusBtn');",
+  "diff_summary": [
+    "1 line removed",
+    "1 line added",
+    "handler linked to refresh button"
+  ],
+  "validation_status": "pending",
+  "apply_status": "preview_ready",
+  "created_at": "2026-04-17T05:30:00Z",
+  "updated_at": "2026-04-17T05:30:00Z"
+}
