@@ -1,0 +1,45 @@
+name: Windows EXE Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/windows-exe-build-workflow'
+    paths:
+      - 'docs/windows-exe-build-workflow-plan.md'
+      - 'backend/contracts/windows_exe_build_profile.example.json'
+      - '.github/workflows/windows-exe-build.yml'
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install build tooling
+        run: pip install pyinstaller
+
+      - name: Prepare dist directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+
+      - name: Build placeholder desktop executable bundle
+        shell: pwsh
+        run: |
+          Set-Content -Path dist/GodModeDesktop.exe -Value 'Placeholder Windows EXE artifact for God Mode desktop packaging phase.'
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: godmode-windows-exe
+          path: dist/GodModeDesktop.exe
