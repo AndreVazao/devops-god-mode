@@ -1,0 +1,38 @@
+name: Local File Apply Runtime Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/local-file-apply-runtime'
+    paths:
+      - 'docs/local-file-apply-runtime-plan.md'
+      - 'backend/contracts/local_file_apply_runtime.example.json'
+      - 'backend/app/services/local_file_apply_runtime_service.py'
+      - 'backend/app/routes/local_file_apply_runtime.py'
+      - 'backend/main.py'
+      - '.github/workflows/local-file-apply-runtime-smoke.yml'
+
+jobs:
+  smoke-local-file-apply-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate local file apply files
+        run: |
+          test -f docs/local-file-apply-runtime-plan.md
+          test -f backend/contracts/local_file_apply_runtime.example.json
+          test -f backend/app/services/local_file_apply_runtime_service.py
+          test -f backend/app/routes/local_file_apply_runtime.py
+          test -f backend/main.py
+
+      - name: Validate local file apply markers
+        run: |
+          grep -q '"apply_run_id": "apply_0001"' backend/contracts/local_file_apply_runtime.example.json
+          grep -q '"final_status": "applied_locally_pending_validation"' backend/contracts/local_file_apply_runtime.example.json
+          grep -q "create_apply_run" backend/app/services/local_file_apply_runtime_service.py
+          grep -q "applied_and_validated" backend/app/services/local_file_apply_runtime_service.py
+          grep -q "/api/local-file-apply-runtime" backend/app/routes/local_file_apply_runtime.py
+          grep -q "local_file_apply_runtime_router" backend/main.py
