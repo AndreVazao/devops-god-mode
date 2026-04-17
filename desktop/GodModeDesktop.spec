@@ -3,8 +3,8 @@
 block_cipher = None
 
 a = Analysis(
-    ['desktop/godmode_desktop_launcher.py'],
-    pathex=[],
+    ['godmode_desktop_launcher.py'],
+    pathex=['desktop'],
     binaries=[],
     datas=[],
     hiddenimports=[],
