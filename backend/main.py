@@ -8,6 +8,7 @@ from app.routes.browser_conversation_intake import router as browser_conversatio
 from app.routes.conversation_repo_reconstruction import (
     router as conversation_repo_reconstruction_router,
 )
+from app.routes.desktop_bootstrap import router as desktop_bootstrap_router
 from app.routes.github_scan import router as github_scan_router
 from app.routes.local_code_patch import router as local_code_patch_router
 from app.routes.local_file_apply_runtime import router as local_file_apply_runtime_router
@@ -43,6 +44,7 @@ app.include_router(write_verify_rollback_router)
 app.include_router(local_real_validator_router)
 app.include_router(packaging_foundation_router)
 app.include_router(pc_phone_bootstrap_router)
+app.include_router(desktop_bootstrap_router)
 
 
 @app.get("/")
