@@ -1,0 +1,59 @@
+name: Windows EXE Real Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/windows-exe-real-build'
+    paths:
+      - 'docs/windows-exe-real-build-plan.md'
+      - 'backend/contracts/windows_exe_real_build_profile.example.json'
+      - 'desktop/godmode_desktop_launcher.py'
+      - 'desktop/GodModeDesktop.spec'
+      - '.github/workflows/windows-exe-real-build.yml'
+
+jobs:
+  build-windows-exe-real:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install build tooling
+        run: pip install pyinstaller
+
+      - name: Build desktop launcher
+        shell: pwsh
+        run: |
+          pyinstaller --clean --noconfirm desktop/GodModeDesktop.spec
+          Get-Item dist/GodModeDesktop.exe | Format-List FullName,Length,LastWriteTime
+
+      - name: Verify built file exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path dist/GodModeDesktop.exe)) {
+            throw 'dist/GodModeDesktop.exe was not created.'
+          }
+
+      - name: Upload artifact if quota allows
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: godmode-windows-exe-real
+          path: dist/GodModeDesktop.exe
+
+      - name: Build summary
+        shell: pwsh
+        run: |
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Windows EXE Real Build Summary'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Artifact upload is best-effort and may fail when GitHub Actions storage quota is exhausted.'
