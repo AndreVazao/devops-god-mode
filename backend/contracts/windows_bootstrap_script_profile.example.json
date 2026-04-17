@@ -1,0 +1,10 @@
+{
+  "script_id": "winscript_0001",
+  "script_type": "desktop_shortcut",
+  "payload_source": "%APPDATA%/GodModeDesktop/desktop_shortcut_payload.json",
+  "target_path": "%USERPROFILE%/Desktop/GodModeDesktop.url",
+  "execution_mode": "powershell_local",
+  "script_status": "planned",
+  "created_at": "2026-04-17T18:30:00Z",
+  "updated_at": "2026-04-17T18:30:00Z"
+}
