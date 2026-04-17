@@ -11,6 +11,7 @@ from app.routes.conversation_repo_reconstruction import (
 from app.routes.github_scan import router as github_scan_router
 from app.routes.local_code_patch import router as local_code_patch_router
 from app.routes.local_file_apply_runtime import router as local_file_apply_runtime_router
+from app.routes.local_real_validator import router as local_real_validator_router
 from app.routes.patch_apply_preview import router as patch_apply_preview_router
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
@@ -37,6 +38,7 @@ app.include_router(patch_apply_preview_router)
 app.include_router(local_file_apply_runtime_router)
 app.include_router(real_local_write_router)
 app.include_router(write_verify_rollback_router)
+app.include_router(local_real_validator_router)
 
 
 @app.get("/")
