@@ -37,9 +37,26 @@ jobs:
         shell: pwsh
         run: |
           Set-Content -Path dist/GodModeDesktop.exe -Value 'Placeholder Windows EXE artifact for God Mode desktop packaging phase.'
+          Get-Item dist/GodModeDesktop.exe | Format-List FullName,Length,LastWriteTime
 
-      - name: Upload EXE artifact
+      - name: Verify built file exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path dist/GodModeDesktop.exe)) {
+            throw 'dist/GodModeDesktop.exe was not created.'
+          }
+
+      - name: Upload EXE artifact if quota allows
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: godmode-windows-exe
           path: dist/GodModeDesktop.exe
+
+      - name: Build summary
+        shell: pwsh
+        run: |
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Windows EXE Build Summary'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Placeholder desktop EXE file was created in `dist/GodModeDesktop.exe`.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Artifact upload is best-effort and may fail when GitHub Actions storage quota is exhausted.'
