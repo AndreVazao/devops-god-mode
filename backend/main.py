@@ -9,6 +9,7 @@ from app.routes.conversation_repo_reconstruction import (
     router as conversation_repo_reconstruction_router,
 )
 from app.routes.github_scan import router as github_scan_router
+from app.routes.local_code_patch import router as local_code_patch_router
 from app.routes.registry import router as registry_router
 
 app = FastAPI(title="DevOps God Mode")
@@ -27,6 +28,7 @@ app.include_router(approval_broker_router)
 app.include_router(approval_gated_execution_router)
 app.include_router(conversation_repo_reconstruction_router)
 app.include_router(browser_conversation_intake_router)
+app.include_router(local_code_patch_router)
 
 
 @app.get("/")

@@ -1,0 +1,25 @@
+{
+  "patch_id": "patch_0001",
+  "repo_full_name": "AndreVazao/devops-god-mode",
+  "target_path": "frontend/mobile-shell/app.js",
+  "instruction": "Adicionar botão de refresh no painel principal e ligar ao backend.",
+  "patch_strategy": "insert_or_update_block",
+  "risk_level": "medium",
+  "approval_required": true,
+  "status": "waiting_for_approval",
+  "approval_request_id": "apr_0001",
+  "proposed_changes": [
+    {
+      "change_type": "update_file",
+      "summary": "Adicionar novo handler e botão associado",
+      "anchor_hint": "refreshStatusBtn"
+    }
+  ],
+  "validation_plan": [
+    "syntax_check",
+    "smoke_test",
+    "manual_ui_review"
+  ],
+  "created_at": "2026-04-17T05:10:00Z",
+  "updated_at": "2026-04-17T05:10:00Z"
+}

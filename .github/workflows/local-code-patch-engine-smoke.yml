@@ -1,0 +1,38 @@
+name: Local Code Patch Engine Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/local-code-patch-engine'
+    paths:
+      - 'docs/local-code-patch-engine-plan.md'
+      - 'backend/contracts/local_patch_engine.example.json'
+      - 'backend/app/services/local_code_patch_service.py'
+      - 'backend/app/routes/local_code_patch.py'
+      - 'backend/main.py'
+      - '.github/workflows/local-code-patch-engine-smoke.yml'
+
+jobs:
+  smoke-local-code-patch-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate patch engine files
+        run: |
+          test -f docs/local-code-patch-engine-plan.md
+          test -f backend/contracts/local_patch_engine.example.json
+          test -f backend/app/services/local_code_patch_service.py
+          test -f backend/app/routes/local_code_patch.py
+          test -f backend/main.py
+
+      - name: Validate patch engine markers
+        run: |
+          grep -q '"patch_id": "patch_0001"' backend/contracts/local_patch_engine.example.json
+          grep -q '"status": "waiting_for_approval"' backend/contracts/local_patch_engine.example.json
+          grep -q "create_patch" backend/app/services/local_code_patch_service.py
+          grep -q "ready_to_apply" backend/app/services/local_code_patch_service.py
+          grep -q "/api/local-code-patch" backend/app/routes/local_code_patch.py
+          grep -q "local_code_patch_router" backend/main.py
