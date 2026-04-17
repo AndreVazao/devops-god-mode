@@ -4,12 +4,15 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'feature/windows-exe-real-build'
+      - 'feature/windows-shortcut-autostart-scripts'
     paths:
-      - 'docs/windows-exe-real-build-plan.md'
-      - 'backend/contracts/windows_exe_real_build_profile.example.json'
+      - 'docs/windows-shortcut-autostart-scripts-plan.md'
+      - 'backend/contracts/windows_bootstrap_script_profile.example.json'
       - 'desktop/godmode_desktop_launcher.py'
       - 'desktop/GodModeDesktop.spec'
+      - 'desktop/windows_shortcut_bootstrap.ps1'
+      - 'desktop/windows_autostart_bootstrap.ps1'
+      - 'desktop/windows_autostart_remove.ps1'
       - '.github/workflows/windows-exe-real-build.yml'
 
 jobs:
@@ -36,11 +39,26 @@ jobs:
           pyinstaller --clean --noconfirm desktop/GodModeDesktop.spec
           Get-Item dist/GodModeDesktop.exe | Format-List FullName,Length,LastWriteTime
 
-      - name: Verify built file exists
+      - name: Prepare desktop helper bundle
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/support | Out-Null
+          Copy-Item desktop/windows_shortcut_bootstrap.ps1 dist/support/windows_shortcut_bootstrap.ps1
+          Copy-Item desktop/windows_autostart_bootstrap.ps1 dist/support/windows_autostart_bootstrap.ps1
+          Copy-Item desktop/windows_autostart_remove.ps1 dist/support/windows_autostart_remove.ps1
+          Get-ChildItem dist/support
+
+      - name: Verify built files exist
         shell: pwsh
         run: |
           if (-not (Test-Path dist/GodModeDesktop.exe)) {
             throw 'dist/GodModeDesktop.exe was not created.'
+          }
+          if (-not (Test-Path dist/support/windows_shortcut_bootstrap.ps1)) {
+            throw 'Desktop shortcut helper was not created.'
+          }
+          if (-not (Test-Path dist/support/windows_autostart_bootstrap.ps1)) {
+            throw 'Desktop autostart helper was not created.'
           }
 
       - name: Upload artifact if quota allows
@@ -48,7 +66,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: godmode-windows-exe-real
-          path: dist/GodModeDesktop.exe
+          path: |
+            dist/GodModeDesktop.exe
+            dist/support/windows_shortcut_bootstrap.ps1
+            dist/support/windows_autostart_bootstrap.ps1
+            dist/support/windows_autostart_remove.ps1
 
       - name: Build summary
         shell: pwsh
@@ -56,4 +78,5 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Windows EXE Real Build Summary'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut and autostart were added to `dist/support`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Artifact upload is best-effort and may fail when GitHub Actions storage quota is exhausted.'
