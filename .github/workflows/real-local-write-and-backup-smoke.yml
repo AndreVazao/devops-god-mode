@@ -1,0 +1,39 @@
+name: Real Local Write And Backup Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/real-local-write-and-backup-v2'
+    paths:
+      - 'docs/real-local-write-and-backup-plan.md'
+      - 'backend/contracts/real_local_write.example.json'
+      - 'backend/app/services/real_local_write_service.py'
+      - 'backend/app/routes/real_local_write.py'
+      - 'backend/main.py'
+      - '.github/workflows/real-local-write-and-backup-smoke.yml'
+
+jobs:
+  smoke-real-local-write-and-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate real local write files
+        run: |
+          test -f docs/real-local-write-and-backup-plan.md
+          test -f backend/contracts/real_local_write.example.json
+          test -f backend/app/services/real_local_write_service.py
+          test -f backend/app/routes/real_local_write.py
+          test -f backend/main.py
+
+      - name: Validate real local write markers
+        run: |
+          grep -q '"write_run_id": "write_0001"' backend/contracts/real_local_write.example.json
+          grep -q '"final_status": "written_pending_validation"' backend/contracts/real_local_write.example.json
+          grep -q "path_safety_result" backend/contracts/real_local_write.example.json
+          grep -q "create_real_write" backend/app/services/real_local_write_service.py
+          grep -q "restored_from_backup" backend/app/services/real_local_write_service.py
+          grep -q "/api/real-local-write" backend/app/routes/real_local_write.py
+          grep -q "real_local_write_router" backend/main.py
