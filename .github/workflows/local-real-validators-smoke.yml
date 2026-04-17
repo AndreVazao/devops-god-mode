@@ -1,0 +1,38 @@
+name: Local Real Validators Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/local-real-validators'
+    paths:
+      - 'docs/local-real-validators-plan.md'
+      - 'backend/contracts/local_real_validator.example.json'
+      - 'backend/app/services/local_real_validator_service.py'
+      - 'backend/app/routes/local_real_validator.py'
+      - 'backend/main.py'
+      - '.github/workflows/local-real-validators-smoke.yml'
+
+jobs:
+  smoke-local-real-validators:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate local real validator files
+        run: |
+          test -f docs/local-real-validators-plan.md
+          test -f backend/contracts/local_real_validator.example.json
+          test -f backend/app/services/local_real_validator_service.py
+          test -f backend/app/routes/local_real_validator.py
+          test -f backend/main.py
+
+      - name: Validate local real validator markers
+        run: |
+          grep -q '"validator_run_id": "validator_0001"' backend/contracts/local_real_validator.example.json
+          grep -q '"final_status": "validators_passed"' backend/contracts/local_real_validator.example.json
+          grep -q "create_validator_run" backend/app/services/local_real_validator_service.py
+          grep -q "validators_failed" backend/app/services/local_real_validator_service.py
+          grep -q "/api/local-real-validator" backend/app/routes/local_real_validator.py
+          grep -q "local_real_validator_router" backend/main.py
