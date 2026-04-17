@@ -14,6 +14,7 @@ from app.routes.local_file_apply_runtime import router as local_file_apply_runti
 from app.routes.local_real_validator import router as local_real_validator_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
 from app.routes.patch_apply_preview import router as patch_apply_preview_router
+from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
 from app.routes.write_verify_rollback import router as write_verify_rollback_router
@@ -41,6 +42,7 @@ app.include_router(real_local_write_router)
 app.include_router(write_verify_rollback_router)
 app.include_router(local_real_validator_router)
 app.include_router(packaging_foundation_router)
+app.include_router(pc_phone_bootstrap_router)
 
 
 @app.get("/")
