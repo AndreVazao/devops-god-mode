@@ -1,0 +1,43 @@
+name: Desktop Bootstrap Shortcut Autostart Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/desktop-bootstrap-shortcut-autostart'
+    paths:
+      - 'docs/desktop-bootstrap-shortcut-autostart-plan.md'
+      - 'backend/contracts/desktop_bootstrap_profile.example.json'
+      - 'backend/app/services/desktop_bootstrap_service.py'
+      - 'backend/app/routes/desktop_bootstrap.py'
+      - 'desktop/godmode_desktop_launcher.py'
+      - 'backend/main.py'
+      - '.github/workflows/desktop-bootstrap-shortcut-autostart-smoke.yml'
+
+jobs:
+  smoke-desktop-bootstrap-shortcut-autostart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate desktop bootstrap files
+        run: |
+          test -f docs/desktop-bootstrap-shortcut-autostart-plan.md
+          test -f backend/contracts/desktop_bootstrap_profile.example.json
+          test -f backend/app/services/desktop_bootstrap_service.py
+          test -f backend/app/routes/desktop_bootstrap.py
+          test -f desktop/godmode_desktop_launcher.py
+          test -f backend/main.py
+
+      - name: Validate desktop bootstrap markers
+        run: |
+          grep -q '"desktop_shortcut": true' backend/contracts/desktop_bootstrap_profile.example.json
+          grep -q '"autostart": false' backend/contracts/desktop_bootstrap_profile.example.json
+          grep -q "generate_first_run_payload" backend/app/services/desktop_bootstrap_service.py
+          grep -q "desktop_autostart_updated" backend/app/services/desktop_bootstrap_service.py
+          grep -q "/api/desktop-bootstrap" backend/app/routes/desktop_bootstrap.py
+          grep -q "desktop_bootstrap_router" backend/main.py
+          grep -q "desktop_first_run_payload.json" desktop/godmode_desktop_launcher.py
+          grep -q "desktop_shortcut_payload.json" desktop/godmode_desktop_launcher.py
+          grep -q "desktop_autostart_payload.json" desktop/godmode_desktop_launcher.py
