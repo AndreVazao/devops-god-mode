@@ -1,0 +1,22 @@
+{
+  "validator_run_id": "validator_0001",
+  "write_run_id": "write_0001",
+  "validator_mode": "post_write_real_checks",
+  "checks": [
+    "target_exists",
+    "backup_exists",
+    "content_non_empty",
+    "preview_excerpt_match"
+  ],
+  "expected_preview_excerpt": "const button = document.querySelector('#refreshStatusBtn');",
+  "observed_file_excerpt": "const button = document.querySelector('#refreshStatusBtn');",
+  "checks_result": {
+    "target_exists": "passed",
+    "backup_exists": "passed",
+    "content_non_empty": "passed",
+    "preview_excerpt_match": "passed"
+  },
+  "final_status": "validators_passed",
+  "created_at": "2026-04-17T14:40:00Z",
+  "updated_at": "2026-04-17T14:41:00Z"
+}
