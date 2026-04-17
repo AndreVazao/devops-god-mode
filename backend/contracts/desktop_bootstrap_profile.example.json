@@ -1,0 +1,16 @@
+{
+  "bootstrap_id": "desktop_bootstrap_0001",
+  "runtime_mode": "pc_and_phone_primary",
+  "desktop_shortcut": true,
+  "autostart": false,
+  "first_run_actions": [
+    "create_local_config",
+    "prepare_shortcut_payload",
+    "open_local_cockpit"
+  ],
+  "local_backend_url": "http://127.0.0.1:8787",
+  "local_shell_url": "http://127.0.0.1:4173",
+  "bootstrap_status": "planned",
+  "created_at": "2026-04-17T18:00:00Z",
+  "updated_at": "2026-04-17T18:00:00Z"
+}
