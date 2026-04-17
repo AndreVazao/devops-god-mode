@@ -1,0 +1,33 @@
+name: Windows EXE Build Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/windows-exe-build-workflow'
+    paths:
+      - 'docs/windows-exe-build-workflow-plan.md'
+      - 'backend/contracts/windows_exe_build_profile.example.json'
+      - '.github/workflows/windows-exe-build.yml'
+      - '.github/workflows/windows-exe-build-smoke.yml'
+
+jobs:
+  smoke-windows-exe-build-foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Windows EXE build files
+        run: |
+          test -f docs/windows-exe-build-workflow-plan.md
+          test -f backend/contracts/windows_exe_build_profile.example.json
+          test -f .github/workflows/windows-exe-build.yml
+
+      - name: Validate Windows EXE build markers
+        run: |
+          grep -q '"artifact_type": ".exe"' backend/contracts/windows_exe_build_profile.example.json
+          grep -q '"packaging_tool": "pyinstaller"' backend/contracts/windows_exe_build_profile.example.json
+          grep -q "windows-latest" .github/workflows/windows-exe-build.yml
+          grep -q "pyinstaller" .github/workflows/windows-exe-build.yml
+          grep -q "GodModeDesktop.exe" .github/workflows/windows-exe-build.yml
