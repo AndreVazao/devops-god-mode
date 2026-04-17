@@ -1,0 +1,14 @@
+{
+  "apply_run_id": "apply_0001",
+  "patch_id": "patch_0001",
+  "preview_id": "preview_0001",
+  "local_repo_path": "C:/GodMode/projects/devops-god-mode",
+  "local_target_file": "frontend/mobile-shell/app.js",
+  "backup_file_path": "C:/GodMode/backups/app.js.bak",
+  "execution_mode": "simulate_local_write",
+  "apply_result": "backup_created_and_preview_written",
+  "validation_result": "pending",
+  "final_status": "applied_locally_pending_validation",
+  "created_at": "2026-04-17T09:20:00Z",
+  "updated_at": "2026-04-17T09:20:00Z"
+}
