@@ -1,0 +1,12 @@
+{
+  "build_id": "winreal_0001",
+  "target_platform": "windows_desktop",
+  "artifact_type": ".exe",
+  "entry_script": "desktop/godmode_desktop_launcher.py",
+  "packaging_tool": "pyinstaller_onefile_windowed",
+  "output_name": "GodModeDesktop.exe",
+  "runtime_mode": "pc_and_phone_primary",
+  "build_status": "planned",
+  "created_at": "2026-04-17T16:00:00Z",
+  "updated_at": "2026-04-17T16:00:00Z"
+}
