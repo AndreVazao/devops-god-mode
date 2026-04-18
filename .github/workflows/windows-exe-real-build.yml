@@ -51,7 +51,8 @@ jobs:
           Copy-Item desktop/windows_shortcut_bootstrap.ps1 dist/support/windows_shortcut_bootstrap.ps1
           Copy-Item desktop/windows_autostart_bootstrap.ps1 dist/support/windows_autostart_bootstrap.ps1
           Copy-Item desktop/windows_autostart_remove.ps1 dist/support/windows_autostart_remove.ps1
-          @'
+
+          $manifest = @'
 {
   "package_name": "GodModeDesktopBundle",
   "primary_executable": "GodModeDesktop.exe",
@@ -69,8 +70,10 @@ jobs:
   "install_mode": "desktop_bundle_online_actions",
   "installer_status": "installer_manifest_ready"
 }
-'@ | Set-Content -Path dist/onboarding/desktop-installer-manifest.json
-          @'
+'@
+          Set-Content -Path dist/onboarding/desktop-installer-manifest.json -Value $manifest
+
+          $onboarding = @'
 {
   "runtime_mode": "pc_and_phone_primary",
   "steps": [
@@ -84,8 +87,10 @@ jobs:
   "pairing_required": true,
   "onboarding_status": "onboarding_bundle_ready"
 }
-'@ | Set-Content -Path dist/onboarding/desktop-onboarding.json
-          @'
+'@
+          Set-Content -Path dist/onboarding/desktop-onboarding.json -Value $onboarding
+
+          $bundleIndex = @'
 {
   "package_name": "GodModeDesktopBundle",
   "primary_executable": "GodModeDesktop.exe",
@@ -106,7 +111,9 @@ jobs:
   "delivery_mode": "actions_bundle_artifact",
   "inventory_status": "bundle_inventory_ready"
 }
-'@ | Set-Content -Path dist/onboarding/desktop-bundle-index.json
+'@
+          Set-Content -Path dist/onboarding/desktop-bundle-index.json -Value $bundleIndex
+
           Get-ChildItem dist/support
           Get-ChildItem dist/onboarding
 
