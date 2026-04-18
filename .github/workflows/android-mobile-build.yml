@@ -4,15 +4,20 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'feature/apk-real-build-and-pc-phone-bootstrap'
+      - 'feature/first-run-bundle-and-pairing-assets'
     paths:
       - 'docs/android-mobile-build-plan.md'
       - 'docs/apk-real-build-and-pc-phone-bootstrap-plan.md'
+      - 'docs/first-run-bundle-and-pairing-assets-plan.md'
       - 'backend/contracts/android_mobile_build_profile.example.json'
       - 'backend/contracts/android_real_build_profile.example.json'
       - 'backend/contracts/pc_phone_bootstrap_profile.example.json'
+      - 'backend/contracts/first_run_bundle_profile.example.json'
       - 'backend/app/services/pc_phone_bootstrap_service.py'
+      - 'backend/app/services/first_run_bundle_service.py'
       - 'backend/app/routes/pc_phone_bootstrap.py'
+      - 'backend/app/routes/first_run_bundle.py'
+      - 'desktop/godmode_desktop_launcher.py'
       - '.github/workflows/android-mobile-build.yml'
 
 jobs:
@@ -48,17 +53,28 @@ jobs:
             }
           }
           JSON
+          cat > mobile-config/godmode-mobile-pairing.json <<'JSON'
+          {
+            "pairing_mode": "qr_or_code",
+            "pairing_code": "BUILDPAIR01",
+            "local_backend_url": "http://127.0.0.1:8787",
+            "local_shell_url": "http://127.0.0.1:4173",
+            "runtime_mode": "pc_and_phone_primary"
+          }
+          JSON
 
       - name: Build foundation APK bundle
         run: |
           printf 'God Mode Mobile APK foundation for PC + phone bootstrap.\n' > dist/android/GodModeMobile.apk
           cp mobile-config/godmode-mobile-bootstrap.json dist/android/godmode-mobile-bootstrap.json
+          cp mobile-config/godmode-mobile-pairing.json dist/android/godmode-mobile-pairing.json
           ls -la dist/android
 
       - name: Verify built files exist
         run: |
           test -f dist/android/GodModeMobile.apk
           test -f dist/android/godmode-mobile-bootstrap.json
+          test -f dist/android/godmode-mobile-pairing.json
 
       - name: Upload APK artifact if quota allows
         continue-on-error: true
@@ -68,6 +84,7 @@ jobs:
           path: |
             dist/android/GodModeMobile.apk
             dist/android/godmode-mobile-bootstrap.json
+            dist/android/godmode-mobile-pairing.json
 
       - name: Build summary
         run: |
@@ -75,4 +92,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Mobile APK foundation file was created in `dist/android/GodModeMobile.apk`.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Mobile bootstrap config was created in `dist/android/godmode-mobile-bootstrap.json`.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile pairing asset was created in `dist/android/godmode-mobile-pairing.json`.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Output is aligned with PC as primary runtime and phone as simple remote cockpit.' >> "$GITHUB_STEP_SUMMARY"
