@@ -14,6 +14,7 @@ from app.routes.github_scan import router as github_scan_router
 from app.routes.local_code_patch import router as local_code_patch_router
 from app.routes.local_file_apply_runtime import router as local_file_apply_runtime_router
 from app.routes.local_real_validator import router as local_real_validator_router
+from app.routes.mobile_runtime_shell import router as mobile_runtime_shell_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
 from app.routes.patch_apply_preview import router as patch_apply_preview_router
 from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
@@ -47,6 +48,7 @@ app.include_router(packaging_foundation_router)
 app.include_router(pc_phone_bootstrap_router)
 app.include_router(desktop_bootstrap_router)
 app.include_router(first_run_bundle_router)
+app.include_router(mobile_runtime_shell_router)
 
 
 @app.get("/")
