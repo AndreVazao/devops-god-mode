@@ -1,0 +1,25 @@
+{
+  "orchestrator_id": "orchestrator_0001",
+  "runtime_mode": "pc_and_phone_primary",
+  "backend_runtime": {
+    "host": "127.0.0.1",
+    "port": 8787,
+    "status": "planned"
+  },
+  "shell_runtime": {
+    "url": "http://127.0.0.1:4173",
+    "status": "planned"
+  },
+  "desktop_bundle": "GodModeDesktopBundle",
+  "mobile_handoff": "desktop-mobile-handoff.json",
+  "startup_sequence": [
+    "prepare_local_config",
+    "start_backend_runtime",
+    "start_shell_runtime",
+    "open_desktop_launcher",
+    "handoff_mobile_pairing"
+  ],
+  "orchestrator_status": "planned",
+  "created_at": "2026-04-18T16:45:00Z",
+  "updated_at": "2026-04-18T16:45:00Z"
+}
