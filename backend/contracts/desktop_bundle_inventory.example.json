@@ -1,0 +1,23 @@
+{
+  "bundle_id": "desktop_bundle_0001",
+  "package_name": "GodModeDesktopBundle",
+  "primary_executable": "GodModeDesktop.exe",
+  "support_files": [
+    "windows_shortcut_bootstrap.ps1",
+    "windows_autostart_bootstrap.ps1",
+    "windows_autostart_remove.ps1"
+  ],
+  "onboarding_files": [
+    "desktop-installer-manifest.json",
+    "desktop-onboarding.json"
+  ],
+  "mobile_linked_assets": [
+    "godmode-mobile-bootstrap.json",
+    "godmode-mobile-pairing.json",
+    "godmode-mobile-runtime-shell.json"
+  ],
+  "delivery_mode": "actions_bundle_artifact",
+  "inventory_status": "planned",
+  "created_at": "2026-04-18T14:40:00Z",
+  "updated_at": "2026-04-18T14:40:00Z"
+}
