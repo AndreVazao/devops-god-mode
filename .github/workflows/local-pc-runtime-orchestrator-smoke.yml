@@ -1,0 +1,37 @@
+name: Local PC Runtime Orchestrator Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/local-pc-runtime-orchestrator'
+    paths:
+      - 'docs/local-pc-runtime-orchestrator-plan.md'
+      - 'backend/contracts/local_pc_runtime_orchestrator.example.json'
+      - 'backend/app/services/local_pc_runtime_orchestrator_service.py'
+      - 'backend/app/routes/local_pc_runtime_orchestrator.py'
+      - 'backend/main.py'
+      - '.github/workflows/local-pc-runtime-orchestrator-smoke.yml'
+
+jobs:
+  smoke-local-pc-runtime-orchestrator:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate local PC runtime orchestrator files
+        run: |
+          test -f docs/local-pc-runtime-orchestrator-plan.md
+          test -f backend/contracts/local_pc_runtime_orchestrator.example.json
+          test -f backend/app/services/local_pc_runtime_orchestrator_service.py
+          test -f backend/app/routes/local_pc_runtime_orchestrator.py
+          test -f backend/main.py
+
+      - name: Validate local PC runtime orchestrator markers
+        run: |
+          grep -q '"orchestrator_id": "orchestrator_0001"' backend/contracts/local_pc_runtime_orchestrator.example.json
+          grep -q 'local_pc_runtime_state' backend/app/services/local_pc_runtime_orchestrator_service.py
+          grep -q 'local_pc_mobile_handoff_state' backend/app/services/local_pc_runtime_orchestrator_service.py
+          grep -q '/api/local-pc-runtime' backend/app/routes/local_pc_runtime_orchestrator.py
+          grep -q 'local_pc_runtime_router' backend/main.py
