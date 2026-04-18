@@ -26,3 +26,8 @@ async def desktop_installer_manifest():
 @router.get("/onboarding")
 async def desktop_installer_onboarding():
     return desktop_installer_onboarding_service.get_onboarding_bundle()
+
+
+@router.get("/bundle-inventory")
+async def desktop_bundle_inventory():
+    return desktop_installer_onboarding_service.get_bundle_inventory()
