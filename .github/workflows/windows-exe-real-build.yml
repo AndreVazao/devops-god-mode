@@ -6,14 +6,15 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'feature/desktop-installer-manifest-and-onboarding'
     paths:
       - 'docs/windows-shortcut-autostart-scripts-plan.md'
       - 'docs/desktop-installer-manifest-and-onboarding-plan.md'
+      - 'docs/desktop-mobile-handoff-package-plan.md'
       - 'backend/contracts/windows_bootstrap_script_profile.example.json'
       - 'backend/contracts/desktop_installer_manifest.example.json'
       - 'backend/contracts/desktop_onboarding_profile.example.json'
       - 'backend/contracts/desktop_bundle_inventory.example.json'
+      - 'backend/contracts/desktop_mobile_handoff.example.json'
       - 'desktop/godmode_desktop_launcher.py'
       - 'desktop/GodModeDesktop.spec'
       - 'desktop/windows_shortcut_bootstrap.ps1'
@@ -109,67 +110,32 @@ jobs:
             inventory_status = 'bundle_inventory_ready'
           }
           $bundleIndex | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-bundle-index.json
-          $manifest = @'
-{
-  "package_name": "GodModeDesktopBundle",
-  "primary_executable": "GodModeDesktop.exe",
-  "support_scripts": [
-    "windows_shortcut_bootstrap.ps1",
-    "windows_autostart_bootstrap.ps1",
-    "windows_autostart_remove.ps1"
-  ],
-  "onboarding_assets": [
-    "desktop_first_run_payload.json",
-    "desktop_shortcut_payload.json",
-    "desktop_autostart_payload.json",
-    "godmode-mobile-pairing.json"
-  ],
-  "install_mode": "desktop_bundle_online_actions",
-  "installer_status": "installer_manifest_ready"
-}
-'@
-          Set-Content -Path dist/onboarding/desktop-installer-manifest.json -Value $manifest
 
-          $onboarding = @'
-{
-  "runtime_mode": "pc_and_phone_primary",
-  "steps": [
-    "launch_desktop_bundle",
-    "read_manifest",
-    "run_first_bootstrap",
-    "create_desktop_shortcut_if_enabled",
-    "enable_autostart_if_enabled",
-    "open_mobile_pairing"
-  ],
-  "pairing_required": true,
-  "onboarding_status": "onboarding_bundle_ready"
-}
-'@
-          Set-Content -Path dist/onboarding/desktop-onboarding.json -Value $onboarding
-
-          $bundleIndex = @'
-{
-  "package_name": "GodModeDesktopBundle",
-  "primary_executable": "GodModeDesktop.exe",
-  "support_files": [
-    "windows_shortcut_bootstrap.ps1",
-    "windows_autostart_bootstrap.ps1",
-    "windows_autostart_remove.ps1"
-  ],
-  "onboarding_files": [
-    "desktop-installer-manifest.json",
-    "desktop-onboarding.json"
-  ],
-  "mobile_linked_assets": [
-    "godmode-mobile-bootstrap.json",
-    "godmode-mobile-pairing.json",
-    "godmode-mobile-runtime-shell.json"
-  ],
-  "delivery_mode": "actions_bundle_artifact",
-  "inventory_status": "bundle_inventory_ready"
-}
-'@
-          Set-Content -Path dist/onboarding/desktop-bundle-index.json -Value $bundleIndex
+          $handoff = @{
+            runtime_mode = 'pc_and_phone_primary'
+            desktop_bundle_assets = @(
+              'GodModeDesktop.exe',
+              'desktop-installer-manifest.json',
+              'desktop-onboarding.json',
+              'desktop-bundle-index.json'
+            )
+            mobile_bundle_assets = @(
+              'GodModeMobile.apk',
+              'godmode-mobile-bootstrap.json',
+              'godmode-mobile-pairing.json',
+              'godmode-mobile-runtime-shell.json'
+            )
+            pairing_asset = 'godmode-mobile-pairing.json'
+            install_sequence = @(
+              'download_desktop_bundle',
+              'launch_desktop',
+              'review_onboarding',
+              'open_mobile_pairing',
+              'start_working'
+            )
+            handoff_status = 'handoff_package_ready'
+          }
+          $handoff | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-mobile-handoff.json
 
           Get-ChildItem dist/support
           Get-ChildItem dist/onboarding
@@ -195,6 +161,9 @@ jobs:
           if (-not (Test-Path dist/onboarding/desktop-bundle-index.json)) {
             throw 'Desktop bundle index file was not created.'
           }
+          if (-not (Test-Path dist/onboarding/desktop-mobile-handoff.json)) {
+            throw 'Desktop mobile handoff file was not created.'
+          }
 
       - name: Upload artifact if quota allows
         continue-on-error: true
@@ -209,6 +178,7 @@ jobs:
             dist/onboarding/desktop-installer-manifest.json
             dist/onboarding/desktop-onboarding.json
             dist/onboarding/desktop-bundle-index.json
+            dist/onboarding/desktop-mobile-handoff.json
 
       - name: Build summary
         shell: pwsh
@@ -217,5 +187,5 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut and autostart were added to `dist/support`.'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, and bundle index files were added to `dist/onboarding`.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, bundle index, and handoff files were added to `dist/onboarding`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Artifact upload is best-effort and may fail when GitHub Actions storage quota is exhausted.'
