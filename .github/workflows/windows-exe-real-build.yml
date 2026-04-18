@@ -11,6 +11,7 @@ on:
       - 'backend/contracts/windows_bootstrap_script_profile.example.json'
       - 'backend/contracts/desktop_installer_manifest.example.json'
       - 'backend/contracts/desktop_onboarding_profile.example.json'
+      - 'backend/contracts/desktop_bundle_inventory.example.json'
       - 'desktop/godmode_desktop_launcher.py'
       - 'desktop/GodModeDesktop.spec'
       - 'desktop/windows_shortcut_bootstrap.ps1'
@@ -84,6 +85,28 @@ jobs:
   "onboarding_status": "onboarding_bundle_ready"
 }
 '@ | Set-Content -Path dist/onboarding/desktop-onboarding.json
+          @'
+{
+  "package_name": "GodModeDesktopBundle",
+  "primary_executable": "GodModeDesktop.exe",
+  "support_files": [
+    "windows_shortcut_bootstrap.ps1",
+    "windows_autostart_bootstrap.ps1",
+    "windows_autostart_remove.ps1"
+  ],
+  "onboarding_files": [
+    "desktop-installer-manifest.json",
+    "desktop-onboarding.json"
+  ],
+  "mobile_linked_assets": [
+    "godmode-mobile-bootstrap.json",
+    "godmode-mobile-pairing.json",
+    "godmode-mobile-runtime-shell.json"
+  ],
+  "delivery_mode": "actions_bundle_artifact",
+  "inventory_status": "bundle_inventory_ready"
+}
+'@ | Set-Content -Path dist/onboarding/desktop-bundle-index.json
           Get-ChildItem dist/support
           Get-ChildItem dist/onboarding
 
@@ -105,6 +128,9 @@ jobs:
           if (-not (Test-Path dist/onboarding/desktop-onboarding.json)) {
             throw 'Desktop onboarding file was not created.'
           }
+          if (-not (Test-Path dist/onboarding/desktop-bundle-index.json)) {
+            throw 'Desktop bundle index file was not created.'
+          }
 
       - name: Upload artifact if quota allows
         continue-on-error: true
@@ -118,6 +144,7 @@ jobs:
             dist/support/windows_autostart_remove.ps1
             dist/onboarding/desktop-installer-manifest.json
             dist/onboarding/desktop-onboarding.json
+            dist/onboarding/desktop-bundle-index.json
 
       - name: Build summary
         shell: pwsh
@@ -126,5 +153,5 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut and autostart were added to `dist/support`.'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest and onboarding files were added to `dist/onboarding`.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, and bundle index files were added to `dist/onboarding`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Artifact upload is best-effort and may fail when GitHub Actions storage quota is exhausted.'
