@@ -4,10 +4,13 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'feature/windows-shortcut-autostart-scripts'
+      - 'feature/desktop-installer-manifest-and-onboarding'
     paths:
       - 'docs/windows-shortcut-autostart-scripts-plan.md'
+      - 'docs/desktop-installer-manifest-and-onboarding-plan.md'
       - 'backend/contracts/windows_bootstrap_script_profile.example.json'
+      - 'backend/contracts/desktop_installer_manifest.example.json'
+      - 'backend/contracts/desktop_onboarding_profile.example.json'
       - 'desktop/godmode_desktop_launcher.py'
       - 'desktop/GodModeDesktop.spec'
       - 'desktop/windows_shortcut_bootstrap.ps1'
@@ -43,10 +46,46 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist/support | Out-Null
+          New-Item -ItemType Directory -Force -Path dist/onboarding | Out-Null
           Copy-Item desktop/windows_shortcut_bootstrap.ps1 dist/support/windows_shortcut_bootstrap.ps1
           Copy-Item desktop/windows_autostart_bootstrap.ps1 dist/support/windows_autostart_bootstrap.ps1
           Copy-Item desktop/windows_autostart_remove.ps1 dist/support/windows_autostart_remove.ps1
+          @'
+{
+  "package_name": "GodModeDesktopBundle",
+  "primary_executable": "GodModeDesktop.exe",
+  "support_scripts": [
+    "windows_shortcut_bootstrap.ps1",
+    "windows_autostart_bootstrap.ps1",
+    "windows_autostart_remove.ps1"
+  ],
+  "onboarding_assets": [
+    "desktop_first_run_payload.json",
+    "desktop_shortcut_payload.json",
+    "desktop_autostart_payload.json",
+    "godmode-mobile-pairing.json"
+  ],
+  "install_mode": "desktop_bundle_online_actions",
+  "installer_status": "installer_manifest_ready"
+}
+'@ | Set-Content -Path dist/onboarding/desktop-installer-manifest.json
+          @'
+{
+  "runtime_mode": "pc_and_phone_primary",
+  "steps": [
+    "launch_desktop_bundle",
+    "read_manifest",
+    "run_first_bootstrap",
+    "create_desktop_shortcut_if_enabled",
+    "enable_autostart_if_enabled",
+    "open_mobile_pairing"
+  ],
+  "pairing_required": true,
+  "onboarding_status": "onboarding_bundle_ready"
+}
+'@ | Set-Content -Path dist/onboarding/desktop-onboarding.json
           Get-ChildItem dist/support
+          Get-ChildItem dist/onboarding
 
       - name: Verify built files exist
         shell: pwsh
@@ -60,6 +99,12 @@ jobs:
           if (-not (Test-Path dist/support/windows_autostart_bootstrap.ps1)) {
             throw 'Desktop autostart helper was not created.'
           }
+          if (-not (Test-Path dist/onboarding/desktop-installer-manifest.json)) {
+            throw 'Desktop installer manifest was not created.'
+          }
+          if (-not (Test-Path dist/onboarding/desktop-onboarding.json)) {
+            throw 'Desktop onboarding file was not created.'
+          }
 
       - name: Upload artifact if quota allows
         continue-on-error: true
@@ -71,6 +116,8 @@ jobs:
             dist/support/windows_shortcut_bootstrap.ps1
             dist/support/windows_autostart_bootstrap.ps1
             dist/support/windows_autostart_remove.ps1
+            dist/onboarding/desktop-installer-manifest.json
+            dist/onboarding/desktop-onboarding.json
 
       - name: Build summary
         shell: pwsh
@@ -79,4 +126,5 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut and autostart were added to `dist/support`.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest and onboarding files were added to `dist/onboarding`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Artifact upload is best-effort and may fail when GitHub Actions storage quota is exhausted.'
