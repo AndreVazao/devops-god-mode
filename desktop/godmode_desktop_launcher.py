@@ -1,5 +1,6 @@
 import json
 import os
+import secrets
 import webbrowser
 from pathlib import Path
 from datetime import datetime, timezone
@@ -11,6 +12,7 @@ DEFAULT_CONFIG = {
     "shell_url": "http://127.0.0.1:4173",
     "mobile_mode": "simple_intuitive",
     "render_role": "temporary_test_only",
+    "pairing_mode": "qr_or_code",
     "autodetect": {
         "desktop_runtime": True,
         "phone_pairing": True,
@@ -26,6 +28,7 @@ DEFAULT_CONFIG = {
         "create_local_config",
         "prepare_shortcut_payload",
         "prepare_autostart_payload",
+        "prepare_pairing_payload",
         "open_local_cockpit",
     ],
 }
@@ -62,6 +65,10 @@ def shortcut_payload_path() -> Path:
 
 def autostart_payload_path() -> Path:
     return appdata_dir() / "desktop_autostart_payload.json"
+
+
+def pairing_payload_path() -> Path:
+    return appdata_dir() / "godmode-mobile-pairing.json"
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -119,6 +126,19 @@ def ensure_autostart_payload(config: dict) -> None:
     write_json(autostart_payload_path(), payload)
 
 
+def ensure_pairing_payload(config: dict) -> None:
+    pairing_code = secrets.token_hex(4).upper()
+    payload = {
+        "generated_at": utc_now(),
+        "pairing_mode": config.get("pairing_mode", "qr_or_code"),
+        "pairing_code": pairing_code,
+        "local_backend_url": config.get("backend_url"),
+        "local_shell_url": config.get("shell_url"),
+        "runtime_mode": config.get("runtime_mode"),
+    }
+    write_json(pairing_payload_path(), payload)
+
+
 def write_state(config: dict, opened: bool) -> None:
     payload = {
         "last_launch_at": utc_now(),
@@ -142,6 +162,7 @@ def main() -> int:
     ensure_first_run_payload(config)
     ensure_shortcut_payload(config)
     ensure_autostart_payload(config)
+    ensure_pairing_payload(config)
     opened = launch_shell(config)
     write_state(config, opened)
     return 0
