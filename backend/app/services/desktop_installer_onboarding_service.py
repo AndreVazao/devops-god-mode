@@ -56,5 +56,29 @@ class DesktopInstallerOnboardingService:
             },
         }
 
+    def get_bundle_inventory(self) -> Dict[str, Any]:
+        first_run = first_run_bundle_service.get_bundle()["bundle"]
+        return {
+            "ok": True,
+            "mode": "desktop_bundle_inventory",
+            "inventory": {
+                "bundle_id": "desktop_bundle_pc_phone_primary",
+                "package_name": "GodModeDesktopBundle",
+                "primary_executable": "GodModeDesktop.exe",
+                "support_files": [
+                    "windows_shortcut_bootstrap.ps1",
+                    "windows_autostart_bootstrap.ps1",
+                    "windows_autostart_remove.ps1",
+                ],
+                "onboarding_files": [
+                    "desktop-installer-manifest.json",
+                    "desktop-onboarding.json",
+                ],
+                "mobile_linked_assets": first_run["mobile_payloads"],
+                "delivery_mode": "actions_bundle_artifact",
+                "inventory_status": "bundle_inventory_ready",
+            },
+        }
+
 
 desktop_installer_onboarding_service = DesktopInstallerOnboardingService()
