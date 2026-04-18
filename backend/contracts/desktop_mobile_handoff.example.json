@@ -1,0 +1,27 @@
+{
+  "handoff_id": "handoff_0001",
+  "runtime_mode": "pc_and_phone_primary",
+  "desktop_bundle_assets": [
+    "GodModeDesktop.exe",
+    "desktop-installer-manifest.json",
+    "desktop-onboarding.json",
+    "desktop-bundle-index.json"
+  ],
+  "mobile_bundle_assets": [
+    "GodModeMobile.apk",
+    "godmode-mobile-bootstrap.json",
+    "godmode-mobile-pairing.json",
+    "godmode-mobile-runtime-shell.json"
+  ],
+  "pairing_asset": "godmode-mobile-pairing.json",
+  "install_sequence": [
+    "download_desktop_bundle",
+    "launch_desktop",
+    "review_onboarding",
+    "open_mobile_pairing",
+    "start_working"
+  ],
+  "handoff_status": "planned",
+  "created_at": "2026-04-18T16:05:00Z",
+  "updated_at": "2026-04-18T16:05:00Z"
+}
