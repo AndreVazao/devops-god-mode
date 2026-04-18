@@ -1,0 +1,28 @@
+{
+  "bundle_id": "bundle_0001",
+  "runtime_mode": "pc_and_phone_primary",
+  "desktop_payloads": [
+    "desktop_first_run_payload.json",
+    "desktop_shortcut_payload.json",
+    "desktop_autostart_payload.json"
+  ],
+  "mobile_payloads": [
+    "godmode-mobile-bootstrap.json"
+  ],
+  "pairing_payload": {
+    "pairing_mode": "qr_or_code",
+    "pairing_code": "AB12CD34",
+    "local_backend_url": "http://127.0.0.1:8787",
+    "local_shell_url": "http://127.0.0.1:4173"
+  },
+  "recommended_sequence": [
+    "launch_desktop",
+    "read_first_run_payload",
+    "create_shortcut_if_enabled",
+    "enable_autostart_if_enabled",
+    "open_mobile_pairing"
+  ],
+  "final_status": "planned",
+  "created_at": "2026-04-17T20:20:00Z",
+  "updated_at": "2026-04-17T20:20:00Z"
+}
