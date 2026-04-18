@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
+      - 'feature/**'
       - 'feature/desktop-installer-manifest-and-onboarding'
     paths:
       - 'docs/windows-shortcut-autostart-scripts-plan.md'
@@ -52,6 +54,61 @@ jobs:
           Copy-Item desktop/windows_autostart_bootstrap.ps1 dist/support/windows_autostart_bootstrap.ps1
           Copy-Item desktop/windows_autostart_remove.ps1 dist/support/windows_autostart_remove.ps1
 
+          $manifest = @{
+            package_name = 'GodModeDesktopBundle'
+            primary_executable = 'GodModeDesktop.exe'
+            support_scripts = @(
+              'windows_shortcut_bootstrap.ps1',
+              'windows_autostart_bootstrap.ps1',
+              'windows_autostart_remove.ps1'
+            )
+            onboarding_assets = @(
+              'desktop_first_run_payload.json',
+              'desktop_shortcut_payload.json',
+              'desktop_autostart_payload.json',
+              'godmode-mobile-pairing.json'
+            )
+            install_mode = 'desktop_bundle_online_actions'
+            installer_status = 'installer_manifest_ready'
+          }
+          $manifest | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-installer-manifest.json
+
+          $onboarding = @{
+            runtime_mode = 'pc_and_phone_primary'
+            steps = @(
+              'launch_desktop_bundle',
+              'read_manifest',
+              'run_first_bootstrap',
+              'create_desktop_shortcut_if_enabled',
+              'enable_autostart_if_enabled',
+              'open_mobile_pairing'
+            )
+            pairing_required = $true
+            onboarding_status = 'onboarding_bundle_ready'
+          }
+          $onboarding | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-onboarding.json
+
+          $bundleIndex = @{
+            package_name = 'GodModeDesktopBundle'
+            primary_executable = 'GodModeDesktop.exe'
+            support_files = @(
+              'windows_shortcut_bootstrap.ps1',
+              'windows_autostart_bootstrap.ps1',
+              'windows_autostart_remove.ps1'
+            )
+            onboarding_files = @(
+              'desktop-installer-manifest.json',
+              'desktop-onboarding.json'
+            )
+            mobile_linked_assets = @(
+              'godmode-mobile-bootstrap.json',
+              'godmode-mobile-pairing.json',
+              'godmode-mobile-runtime-shell.json'
+            )
+            delivery_mode = 'actions_bundle_artifact'
+            inventory_status = 'bundle_inventory_ready'
+          }
+          $bundleIndex | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-bundle-index.json
           $manifest = @'
 {
   "package_name": "GodModeDesktopBundle",
