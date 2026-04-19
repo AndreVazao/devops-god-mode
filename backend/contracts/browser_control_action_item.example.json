@@ -1,0 +1,9 @@
+{
+  "action_id": "action_open_runtime_followup_chat",
+  "control_id": "control_godmode_runtime_followup",
+  "action_type": "open_chat",
+  "target_hint": "conv_godmode_core_runtime_followup",
+  "requires_confirmation": true,
+  "action_status": "pending",
+  "completion_note": ""
+}
