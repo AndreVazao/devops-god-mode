@@ -8,6 +8,7 @@ from app.routes.approval_broker import router as approval_broker_router
 from app.routes.approval_gated_execution import router as approval_gated_execution_router
 from app.routes.browser_conversation_intake import router as browser_conversation_intake_router
 from app.routes.chat_adapter_inventory import router as chat_inventory_router
+from app.routes.conversation_organization import router as conversation_organization_router
 from app.routes.conversation_repo_reconstruction import (
     router as conversation_repo_reconstruction_router,
 )
@@ -67,6 +68,7 @@ app.include_router(operation_queue_router)
 app.include_router(chat_inventory_router)
 app.include_router(script_reuse_router)
 app.include_router(adaptation_planner_router)
+app.include_router(conversation_organization_router)
 
 
 @app.get("/")
