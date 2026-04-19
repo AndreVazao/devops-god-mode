@@ -1,0 +1,10 @@
+{
+  "conversation_id": "conv_0001",
+  "platform": "chatgpt_web",
+  "title": "Baribudos Studio backend phase 6",
+  "alias": "baribudos-studio-backend-fase-6",
+  "project_key": "baribudos_studio",
+  "tags": ["backend", "python", "scripts"],
+  "contains_code": true,
+  "inventory_status": "planned"
+}
