@@ -1,0 +1,8 @@
+{
+  "relation_id": "rel_godmode_core_to_runtime_followup",
+  "source_conversation_id": "conv_godmode_core",
+  "target_conversation_id": "conv_godmode_core_runtime_followup",
+  "relation_type": "continuation_candidate",
+  "confidence_score": 0.93,
+  "relation_reason": "same project, overlapping runtime tags, and continuation-oriented naming"
+}
