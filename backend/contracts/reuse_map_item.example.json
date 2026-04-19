@@ -1,0 +1,11 @@
+{
+  "reuse_map_id": "reuse_0001",
+  "source_project": "baribudos_studio",
+  "target_project": "devops_god_mode",
+  "source_scripts": [
+    "backend/main.py",
+    "backend/app/services/runtime_supervisor_guidance_service.py"
+  ],
+  "adaptation_hint": "reuse backend structure and adapt runtime endpoints to the new target project.",
+  "reuse_status": "planned"
+}
