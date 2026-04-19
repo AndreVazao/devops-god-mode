@@ -1,0 +1,13 @@
+{
+  "target_fit_id": "fit_0001",
+  "target_project": "future_project",
+  "candidate_scripts": [
+    "script_godmode_runtime_supervisor",
+    "script_baribudos_backend_main"
+  ],
+  "fit_summary": "Strong backend reuse candidate set with moderate rename effort.",
+  "blockers": [
+    "target route naming not finalized"
+  ],
+  "target_fit_status": "planned"
+}
