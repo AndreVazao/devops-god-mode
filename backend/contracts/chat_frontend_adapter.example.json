@@ -1,0 +1,9 @@
+{
+  "adapter_id": "adapter_0001",
+  "platform": "chatgpt_web",
+  "mode": "web_controlled_frontend",
+  "inventory_capable": true,
+  "extraction_capable": true,
+  "rename_mode": "internal_alias_first",
+  "adapter_status": "planned"
+}
