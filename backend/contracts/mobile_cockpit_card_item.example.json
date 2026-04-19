@@ -1,0 +1,9 @@
+{
+  "card_id": "card_browser_next_action",
+  "card_type": "browser_control",
+  "title": "Abrir chat e focar thread",
+  "summary": "Há uma ação pendente no browser control pronta para avançar a partir do telemóvel.",
+  "priority": "high",
+  "source_mode": "browser_control_real",
+  "status": "ready"
+}
