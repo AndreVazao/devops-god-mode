@@ -1,0 +1,8 @@
+{
+  "action_id": "quick_advance_browser_action",
+  "action_type": "advance_browser_action",
+  "label": "Avançar próxima ação do browser",
+  "target_id": "control_intake_123456",
+  "requires_confirmation": true,
+  "action_status": "ready"
+}
