@@ -1,0 +1,18 @@
+{
+  "adaptation_id": "adapt_0001",
+  "source_script_id": "script_godmode_runtime_supervisor",
+  "target_project": "future_project",
+  "compatibility_score": 0.91,
+  "required_changes": [
+    "rename runtime endpoints",
+    "adjust project-specific labels",
+    "update target paths"
+  ],
+  "adaptation_steps": [
+    "select source script",
+    "map target project context",
+    "rename project-specific symbols",
+    "validate route fit"
+  ],
+  "adaptation_status": "planned"
+}
