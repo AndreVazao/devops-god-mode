@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.routes.action_center import router as action_center_router
 from app.routes.approval_broker import router as approval_broker_router
 from app.routes.approval_gated_execution import router as approval_gated_execution_router
 from app.routes.browser_conversation_intake import router as browser_conversation_intake_router
@@ -57,6 +58,7 @@ app.include_router(desktop_installer_router)
 app.include_router(desktop_mobile_handoff_router)
 app.include_router(runtime_supervisor_router)
 app.include_router(local_pc_runtime_router)
+app.include_router(action_center_router)
 
 
 @app.get("/")
