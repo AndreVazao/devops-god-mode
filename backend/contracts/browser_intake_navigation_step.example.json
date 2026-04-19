@@ -1,0 +1,8 @@
+{
+  "step_id": "step_open_runtime_followup",
+  "session_id": "intake_godmode_core_runtime",
+  "action_type": "open_chat",
+  "target_hint": "god-mode-core-runtime-followup",
+  "step_status": "pending",
+  "completion_note": ""
+}
