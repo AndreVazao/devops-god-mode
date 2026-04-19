@@ -22,6 +22,7 @@ from app.routes.local_code_patch import router as local_code_patch_router
 from app.routes.local_file_apply_runtime import router as local_file_apply_runtime_router
 from app.routes.local_pc_runtime_orchestrator import router as local_pc_runtime_router
 from app.routes.local_real_validator import router as local_real_validator_router
+from app.routes.mobile_cockpit_command_surface import router as mobile_cockpit_router
 from app.routes.mobile_runtime_shell import router as mobile_runtime_shell_router
 from app.routes.operation_queue import router as operation_queue_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
@@ -71,6 +72,7 @@ app.include_router(script_reuse_router)
 app.include_router(adaptation_planner_router)
 app.include_router(conversation_organization_router)
 app.include_router(browser_control_real_router)
+app.include_router(mobile_cockpit_router)
 
 
 @app.get("/")
