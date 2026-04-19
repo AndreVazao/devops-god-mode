@@ -1,0 +1,11 @@
+{
+  "group_id": "group_devops_god_mode_core",
+  "project_key": "devops_god_mode",
+  "primary_conversation_id": "conv_godmode_core",
+  "conversation_ids": [
+    "conv_godmode_core"
+  ],
+  "group_summary": "Core God Mode backend and runtime discussions grouped for reuse and continuation.",
+  "code_density": "high",
+  "organization_status": "grouped"
+}
