@@ -1,0 +1,11 @@
+{
+  "control_id": "control_godmode_runtime_followup",
+  "session_id": "intake_godmode_core_runtime",
+  "control_mode": "assisted_browser_control",
+  "target_url": "https://chatgpt.com/c/conv_godmode_core_runtime_followup",
+  "target_conversation_id": "conv_godmode_core_runtime_followup",
+  "control_status": "queued",
+  "active_step_id": null,
+  "pending_actions_count": 3,
+  "last_action_summary": ""
+}
