@@ -1,0 +1,71 @@
+name: Conversation Organization Intelligence Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/conversation-organization-intelligence-plan.md'
+      - 'backend/contracts/conversation_group_item.example.json'
+      - 'backend/contracts/conversation_relation_item.example.json'
+      - 'backend/app/services/conversation_organization_service.py'
+      - 'backend/app/routes/conversation_organization.py'
+      - 'backend/app/services/chat_adapter_inventory_service.py'
+      - 'backend/app/services/script_extraction_reuse_service.py'
+      - 'backend/app/services/adaptation_planner_service.py'
+      - 'backend/main.py'
+      - '.github/workflows/conversation-organization-intelligence-smoke.yml'
+
+jobs:
+  conversation-organization-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Smoke import conversation organization
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from app.services.conversation_organization_service import conversation_organization_service
+          from main import app
+
+          groups = conversation_organization_service.get_groups()["groups"]
+          relations = conversation_organization_service.get_relations()["relations"]
+          continuation_signals = conversation_organization_service.get_continuation_signals()["continuation_signals"]
+          next_focus = conversation_organization_service.get_next_focus()["next_focus"]
+          route_paths = {route.path for route in app.routes}
+
+          assert groups, "Conversation groups should not be empty"
+          assert relations, "Conversation relations should not be empty"
+          assert continuation_signals, "Continuation signals should not be empty"
+          assert next_focus["project_key"], "Next focus should include project_key"
+          assert "/api/conversation-organization/status" in route_paths
+          assert "/api/conversation-organization/groups" in route_paths
+          assert "/api/conversation-organization/relations" in route_paths
+          assert "/api/conversation-organization/continuation-signals" in route_paths
+          assert "/api/conversation-organization/next-focus" in route_paths
+          assert any(signal["signal_type"] == "continue_thread" for signal in continuation_signals)
+          print("conversation organization smoke passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Conversation Organization Smoke Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Conversation organization service imported successfully.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Route registration was verified in FastAPI app.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Groups, relations, continuation signals, and next focus returned usable payloads.' >> "$GITHUB_STEP_SUMMARY"
