@@ -1,0 +1,10 @@
+{
+  "intent_id": "intent_0001",
+  "source": "action_center",
+  "runtime_mode": "pc_and_phone_primary",
+  "action_name": "open_desktop_launcher",
+  "priority": "high",
+  "requires_approval": false,
+  "preview_summary": "Open the local desktop launcher and continue the guided startup flow.",
+  "intent_status": "planned"
+}
