@@ -22,6 +22,7 @@ from app.routes.patch_apply_preview import router as patch_apply_preview_router
 from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
+from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
 from app.routes.write_verify_rollback import router as write_verify_rollback_router
 
 app = FastAPI(title="DevOps God Mode")
@@ -53,6 +54,7 @@ app.include_router(first_run_bundle_router)
 app.include_router(mobile_runtime_shell_router)
 app.include_router(desktop_installer_router)
 app.include_router(desktop_mobile_handoff_router)
+app.include_router(runtime_supervisor_router)
 
 
 @app.get("/")
