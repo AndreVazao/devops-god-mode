@@ -4,12 +4,30 @@ from app.services.script_extraction_reuse_service import script_extraction_reuse
 
 
 class AdaptationPlannerService:
-    def _adaptation_plans(self) -> List[Dict[str, Any]]:
+    def _scripts_by_id(self) -> Dict[str, Dict[str, Any]]:
         scripts = script_extraction_reuse_service.get_extracted_scripts()["scripts"]
+        return {script["script_id"]: script for script in scripts}
+
+    def _require_script(self, script_id: str) -> Dict[str, Any]:
+        scripts_by_id = self._scripts_by_id()
+        script = scripts_by_id.get(script_id)
+        if not script:
+            available_ids = sorted(scripts_by_id.keys())
+            raise ValueError(
+                f"Missing script_id '{script_id}' for adaptation planning. Available: {available_ids}"
+            )
+        return script
+
+    def _adaptation_plans(self) -> List[Dict[str, Any]]:
+        runtime_supervisor_script = self._require_script(
+            "script_godmode_runtime_supervisor"
+        )
+        baribudos_backend_script = self._require_script("script_baribudos_backend_main")
+
         return [
             {
                 "adaptation_id": "adapt_runtime_supervisor_to_future_project",
-                "source_script_id": scripts[2]["script_id"],
+                "source_script_id": runtime_supervisor_script["script_id"],
                 "target_project": "future_project",
                 "compatibility_score": 0.91,
                 "required_changes": [
@@ -27,12 +45,13 @@ class AdaptationPlannerService:
             },
             {
                 "adaptation_id": "adapt_baribudos_backend_to_future_project",
-                "source_script_id": scripts[0]["script_id"],
+                "source_script_id": baribudos_backend_script["script_id"],
                 "target_project": "future_project",
                 "compatibility_score": 0.84,
                 "required_changes": [
                     "replace project-specific naming",
                     "adapt service imports",
+                    "review backend startup integration",
                 ],
                 "adaptation_steps": [
                     "inspect source boundaries",
@@ -52,6 +71,7 @@ class AdaptationPlannerService:
 
     def get_target_fit(self) -> Dict[str, Any]:
         plans = self._adaptation_plans()
+        blockers = self.get_blockers()["blockers"]
         return {
             "ok": True,
             "mode": "target_fit_summaries",
@@ -61,7 +81,11 @@ class AdaptationPlannerService:
                     "target_project": "future_project",
                     "candidate_scripts": [plan["source_script_id"] for plan in plans],
                     "fit_summary": "Strong backend reuse candidate set with moderate rename effort.",
-                    "blockers": ["target route naming not finalized"],
+                    "blockers": [
+                        blocker["blockers"][0]
+                        for blocker in blockers
+                        if blocker["target_project"] == "future_project"
+                    ],
                     "target_fit_status": "target_fit_ready",
                 }
             ],
@@ -86,10 +110,11 @@ class AdaptationPlannerService:
             blockers.append(
                 {
                     "adaptation_id": plan["adaptation_id"],
+                    "source_script_id": plan["source_script_id"],
                     "target_project": plan["target_project"],
                     "blockers": [
                         "target naming confirmation pending"
-                        if plan["compatibility_score"] > 0.9
+                        if plan["compatibility_score"] >= 0.9
                         else "import adaptation review needed"
                     ],
                 }
