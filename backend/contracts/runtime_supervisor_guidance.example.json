@@ -1,0 +1,11 @@
+{
+  "supervisor_id": "supervisor_0001",
+  "runtime_mode": "pc_and_phone_primary",
+  "runtime_health": "healthy",
+  "bundle_readiness": "ready",
+  "pairing_readiness": "ready",
+  "recommended_next_action": "open_desktop_launcher",
+  "guidance_status": "planned",
+  "created_at": "2026-04-19T09:20:00Z",
+  "updated_at": "2026-04-19T09:20:00Z"
+}
