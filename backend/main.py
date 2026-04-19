@@ -15,6 +15,7 @@ from app.routes.first_run_bundle import router as first_run_bundle_router
 from app.routes.github_scan import router as github_scan_router
 from app.routes.local_code_patch import router as local_code_patch_router
 from app.routes.local_file_apply_runtime import router as local_file_apply_runtime_router
+from app.routes.local_pc_runtime_orchestrator import router as local_pc_runtime_router
 from app.routes.local_real_validator import router as local_real_validator_router
 from app.routes.mobile_runtime_shell import router as mobile_runtime_shell_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
@@ -55,6 +56,7 @@ app.include_router(mobile_runtime_shell_router)
 app.include_router(desktop_installer_router)
 app.include_router(desktop_mobile_handoff_router)
 app.include_router(runtime_supervisor_router)
+app.include_router(local_pc_runtime_router)
 
 
 @app.get("/")
