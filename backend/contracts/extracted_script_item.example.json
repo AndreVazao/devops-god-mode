@@ -1,0 +1,10 @@
+{
+  "script_id": "script_0001",
+  "conversation_id": "conv_baribudos_backend_06",
+  "inferred_filename": "backend/main.py",
+  "language": "python",
+  "project_key": "baribudos_studio",
+  "tags": ["backend", "fastapi", "python"],
+  "reuse_score": 0.92,
+  "extraction_status": "planned"
+}
