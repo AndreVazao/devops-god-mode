@@ -27,6 +27,7 @@ from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
 from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
+from app.routes.script_extraction_reuse import router as script_reuse_router
 from app.routes.write_verify_rollback import router as write_verify_rollback_router
 
 app = FastAPI(title="DevOps God Mode")
@@ -63,6 +64,7 @@ app.include_router(local_pc_runtime_router)
 app.include_router(action_center_router)
 app.include_router(operation_queue_router)
 app.include_router(chat_inventory_router)
+app.include_router(script_reuse_router)
 
 
 @app.get("/")
