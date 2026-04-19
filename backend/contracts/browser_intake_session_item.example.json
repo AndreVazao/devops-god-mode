@@ -1,0 +1,13 @@
+{
+  "session_id": "intake_godmode_core_runtime",
+  "source_type": "browser_ai_conversation",
+  "source_url": "https://chatgpt.com/c/devops-god-mode-core",
+  "conversation_title": "God Mode core runtime follow-up",
+  "project_hint": "devops_god_mode",
+  "intake_goal": "capture_code_and_context",
+  "capture_status": "queued",
+  "scroll_steps": 0,
+  "snippets_count": 0,
+  "code_blocks_count": 0,
+  "warnings": []
+}
