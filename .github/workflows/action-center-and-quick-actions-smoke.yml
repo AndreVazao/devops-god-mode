@@ -1,0 +1,37 @@
+name: Action Center And Quick Actions Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/action-center-and-quick-actions'
+    paths:
+      - 'docs/action-center-and-quick-actions-plan.md'
+      - 'backend/contracts/action_center_quick_actions.example.json'
+      - 'backend/app/services/action_center_service.py'
+      - 'backend/app/routes/action_center.py'
+      - 'backend/main.py'
+      - '.github/workflows/action-center-and-quick-actions-smoke.yml'
+
+jobs:
+  smoke-action-center-and-quick-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate action center files
+        run: |
+          test -f docs/action-center-and-quick-actions-plan.md
+          test -f backend/contracts/action_center_quick_actions.example.json
+          test -f backend/app/services/action_center_service.py
+          test -f backend/app/routes/action_center.py
+          test -f backend/main.py
+
+      - name: Validate action center markers
+        run: |
+          grep -q '"action_center_id": "action_center_0001"' backend/contracts/action_center_quick_actions.example.json
+          grep -q 'action_center_summary' backend/app/services/action_center_service.py
+          grep -q 'action_center_quick_actions' backend/app/services/action_center_service.py
+          grep -q '/api/action-center' backend/app/routes/action_center.py
+          grep -q 'action_center_router' backend/main.py
