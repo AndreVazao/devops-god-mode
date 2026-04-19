@@ -1,0 +1,72 @@
+name: Browser Control Real Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/browser-control-real-plan.md'
+      - 'backend/contracts/browser_control_session_item.example.json'
+      - 'backend/contracts/browser_control_action_item.example.json'
+      - 'backend/app/services/browser_control_real_service.py'
+      - 'backend/app/routes/browser_control_real.py'
+      - 'backend/app/services/browser_conversation_intake_service.py'
+      - 'backend/main.py'
+      - '.github/workflows/browser-control-real-smoke.yml'
+
+jobs:
+  browser-control-real-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Smoke browser control real
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from app.services.browser_conversation_intake_service import browser_conversation_intake_service
+          from app.services.browser_control_real_service import browser_control_real_service
+          from main import app
+
+          browser_conversation_intake_service.seed_from_conversation_focus()
+          controls = browser_control_real_service.get_controls()["controls"]
+          assert controls, "Browser controls should not be empty"
+          control_id = controls[0]["control_id"]
+          actions = browser_control_real_service.get_actions(control_id)["actions"]
+          assert actions, "Browser control actions should not be empty"
+          next_action = browser_control_real_service.get_next_action()["next_action"]
+          assert next_action is not None
+          advanced = browser_control_real_service.advance_action(
+              control_id=control_id,
+              action_id=actions[0]["action_id"],
+              completion_note="smoke advanced",
+          )
+          assert advanced["ok"] is True
+          route_paths = {route.path for route in app.routes}
+          assert "/api/browser-control/status" in route_paths
+          assert "/api/browser-control/sessions" in route_paths
+          assert "/api/browser-control/next-action" in route_paths
+          print("browser control real smoke passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Browser Control Real Smoke Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Browser control real service imported successfully.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Control sessions, actions, next action and assisted advance were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Route registration was verified in FastAPI app.' >> "$GITHUB_STEP_SUMMARY"
