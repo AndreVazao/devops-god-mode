@@ -1,0 +1,8 @@
+{
+  "write_candidate_target_id": "write_candidate_target_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "handoff_target_id": "handoff_write_local_target_backend_main_01",
+  "target_path": "C:/GodMode/recovered/devops_god_mode/backend/main.py",
+  "candidate_mode": "real_local_write_candidate",
+  "candidate_target_status": "planned"
+}
