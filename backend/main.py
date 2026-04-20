@@ -16,6 +16,7 @@ from app.routes.approval_broker import router as approval_broker_router
 from app.routes.approval_gated_execution import router as approval_gated_execution_router
 from app.routes.browser_control_real import router as browser_control_real_router
 from app.routes.browser_conversation_intake import router as browser_conversation_intake_router
+from app.routes.build_artifact_harvest import router as build_artifact_harvest_router
 from app.routes.chat_adapter_inventory import router as chat_inventory_router
 from app.routes.context_aware_orchestration import router as context_orchestration_router
 from app.routes.conversation_organization import router as conversation_organization_router
@@ -109,6 +110,7 @@ app.include_router(approval_broker_router)
 app.include_router(approval_gated_execution_router)
 app.include_router(conversation_repo_reconstruction_router)
 app.include_router(browser_conversation_intake_router)
+app.include_router(build_artifact_harvest_router)
 app.include_router(local_code_patch_router)
 app.include_router(patch_apply_preview_router)
 app.include_router(local_file_apply_runtime_router)
