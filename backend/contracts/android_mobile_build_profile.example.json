@@ -1,4 +1,5 @@
 {
+  "legacy_foundation_note": "historical Android placeholder contract; not the final Android build pipeline",
   "build_id": "androidbuild_0001",
   "target_platform": "android_phone",
   "artifact_type": "apk",
