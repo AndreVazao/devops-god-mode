@@ -1,0 +1,66 @@
+name: Build Catalog Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/build-catalog-plan.md'
+      - 'backend/contracts/build_catalog.example.json'
+      - 'backend/contracts/build_output_entry.example.json'
+      - 'backend/app/services/build_catalog_service.py'
+      - 'backend/app/routes/build_catalog.py'
+      - 'backend/main.py'
+      - '.github/workflows/build-catalog-phase.yml'
+
+jobs:
+  build-catalog-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate build catalog layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.build_catalog_service import build_catalog_service
+
+          catalogs = build_catalog_service.get_catalogs()["catalogs"]
+          first_project_id = catalogs[0]["recovery_project_id"]
+          entries = build_catalog_service.get_output_entries(first_project_id)["entries"]
+          package = build_catalog_service.get_catalog_package(first_project_id)["package"]
+          next_action = build_catalog_service.get_next_catalog_action()["next_catalog_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert catalogs, "Expected at least one build catalog"
+          assert entries, "Expected at least one build output entry"
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/build-catalog/status" in route_paths
+          assert "/api/build-catalog/catalogs" in route_paths
+          assert "/api/build-catalog/entries" in route_paths
+          assert "/api/build-catalog/next-catalog-action" in route_paths
+          print("build catalog phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Build Catalog Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for build catalog validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
