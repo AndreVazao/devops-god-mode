@@ -1,0 +1,7 @@
+{
+  "artifact_id": "android_progressive_artifact_01",
+  "artifact_name": "GodModeMobileProgressive.apk",
+  "artifact_role": "progressive_pipeline_output",
+  "topology_binding": "pc_and_phone_primary",
+  "artifact_status": "planned"
+}
