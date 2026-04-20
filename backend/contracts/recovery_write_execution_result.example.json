@@ -1,1 +1,10 @@
-{}
+{
+  "recovery_write_execution_result_id": "execution_result_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "recovery_write_materialize_target_id": "materialize_local_target_script_devops_god_mode_backend_main",
+  "patch_status": "waiting_for_approval",
+  "preview_status": "blocked_waiting_for_patch",
+  "apply_run_status": "blocked_waiting_for_preview",
+  "real_write_status": "blocked_waiting_for_apply_run",
+  "blocker_reason": "approval_pending"
+}
