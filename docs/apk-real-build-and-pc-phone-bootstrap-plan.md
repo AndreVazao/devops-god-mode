@@ -1,5 +1,10 @@
 # APK Real Build And PC Phone Bootstrap Plan
 
+> Legacy foundation note:
+> este documento continua na repo como referência histórica de uma fase intermédia de Android mais realista.
+> não representa ainda o fluxo final principal do `main`.
+> ver também `docs/archive/legacy-foundations-index.md`.
+
 ## Branch
 - `feature/apk-real-build-and-pc-phone-bootstrap`
 
