@@ -1,0 +1,87 @@
+name: Universal Total Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'backend/**'
+      - 'desktop/**'
+      - 'docs/**'
+      - '.github/workflows/universal-total-test.yml'
+
+jobs:
+  universal-total-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Universal backend import and route test
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.context_aware_orchestration_service import context_aware_orchestration_service
+          from app.services.mobile_cockpit_command_surface_service import mobile_cockpit_command_surface_service
+          from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
+          from app.services.android_real_build_progressive_service import android_real_build_progressive_service
+
+          route_paths = {route.path for route in app.routes}
+
+          required_routes = {
+              "/health",
+              "/api/browser-intake/status",
+              "/api/browser-control/status",
+              "/api/mobile-cockpit/status",
+              "/api/driving-mode/status",
+              "/api/context-orchestration/status",
+              "/api/multi-ai-repair/status",
+              "/api/android-real-build-progressive/status",
+          }
+
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          orchestration = context_aware_orchestration_service.get_context_summary()
+          cockpit = mobile_cockpit_command_surface_service.get_summary()
+          repair = multi_ai_intake_and_script_repair_service.get_broken_scripts()
+          progressive = android_real_build_progressive_service.get_summary()
+
+          assert orchestration["ok"] is True
+          assert cockpit["ok"] is True
+          assert repair["ok"] is True
+          assert progressive["ok"] is True
+          assert repair["issues"], "Expected at least one broken script issue"
+          print("universal total test passed")
+          PY
+
+      - name: Validate desktop build inputs exist
+        run: |
+          test -f desktop/godmode_desktop_launcher.py
+          test -f desktop/GodModeDesktop.spec
+          test -f desktop/windows_shortcut_bootstrap.ps1
+          test -f desktop/windows_autostart_bootstrap.ps1
+          test -f desktop/windows_autostart_remove.ps1
+
+      - name: Build summary
+        run: |
+          echo '## Universal Total Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Main route set was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Context orchestration, mobile cockpit, multi-AI repair and Android progressive services were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
