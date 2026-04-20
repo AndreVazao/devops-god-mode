@@ -1,0 +1,9 @@
+{
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "project_key": "devops_god_mode",
+  "project_name": "DevOps God Mode",
+  "source_count": 3,
+  "recoverable_script_count": 4,
+  "recovery_status": "planned",
+  "recovery_summary": "Project can be reconstructed from multiple AI chat sources and recovered scripts."
+}
