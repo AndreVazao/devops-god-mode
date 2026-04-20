@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 
-from app.services.mobile_runtime_shell_service import mobile_runtime_shell_service
+from app.services.android_runtime_shell_service import android_runtime_shell_service
 from app.services.pc_phone_bootstrap_service import pc_phone_bootstrap_service
 
 
@@ -43,8 +43,11 @@ class AndroidRealPipelineReadinessService:
         ]
 
     def get_summary(self) -> Dict[str, Any]:
-        runtime_shell = mobile_runtime_shell_service.get_runtime_shell_bundle()["runtime_shell"]
-        bootstrap = pc_phone_bootstrap_service.get_bootstrap_profile()["profile"]
+        runtime_shell = android_runtime_shell_service.get_shell_bundle()["shell"]
+        bootstrap_profiles = pc_phone_bootstrap_service.get_bootstrap_foundation()[
+            "bootstrap_profiles"
+        ]
+        bootstrap = bootstrap_profiles[0] if bootstrap_profiles else {}
         blockers = self.get_blockers()["blockers"]
         next_step = self.get_next_step()["next_step"]
         return {
@@ -52,11 +55,13 @@ class AndroidRealPipelineReadinessService:
             "mode": "android_real_pipeline_readiness",
             "summary": {
                 "readiness_id": "android_real_pipeline_readiness_01",
-                "target_topology": bootstrap["runtime_mode"],
+                "target_topology": "pc_and_phone_primary",
                 "current_pipeline_mode": "legacy_foundation_placeholder",
                 "replacement_status": "planned",
                 "real_build_readiness": "partial",
                 "runtime_shell_status": runtime_shell["shell_status"],
+                "bootstrap_primary_runtime": bootstrap.get("primary_runtime"),
+                "bootstrap_remote_client": bootstrap.get("remote_client"),
                 "blockers": blockers,
                 "next_step": next_step["step_id"] if next_step else None,
             },
@@ -82,7 +87,9 @@ class AndroidRealPipelineReadinessService:
 
     def get_next_step(self) -> Dict[str, Any]:
         steps = self._replacement_steps()
-        next_step = next((step for step in steps if step["step_status"] != "completed"), None)
+        next_step = next(
+            (step for step in steps if step["step_status"] != "completed"), None
+        )
         return {
             "ok": True,
             "mode": "android_real_pipeline_next_step",
