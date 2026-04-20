@@ -1,0 +1,8 @@
+{
+  "artifact_id": "android_real_artifact_01",
+  "artifact_type": "apk_foundation",
+  "artifact_name": "GodModeMobileRealFoundation.apk",
+  "runtime_binding": "pc_and_phone_primary",
+  "pairing_support": "qr_or_code",
+  "output_status": "planned"
+}
