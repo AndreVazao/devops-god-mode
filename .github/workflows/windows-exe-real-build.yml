@@ -1,4 +1,6 @@
-name: Windows EXE Real Build
+# Canonical desktop build workflow.
+# Keep this as the single main Windows EXE build pipeline.
+name: Windows EXE Build
 
 on:
   workflow_dispatch:
@@ -10,6 +12,7 @@ on:
       - 'docs/windows-shortcut-autostart-scripts-plan.md'
       - 'docs/desktop-installer-manifest-and-onboarding-plan.md'
       - 'docs/desktop-mobile-handoff-package-plan.md'
+      - 'docs/canonical-build-and-test-workflows.md'
       - 'backend/contracts/windows_bootstrap_script_profile.example.json'
       - 'backend/contracts/desktop_installer_manifest.example.json'
       - 'backend/contracts/desktop_onboarding_profile.example.json'
@@ -23,7 +26,7 @@ on:
       - '.github/workflows/windows-exe-real-build.yml'
 
 jobs:
-  build-windows-exe-real:
+  build-windows-exe:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -137,39 +140,22 @@ jobs:
           }
           $handoff | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-mobile-handoff.json
 
-          Get-ChildItem dist/support
-          Get-ChildItem dist/onboarding
-
       - name: Verify built files exist
         shell: pwsh
         run: |
-          if (-not (Test-Path dist/GodModeDesktop.exe)) {
-            throw 'dist/GodModeDesktop.exe was not created.'
-          }
-          if (-not (Test-Path dist/support/windows_shortcut_bootstrap.ps1)) {
-            throw 'Desktop shortcut helper was not created.'
-          }
-          if (-not (Test-Path dist/support/windows_autostart_bootstrap.ps1)) {
-            throw 'Desktop autostart helper was not created.'
-          }
-          if (-not (Test-Path dist/onboarding/desktop-installer-manifest.json)) {
-            throw 'Desktop installer manifest was not created.'
-          }
-          if (-not (Test-Path dist/onboarding/desktop-onboarding.json)) {
-            throw 'Desktop onboarding file was not created.'
-          }
-          if (-not (Test-Path dist/onboarding/desktop-bundle-index.json)) {
-            throw 'Desktop bundle index file was not created.'
-          }
-          if (-not (Test-Path dist/onboarding/desktop-mobile-handoff.json)) {
-            throw 'Desktop mobile handoff file was not created.'
-          }
+          if (-not (Test-Path dist/GodModeDesktop.exe)) { throw 'dist/GodModeDesktop.exe was not created.' }
+          if (-not (Test-Path dist/support/windows_shortcut_bootstrap.ps1)) { throw 'Desktop shortcut helper was not created.' }
+          if (-not (Test-Path dist/support/windows_autostart_bootstrap.ps1)) { throw 'Desktop autostart helper was not created.' }
+          if (-not (Test-Path dist/onboarding/desktop-installer-manifest.json)) { throw 'Desktop installer manifest was not created.' }
+          if (-not (Test-Path dist/onboarding/desktop-onboarding.json)) { throw 'Desktop onboarding file was not created.' }
+          if (-not (Test-Path dist/onboarding/desktop-bundle-index.json)) { throw 'Desktop bundle index file was not created.' }
+          if (-not (Test-Path dist/onboarding/desktop-mobile-handoff.json)) { throw 'Desktop mobile handoff file was not created.' }
 
       - name: Upload artifact if quota allows
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: godmode-windows-exe-real
+          name: godmode-windows-exe
           path: |
             dist/GodModeDesktop.exe
             dist/support/windows_shortcut_bootstrap.ps1
@@ -183,9 +169,9 @@ jobs:
       - name: Build summary
         shell: pwsh
         run: |
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Windows EXE Real Build Summary'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Windows EXE Build Summary'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- This is the canonical desktop EXE build workflow.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut and autostart were added to `dist/support`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, bundle index, and handoff files were added to `dist/onboarding`.'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Artifact upload is best-effort and may fail when GitHub Actions storage quota is exhausted.'
