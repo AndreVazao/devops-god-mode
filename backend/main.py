@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routes.action_center import router as action_center_router
 from app.routes.adaptation_planner import router as adaptation_planner_router
+from app.routes.android_progressive_runtime_binding import (
+    router as android_progressive_binding_router,
+)
 from app.routes.android_real_build_pipeline import router as android_real_build_router
 from app.routes.android_real_build_progressive import router as android_real_build_progressive_router
 from app.routes.android_real_pipeline_readiness import (
@@ -85,6 +88,7 @@ app.include_router(context_orchestration_router)
 app.include_router(android_real_pipeline_router)
 app.include_router(android_real_build_router)
 app.include_router(android_real_build_progressive_router)
+app.include_router(android_progressive_binding_router)
 
 
 @app.get("/")
