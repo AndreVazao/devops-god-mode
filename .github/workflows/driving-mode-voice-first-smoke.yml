@@ -1,0 +1,74 @@
+name: Driving Mode Voice First Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/driving-mode-voice-first-plan.md'
+      - 'backend/contracts/driving_prompt_item.example.json'
+      - 'backend/contracts/driving_action_guard_item.example.json'
+      - 'backend/app/services/driving_mode_voice_first_service.py'
+      - 'backend/app/routes/driving_mode_voice_first.py'
+      - 'backend/app/services/mobile_cockpit_command_surface_service.py'
+      - 'backend/main.py'
+      - '.github/workflows/driving-mode-voice-first-smoke.yml'
+
+jobs:
+  driving-mode-voice-first-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Smoke driving mode voice first
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from app.services.browser_conversation_intake_service import browser_conversation_intake_service
+          from app.services.driving_mode_voice_first_service import driving_mode_voice_first_service
+          from main import app
+
+          browser_conversation_intake_service.seed_from_conversation_focus()
+          summary = driving_mode_voice_first_service.get_summary()["summary"]
+          prompts = driving_mode_voice_first_service.get_prompts()["prompts"]
+          guards = driving_mode_voice_first_service.get_action_guards()["guards"]
+          next_safe_action = driving_mode_voice_first_service.get_next_safe_action()["next_safe_action"]
+
+          assert summary is not None
+          assert prompts, "Driving prompts should not be empty"
+          assert guards, "Driving guards should not be empty"
+          assert next_safe_action is not None
+
+          confirmed = driving_mode_voice_first_service.confirm_short_action("sim")
+          assert confirmed["ok"] is True
+
+          route_paths = {route.path for route in app.routes}
+          assert "/api/driving-mode/status" in route_paths
+          assert "/api/driving-mode/summary" in route_paths
+          assert "/api/driving-mode/prompts" in route_paths
+          assert "/api/driving-mode/guards" in route_paths
+          assert "/api/driving-mode/next-safe-action" in route_paths
+          print("driving mode voice first smoke passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Driving Mode Voice First Smoke Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Driving mode voice first service imported successfully.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Summary, prompts, guards and next safe action were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Short confirmation flow was validated.' >> "$GITHUB_STEP_SUMMARY"
