@@ -1,0 +1,11 @@
+{
+  "step_id": "android_replace_foundation_workflow",
+  "phase": "pipeline_replacement",
+  "step_summary": "Replace the Android foundation placeholder workflow with a real packaging pipeline aligned to PC + phone topology.",
+  "required_artifacts": [
+    "real Android packaging workflow",
+    "mobile runtime shell entrypoint",
+    "pairing-aware build config"
+  ],
+  "step_status": "planned"
+}
