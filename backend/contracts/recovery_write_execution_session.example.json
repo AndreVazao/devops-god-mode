@@ -1,1 +1,8 @@
-{}
+{
+  "recovery_write_execution_id": "execution_recovery_devops_god_mode_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "recovery_write_materialize_id": "materialize_recovery_devops_god_mode_01",
+  "execution_target_count": 4,
+  "execution_status": "running_with_approval_blockers",
+  "blocker_count": 4
+}
