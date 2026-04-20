@@ -1,0 +1,12 @@
+{
+  "readiness_id": "android_real_pipeline_readiness_01",
+  "target_topology": "pc_and_phone_primary",
+  "current_pipeline_mode": "legacy_foundation_placeholder",
+  "replacement_status": "planned",
+  "real_build_readiness": "partial",
+  "blockers": [
+    "real Android packaging pipeline not implemented yet",
+    "mobile runtime shell still represented by foundation assets"
+  ],
+  "next_step": "define real Android packaging replacement workflow"
+}
