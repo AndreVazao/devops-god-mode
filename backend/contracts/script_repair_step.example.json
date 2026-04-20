@@ -1,0 +1,8 @@
+{
+  "repair_step_id": "repair_step_fix_import_path",
+  "script_issue_id": "issue_runtime_supervisor_import_error",
+  "repair_action": "normalize_import_path",
+  "expected_fix": "script imports align with current module layout",
+  "confirmation_required": true,
+  "step_status": "planned"
+}
