@@ -1,4 +1,5 @@
 {
+  "legacy_foundation_note": "intermediate Android packaging foundation; still not the final real Android build pipeline",
   "build_id": "androidreal_0001",
   "target_platform": "android_phone",
   "artifact_type": "apk",
