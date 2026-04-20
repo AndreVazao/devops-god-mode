@@ -75,6 +75,9 @@ from app.routes.project_recovery_write_materialize import (
 from app.routes.project_recovery_write_queue import (
     router as project_recovery_write_queue_router,
 )
+from app.routes.project_recovery_write_remote_command import (
+    router as project_recovery_write_remote_command_router,
+)
 from app.routes.project_recovery_write_run import (
     router as project_recovery_write_run_router,
 )
@@ -147,6 +150,7 @@ app.include_router(project_recovery_write_guard_router)
 app.include_router(project_recovery_write_materialize_router)
 app.include_router(project_recovery_write_execution_router)
 app.include_router(project_recovery_write_approval_cockpit_router)
+app.include_router(project_recovery_write_remote_command_router)
 
 
 @app.get("/")
