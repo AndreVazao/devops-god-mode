@@ -1,0 +1,8 @@
+{
+  "guard_id": "guard_browser_advance",
+  "action_id": "quick_advance_browser_action",
+  "risk_level": "medium",
+  "requires_voice_confirmation": true,
+  "allowed_in_safe_mode": true,
+  "guard_status": "guard_ready"
+}
