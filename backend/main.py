@@ -45,6 +45,9 @@ from app.routes.project_recovery import router as project_recovery_router
 from app.routes.project_recovery_execution import (
     router as project_recovery_execution_router,
 )
+from app.routes.project_recovery_local_apply import (
+    router as project_recovery_local_apply_router,
+)
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
 from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
@@ -99,6 +102,7 @@ app.include_router(android_progressive_binding_router)
 app.include_router(multi_ai_repair_router)
 app.include_router(project_recovery_router)
 app.include_router(project_recovery_execution_router)
+app.include_router(project_recovery_local_apply_router)
 
 
 @app.get("/")
