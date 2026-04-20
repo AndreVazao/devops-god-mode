@@ -1,3 +1,6 @@
+# Historical foundation workflow note:
+# this workflow remains in the repo for Android placeholder coverage and asset generation,
+# but it does not represent the final Android build pipeline for the current main architecture.
 name: Android Mobile Build
 
 on:
@@ -12,6 +15,7 @@ on:
       - 'docs/first-run-bundle-and-pairing-assets-plan.md'
       - 'docs/android-real-runtime-shell-v2-plan.md'
       - 'docs/repo-consolidation-and-legacy-mapping.md'
+      - 'docs/archive/workflow-foundation-review.md'
       - 'backend/contracts/android_mobile_build_profile.example.json'
       - 'backend/contracts/android_real_build_profile.example.json'
       - 'backend/contracts/pc_phone_bootstrap_profile.example.json'
