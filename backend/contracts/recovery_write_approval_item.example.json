@@ -1,0 +1,8 @@
+{
+  "recovery_write_approval_item_id": "approval_item_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "recovery_write_execution_result_id": "execution_result_materialize_local_backend_main_01",
+  "required_response": "OK",
+  "approval_status": "pending",
+  "mobile_action_label": "Aprovar patch backend/main.py"
+}
