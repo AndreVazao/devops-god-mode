@@ -1,0 +1,8 @@
+{
+  "recovery_write_mobile_effect_id": "mobile_effect_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "recovery_write_remote_action_id": "remote_approval_execution_result_backend_main_01",
+  "execution_effect": "approve_and_advance_requested",
+  "downstream_status": "ready_for_executor_step",
+  "effect_status": "planned"
+}
