@@ -1,0 +1,63 @@
+name: Recovery Write Queue Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/project-recovery-write-queue-plan.md'
+      - 'backend/contracts/recovery_write_queue.example.json'
+      - 'backend/contracts/recovery_write_queue_target.example.json'
+      - 'backend/app/services/project_recovery_write_queue_service.py'
+      - 'backend/app/routes/project_recovery_write_queue.py'
+      - 'backend/main.py'
+      - '.github/workflows/recovery-write-queue-phase.yml'
+
+jobs:
+  recovery-write-queue-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate recovery write queue layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.project_recovery_write_queue_service import project_recovery_write_queue_service
+
+          entries = project_recovery_write_queue_service.get_queue_entries()["entries"]
+          targets = project_recovery_write_queue_service.get_queue_targets()["targets"]
+          next_action = project_recovery_write_queue_service.get_next_queue_action()["next_queue_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert entries, "Expected at least one recovery write queue entry"
+          assert targets, "Expected at least one recovery write queue target"
+          assert next_action is not None
+          assert "/api/project-recovery-write-queue/status" in route_paths
+          assert "/api/project-recovery-write-queue/entries" in route_paths
+          assert "/api/project-recovery-write-queue/targets" in route_paths
+          assert "/api/project-recovery-write-queue/next-queue-action" in route_paths
+          print("recovery write queue phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Recovery Write Queue Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for recovery write queue validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
