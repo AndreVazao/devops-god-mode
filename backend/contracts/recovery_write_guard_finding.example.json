@@ -1,0 +1,8 @@
+{
+  "recovery_write_guard_finding_id": "recovery_write_guard_finding_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "recovery_write_dispatch_target_id": "dispatch_create_submit_queue_run_candidate_handoff_write_local_target_backend_main_01",
+  "finding_type": "indentation_or_syntax_risk",
+  "severity": "medium",
+  "finding_status": "planned"
+}
