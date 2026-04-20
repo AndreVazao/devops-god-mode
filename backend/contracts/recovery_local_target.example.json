@@ -4,5 +4,7 @@
   "local_target_path": "C:/GodMode/recovered/devops_god_mode/backend/main.py",
   "source_target_file_id": "target_script_godmode_runtime_supervisor",
   "local_role": "entrypoint",
-  "local_status": "planned"
+  "local_status": "planned",
+  "content_strategy": "recovered_script_payload",
+  "write_target_status": "planned"
 }
