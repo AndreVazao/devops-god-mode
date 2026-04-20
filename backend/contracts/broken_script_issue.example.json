@@ -1,0 +1,8 @@
+{
+  "script_issue_id": "issue_runtime_supervisor_import_error",
+  "script_id": "script_godmode_runtime_supervisor",
+  "failure_type": "import_error",
+  "severity": "high",
+  "detection_reason": "runtime import path mismatch detected during validation",
+  "repair_status": "planned"
+}
