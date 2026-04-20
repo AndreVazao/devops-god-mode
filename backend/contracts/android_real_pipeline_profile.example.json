@@ -1,0 +1,9 @@
+{
+  "pipeline_id": "android_real_pipeline_01",
+  "target_platform": "android_phone",
+  "topology": "pc_and_phone_primary",
+  "build_mode": "real_pipeline_foundation",
+  "packaging_strategy": "android_webview_or_shell_binding",
+  "output_type": "apk_foundation",
+  "readiness_status": "planned"
+}
