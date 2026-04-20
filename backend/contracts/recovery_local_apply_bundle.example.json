@@ -1,0 +1,8 @@
+{
+  "local_apply_bundle_id": "local_apply_devops_god_mode_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "target_root": "C:/GodMode/recovered/devops_god_mode",
+  "local_target_count": 4,
+  "apply_mode": "assisted_local_materialization",
+  "apply_status": "planned"
+}
