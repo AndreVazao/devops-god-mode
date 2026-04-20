@@ -1,0 +1,7 @@
+{
+  "handoff_target_id": "handoff_target_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "write_target_path": "C:/GodMode/recovered/devops_god_mode/backend/main.py",
+  "preview_payload_mode": "recovered_script_payload",
+  "handoff_target_status": "planned"
+}
