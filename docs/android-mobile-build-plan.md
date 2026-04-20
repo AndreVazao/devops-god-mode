@@ -1,5 +1,10 @@
 # Android Mobile Build Plan
 
+> Legacy foundation note:
+> este documento continua na repo como referência histórica de uma fase inicial de Android placeholder.
+> não representa o fluxo principal atual do `main`.
+> ver também `docs/archive/legacy-foundations-index.md`.
+
 ## Branch
 - `feature/android-apk-build-workflow`
 
