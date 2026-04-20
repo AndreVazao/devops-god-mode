@@ -4,12 +4,14 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'feature/android-real-runtime-shell-v2'
+      - main
+      - 'feature/**'
     paths:
       - 'docs/android-mobile-build-plan.md'
       - 'docs/apk-real-build-and-pc-phone-bootstrap-plan.md'
       - 'docs/first-run-bundle-and-pairing-assets-plan.md'
       - 'docs/android-real-runtime-shell-v2-plan.md'
+      - 'docs/repo-consolidation-and-legacy-mapping.md'
       - 'backend/contracts/android_mobile_build_profile.example.json'
       - 'backend/contracts/android_real_build_profile.example.json'
       - 'backend/contracts/pc_phone_bootstrap_profile.example.json'
@@ -77,9 +79,9 @@ jobs:
           }
           JSON
 
-      - name: Build foundation APK bundle
+      - name: Build Android foundation bundle
         run: |
-          printf 'God Mode Mobile APK foundation for PC + phone bootstrap.\n' > dist/android/GodModeMobile.apk
+          printf 'God Mode Mobile Android foundation placeholder for PC + phone topology.\n' > dist/android/GodModeMobile.apk
           cp mobile-config/godmode-mobile-bootstrap.json dist/android/godmode-mobile-bootstrap.json
           cp mobile-config/godmode-mobile-pairing.json dist/android/godmode-mobile-pairing.json
           cp mobile-config/godmode-mobile-runtime-shell.json dist/android/godmode-mobile-runtime-shell.json
@@ -96,7 +98,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: godmode-android-apk
+          name: godmode-android-apk-foundation
           path: |
             dist/android/GodModeMobile.apk
             dist/android/godmode-mobile-bootstrap.json
@@ -107,8 +109,9 @@ jobs:
         run: |
           echo '## Android Mobile Build Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Mobile APK foundation file was created in `dist/android/GodModeMobile.apk`.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow is currently a legacy foundation placeholder, not the final Android build pipeline.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile APK placeholder file was created in `dist/android/GodModeMobile.apk`.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Mobile bootstrap config was created in `dist/android/godmode-mobile-bootstrap.json`.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Mobile pairing asset was created in `dist/android/godmode-mobile-pairing.json`.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Mobile runtime shell asset was created in `dist/android/godmode-mobile-runtime-shell.json`.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Output is aligned with PC as primary runtime and phone as simple remote cockpit.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Workflow kept for historical foundation coverage until the real Android build replaces it.' >> "$GITHUB_STEP_SUMMARY"
