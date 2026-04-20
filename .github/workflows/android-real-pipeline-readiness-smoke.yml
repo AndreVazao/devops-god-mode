@@ -1,0 +1,67 @@
+name: Android Real Pipeline Readiness Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/android-real-pipeline-readiness-plan.md'
+      - 'backend/contracts/android_real_pipeline_readiness.example.json'
+      - 'backend/contracts/android_replacement_step.example.json'
+      - 'backend/app/services/android_real_pipeline_readiness_service.py'
+      - 'backend/app/routes/android_real_pipeline_readiness.py'
+      - 'backend/main.py'
+      - '.github/workflows/android-real-pipeline-readiness-smoke.yml'
+
+jobs:
+  android-real-pipeline-readiness-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Smoke android real pipeline readiness
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from app.services.android_real_pipeline_readiness_service import android_real_pipeline_readiness_service
+          from main import app
+
+          summary = android_real_pipeline_readiness_service.get_summary()["summary"]
+          blockers = android_real_pipeline_readiness_service.get_blockers()["blockers"]
+          steps = android_real_pipeline_readiness_service.get_steps()["steps"]
+          next_step = android_real_pipeline_readiness_service.get_next_step()["next_step"]
+          route_paths = {route.path for route in app.routes}
+
+          assert summary["target_topology"] == "pc_and_phone_primary"
+          assert blockers, "Android real pipeline blockers should not be empty"
+          assert steps, "Android replacement steps should not be empty"
+          assert next_step is not None
+          assert "/api/android-real-pipeline/status" in route_paths
+          assert "/api/android-real-pipeline/summary" in route_paths
+          assert "/api/android-real-pipeline/blockers" in route_paths
+          assert "/api/android-real-pipeline/steps" in route_paths
+          assert "/api/android-real-pipeline/next-step" in route_paths
+          print("android real pipeline readiness smoke passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Android Real Pipeline Readiness Smoke Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Android real pipeline readiness service imported successfully.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Summary, blockers, steps and next step were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Route registration was verified in FastAPI app.' >> "$GITHUB_STEP_SUMMARY"
