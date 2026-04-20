@@ -1,0 +1,10 @@
+{
+  "decision_id": "decision_advance_browser_then_resume_intake",
+  "decision_type": "advance_assisted_action",
+  "target_mode": "browser_control_real",
+  "target_id": "quick_advance_browser_action",
+  "confidence_score": 0.92,
+  "requires_confirmation": true,
+  "decision_reason": "browser control has next critical action ready and driving mode guard allows safe assisted confirmation",
+  "decision_status": "ready"
+}
