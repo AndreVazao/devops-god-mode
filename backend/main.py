@@ -63,6 +63,9 @@ from app.routes.project_recovery_write_dispatch import (
 from app.routes.project_recovery_write_guard import (
     router as project_recovery_write_guard_router,
 )
+from app.routes.project_recovery_write_materialize import (
+    router as project_recovery_write_materialize_router,
+)
 from app.routes.project_recovery_write_queue import (
     router as project_recovery_write_queue_router,
 )
@@ -135,6 +138,7 @@ app.include_router(project_recovery_write_submit_router)
 app.include_router(project_recovery_write_create_router)
 app.include_router(project_recovery_write_dispatch_router)
 app.include_router(project_recovery_write_guard_router)
+app.include_router(project_recovery_write_materialize_router)
 
 
 @app.get("/")
