@@ -1,0 +1,8 @@
+{
+  "recovery_write_submit_target_id": "recovery_write_submit_target_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "recovery_write_queue_target_id": "queue_run_candidate_handoff_write_local_target_backend_main_01",
+  "submit_target_path": "C:/GodMode/recovered/devops_god_mode/backend/main.py",
+  "submit_mode": "real_local_write_submission",
+  "submit_target_status": "planned"
+}
