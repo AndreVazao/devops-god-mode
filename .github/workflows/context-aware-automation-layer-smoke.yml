@@ -1,0 +1,74 @@
+name: Context Aware Orchestration Layer Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/context-aware-automation-layer-plan.md'
+      - 'backend/contracts/context_decision_item.example.json'
+      - 'backend/contracts/orchestration_lane_item.example.json'
+      - 'backend/app/services/context_aware_orchestration_service.py'
+      - 'backend/app/routes/context_aware_orchestration.py'
+      - 'backend/app/services/driving_mode_voice_first_service.py'
+      - 'backend/app/services/mobile_cockpit_command_surface_service.py'
+      - 'backend/main.py'
+      - '.github/workflows/context-aware-automation-layer-smoke.yml'
+
+jobs:
+  context-aware-orchestration-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Smoke context aware orchestration layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from app.services.browser_conversation_intake_service import browser_conversation_intake_service
+          from app.services.context_aware_orchestration_service import context_aware_orchestration_service
+          from main import app
+
+          browser_conversation_intake_service.seed_from_conversation_focus()
+          summary = context_aware_orchestration_service.get_context_summary()["summary"]
+          lanes = context_aware_orchestration_service.get_lanes()["lanes"]
+          next_decision = context_aware_orchestration_service.get_next_decision()["next_decision"]
+          split = context_aware_orchestration_service.get_action_split()
+          applied = context_aware_orchestration_service.apply_next_decision()
+
+          assert summary is not None
+          assert lanes, "Context lanes should not be empty"
+          assert next_decision is not None
+          assert split is not None
+          assert applied["ok"] is True
+
+          route_paths = {route.path for route in app.routes}
+          assert "/api/context-orchestration/status" in route_paths
+          assert "/api/context-orchestration/summary" in route_paths
+          assert "/api/context-orchestration/lanes" in route_paths
+          assert "/api/context-orchestration/next-decision" in route_paths
+          assert "/api/context-orchestration/action-split" in route_paths
+          print("context aware orchestration smoke passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Context Aware Orchestration Layer Smoke Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Context aware orchestration service imported successfully.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Summary, lanes, next decision and action split were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Assisted application of the next decision was validated.' >> "$GITHUB_STEP_SUMMARY"
