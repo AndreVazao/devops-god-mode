@@ -1,0 +1,8 @@
+{
+  "prompt_id": "prompt_next_safe_action",
+  "prompt_type": "next_action",
+  "spoken_text": "A próxima ação segura está pronta. Queres avançar?",
+  "expected_reply_mode": "yes_no",
+  "priority": "high",
+  "prompt_status": "ready"
+}
