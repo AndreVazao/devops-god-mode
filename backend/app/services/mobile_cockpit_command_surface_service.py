@@ -11,8 +11,11 @@ from app.services.runtime_supervisor_guidance_service import (
 
 
 class MobileCockpitCommandSurfaceService:
+    def _runtime_summary(self) -> Dict[str, Any]:
+        return runtime_supervisor_guidance_service.get_summary()["summary"]
+
     def get_summary(self) -> Dict[str, Any]:
-        runtime_summary = runtime_supervisor_guidance_service.get_runtime_summary()
+        runtime_summary = self._runtime_summary()
         next_browser_action = browser_control_real_service.get_next_action()["next_action"]
         next_intent = operation_queue_service.get_next_intent()["next_intent"]
         next_intake = browser_conversation_intake_service.get_next_session()["next_session"]
@@ -20,8 +23,8 @@ class MobileCockpitCommandSurfaceService:
             "ok": True,
             "mode": "mobile_cockpit_summary",
             "summary": {
-                "runtime_status": runtime_summary.get("runtime_status"),
-                "recommended_action": runtime_summary.get("recommended_action"),
+                "runtime_status": runtime_summary.get("runtime_health"),
+                "recommended_action": runtime_summary.get("recommended_next_action"),
                 "next_browser_action_id": next_browser_action["action_id"] if next_browser_action else None,
                 "next_intent_id": next_intent["intent_id"] if next_intent else None,
                 "next_intake_session_id": next_intake["session_id"] if next_intake else None,
@@ -29,7 +32,7 @@ class MobileCockpitCommandSurfaceService:
         }
 
     def get_cards(self) -> Dict[str, Any]:
-        runtime_summary = runtime_supervisor_guidance_service.get_runtime_summary()
+        runtime_summary = self._runtime_summary()
         next_browser_action = browser_control_real_service.get_next_action()["next_action"]
         next_intent = operation_queue_service.get_next_intent()["next_intent"]
         next_intake = browser_conversation_intake_service.get_next_session()["next_session"]
@@ -39,11 +42,11 @@ class MobileCockpitCommandSurfaceService:
                 "card_id": "card_runtime_guidance",
                 "card_type": "runtime",
                 "title": "Estado do runtime",
-                "summary": runtime_summary.get("recommended_action")
+                "summary": runtime_summary.get("recommended_next_action")
                 or "Runtime pronto para orientação operacional.",
                 "priority": "high",
                 "source_mode": "runtime_supervisor_guidance",
-                "status": runtime_summary.get("runtime_status", "ready"),
+                "status": runtime_summary.get("runtime_health", "ready"),
             }
         ]
 
