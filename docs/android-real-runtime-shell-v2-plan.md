@@ -1,5 +1,10 @@
 # Android Real Runtime Shell V2 Plan
 
+> Legacy foundation note:
+> este documento continua na repo como referência intermédia de shell Android e pairing assets.
+> não representa a arquitetura principal atual do `main`.
+> ver também `docs/archive/legacy-foundations-index.md`.
+
 ## Branch
 - `feature/android-real-runtime-shell-v2`
 
