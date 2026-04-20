@@ -41,6 +41,7 @@ from app.routes.operation_queue import router as operation_queue_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
 from app.routes.patch_apply_preview import router as patch_apply_preview_router
 from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
+from app.routes.project_recovery import router as project_recovery_router
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
 from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
@@ -93,6 +94,7 @@ app.include_router(android_real_build_router)
 app.include_router(android_real_build_progressive_router)
 app.include_router(android_progressive_binding_router)
 app.include_router(multi_ai_repair_router)
+app.include_router(project_recovery_router)
 
 
 @app.get("/")
