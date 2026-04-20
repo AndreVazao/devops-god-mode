@@ -1,0 +1,8 @@
+{
+  "source_id": "source_chatgpt_primary",
+  "source_platform": "chatgpt",
+  "source_type": "conversation_source",
+  "source_priority": "high",
+  "intake_status": "active",
+  "notes": "Primary AI source for project continuation and script extraction."
+}
