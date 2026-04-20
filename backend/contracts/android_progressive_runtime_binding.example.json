@@ -1,0 +1,8 @@
+{
+  "binding_id": "android_progressive_binding_01",
+  "runtime_mode": "pc_and_phone_primary",
+  "shell_status": "runtime_shell_ready",
+  "pairing_mode": "qr_or_code",
+  "binding_status": "planned",
+  "output_target": "GodModeMobileProgressive.apk"
+}
