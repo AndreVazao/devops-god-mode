@@ -16,6 +16,7 @@ from app.routes.conversation_repo_reconstruction import (
 from app.routes.desktop_bootstrap import router as desktop_bootstrap_router
 from app.routes.desktop_installer_onboarding import router as desktop_installer_router
 from app.routes.desktop_mobile_handoff import router as desktop_mobile_handoff_router
+from app.routes.driving_mode_voice_first import router as driving_mode_router
 from app.routes.first_run_bundle import router as first_run_bundle_router
 from app.routes.github_scan import router as github_scan_router
 from app.routes.local_code_patch import router as local_code_patch_router
@@ -73,6 +74,7 @@ app.include_router(adaptation_planner_router)
 app.include_router(conversation_organization_router)
 app.include_router(browser_control_real_router)
 app.include_router(mobile_cockpit_router)
+app.include_router(driving_mode_router)
 
 
 @app.get("/")
