@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routes.action_center import router as action_center_router
 from app.routes.adaptation_planner import router as adaptation_planner_router
+from app.routes.android_real_pipeline_readiness import (
+    router as android_real_pipeline_router,
+)
 from app.routes.approval_broker import router as approval_broker_router
 from app.routes.approval_gated_execution import router as approval_gated_execution_router
 from app.routes.browser_control_real import router as browser_control_real_router
@@ -77,6 +80,7 @@ app.include_router(browser_control_real_router)
 app.include_router(mobile_cockpit_router)
 app.include_router(driving_mode_router)
 app.include_router(context_orchestration_router)
+app.include_router(android_real_pipeline_router)
 
 
 @app.get("/")
