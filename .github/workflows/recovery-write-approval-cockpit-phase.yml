@@ -1,0 +1,66 @@
+name: Recovery Write Approval Cockpit Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/project-recovery-write-approval-cockpit-plan.md'
+      - 'backend/contracts/recovery_write_approval_cockpit.example.json'
+      - 'backend/contracts/recovery_write_approval_item.example.json'
+      - 'backend/app/services/project_recovery_write_approval_cockpit_service.py'
+      - 'backend/app/routes/project_recovery_write_approval_cockpit.py'
+      - 'backend/main.py'
+      - '.github/workflows/recovery-write-approval-cockpit-phase.yml'
+
+jobs:
+  recovery-write-approval-cockpit-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate recovery write approval cockpit layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.project_recovery_write_approval_cockpit_service import project_recovery_write_approval_cockpit_service
+
+          cockpits = project_recovery_write_approval_cockpit_service.get_cockpits()["cockpits"]
+          first_project_id = cockpits[0]["recovery_project_id"]
+          items = project_recovery_write_approval_cockpit_service.get_approval_items(first_project_id)["items"]
+          package = project_recovery_write_approval_cockpit_service.get_cockpit_package(first_project_id)["package"]
+          next_action = project_recovery_write_approval_cockpit_service.get_next_approval_action()["next_approval_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert cockpits, "Expected at least one approval cockpit"
+          assert items, "Expected at least one approval item"
+          assert next_action is not None
+          assert package["mobile_ready"] is True
+          assert "/api/project-recovery-write-approval-cockpit/status" in route_paths
+          assert "/api/project-recovery-write-approval-cockpit/cockpits" in route_paths
+          assert "/api/project-recovery-write-approval-cockpit/items" in route_paths
+          assert "/api/project-recovery-write-approval-cockpit/next-approval-action" in route_paths
+          print("recovery write approval cockpit phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Recovery Write Approval Cockpit Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for recovery write approval cockpit validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
