@@ -51,6 +51,9 @@ from app.routes.project_recovery_local_apply import (
 from app.routes.project_recovery_real_write_link import (
     router as project_recovery_real_write_router,
 )
+from app.routes.project_recovery_write_candidate import (
+    router as project_recovery_write_candidate_router,
+)
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
 from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
@@ -107,6 +110,7 @@ app.include_router(project_recovery_router)
 app.include_router(project_recovery_execution_router)
 app.include_router(project_recovery_local_apply_router)
 app.include_router(project_recovery_real_write_router)
+app.include_router(project_recovery_write_candidate_router)
 
 
 @app.get("/")
