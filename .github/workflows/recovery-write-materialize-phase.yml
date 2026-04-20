@@ -1,0 +1,71 @@
+name: Recovery Write Materialize Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/project-recovery-write-materialize-plan.md'
+      - 'backend/contracts/recovery_write_materialize_bridge.example.json'
+      - 'backend/contracts/recovery_write_materialize_target.example.json'
+      - 'backend/app/services/project_recovery_write_materialize_service.py'
+      - 'backend/app/routes/project_recovery_write_materialize.py'
+      - 'backend/main.py'
+      - '.github/workflows/recovery-write-materialize-phase.yml'
+
+jobs:
+  recovery-write-materialize-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate recovery write materialize layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.project_recovery_write_materialize_service import project_recovery_write_materialize_service
+
+          bridges = project_recovery_write_materialize_service.get_materialize_bridges()["bridges"]
+          targets = project_recovery_write_materialize_service.get_materialize_targets()["targets"]
+          next_action = project_recovery_write_materialize_service.get_next_materialize_action()["next_materialize_action"]
+          first_project_id = bridges[0]["recovery_project_id"]
+          package = project_recovery_write_materialize_service.get_materialize_package(first_project_id)["package"]
+          route_paths = {route.path for route in app.routes}
+
+          assert bridges, "Expected at least one recovery write materialize bridge"
+          assert targets, "Expected at least one recovery write materialize target"
+          assert next_action is not None
+          assert package["executor_compatibility"]["local_code_patch"] is True
+          assert package["executor_compatibility"]["patch_apply_preview"] is True
+          assert package["executor_compatibility"]["local_file_apply_runtime"] is True
+          assert package["executor_compatibility"]["real_local_write"] is True
+          assert package["executor_package"]["apply_run_requests"]
+          assert package["executor_package"]["real_write_requests"]
+          assert "/api/project-recovery-write-materialize/status" in route_paths
+          assert "/api/project-recovery-write-materialize/bridges" in route_paths
+          assert "/api/project-recovery-write-materialize/targets" in route_paths
+          assert "/api/project-recovery-write-materialize/next-materialize-action" in route_paths
+          print("recovery write materialize phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Recovery Write Materialize Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for recovery write materialize validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
