@@ -1,0 +1,8 @@
+{
+  "build_artifact_item_id": "artifact_item_god_mode_mobile_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "source_workflow": "android-real-build-progressive",
+  "artifact_name": "GodModeMobile.apk",
+  "normalized_output_name": "DevOps God Mode Mobile.apk",
+  "artifact_status": "ready_for_download"
+}
