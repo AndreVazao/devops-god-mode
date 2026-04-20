@@ -1,0 +1,66 @@
+name: Recovery Write Remote Command Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/project-recovery-write-remote-command-plan.md'
+      - 'backend/contracts/recovery_write_remote_command.example.json'
+      - 'backend/contracts/recovery_write_remote_action.example.json'
+      - 'backend/app/services/project_recovery_write_remote_command_service.py'
+      - 'backend/app/routes/project_recovery_write_remote_command.py'
+      - 'backend/main.py'
+      - '.github/workflows/recovery-write-remote-command-phase.yml'
+
+jobs:
+  recovery-write-remote-command-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate recovery write remote command layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.project_recovery_write_remote_command_service import project_recovery_write_remote_command_service
+
+          commands = project_recovery_write_remote_command_service.get_remote_commands()["commands"]
+          first_project_id = commands[0]["recovery_project_id"]
+          actions = project_recovery_write_remote_command_service.get_remote_actions(first_project_id)["actions"]
+          package = project_recovery_write_remote_command_service.get_remote_command_package(first_project_id)["package"]
+          next_action = project_recovery_write_remote_command_service.get_next_remote_action()["next_remote_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert commands, "Expected at least one remote command session"
+          assert actions, "Expected at least one remote action"
+          assert next_action is not None
+          assert package["mobile_cockpit_ready"] is True
+          assert "/api/project-recovery-write-remote-command/status" in route_paths
+          assert "/api/project-recovery-write-remote-command/commands" in route_paths
+          assert "/api/project-recovery-write-remote-command/actions" in route_paths
+          assert "/api/project-recovery-write-remote-command/next-remote-action" in route_paths
+          print("recovery write remote command phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Recovery Write Remote Command Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for recovery write remote command validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
