@@ -1,0 +1,7 @@
+{
+  "recovery_write_create_id": "recovery_write_create_devops_god_mode_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "recovery_write_submit_id": "submit_queue_run_write_candidate_recovery_devops_god_mode_01",
+  "create_target_count": 4,
+  "create_status": "planned"
+}
