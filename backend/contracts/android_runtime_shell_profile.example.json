@@ -1,4 +1,5 @@
 {
+  "legacy_foundation_note": "historical Android runtime shell and pairing contract; useful as reference but not the final Android app contract",
   "runtime_id": "android_runtime_0001",
   "app_mode": "mobile_cockpit_remote",
   "config_source": "local_default",
