@@ -1,0 +1,12 @@
+{
+  "stage_id": "android_stage_prepare_progressive_output",
+  "stage_name": "prepare_progressive_output",
+  "stage_order": 1,
+  "stage_summary": "Prepare progressive Android output structure and config assets.",
+  "expected_outputs": [
+    "android-progressive-manifest.json",
+    "android-progressive-config.json",
+    "GodModeMobileProgressive.apk"
+  ],
+  "stage_status": "planned"
+}
