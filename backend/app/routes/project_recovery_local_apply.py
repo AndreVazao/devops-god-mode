@@ -36,6 +36,19 @@ async def project_recovery_local_apply_package(recovery_project_id: str):
         raise HTTPException(status_code=404, detail="recovery_project_not_found")
 
 
+@router.get("/write-ready/{recovery_project_id}")
+async def project_recovery_local_apply_write_ready(recovery_project_id: str):
+    try:
+        return project_recovery_local_apply_service.get_write_ready_package(recovery_project_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="recovery_project_not_found")
+
+
 @router.get("/next-local-action")
 async def project_recovery_local_apply_next_local_action():
     return project_recovery_local_apply_service.get_next_local_action()
+
+
+@router.get("/next-write-ready-action")
+async def project_recovery_local_apply_next_write_ready_action():
+    return project_recovery_local_apply_service.get_next_write_ready_action()
