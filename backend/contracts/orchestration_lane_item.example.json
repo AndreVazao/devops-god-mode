@@ -1,0 +1,12 @@
+{
+  "lane_id": "lane_browser_and_mobile",
+  "lane_type": "assisted_execution",
+  "priority": "high",
+  "source_modes": [
+    "browser_control_real",
+    "mobile_cockpit_command_surface",
+    "driving_mode_voice_first"
+  ],
+  "lane_summary": "Advance the next browser action through mobile confirmation because the context is ready and guarded.",
+  "lane_status": "ready"
+}
