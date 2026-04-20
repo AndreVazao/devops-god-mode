@@ -1,0 +1,7 @@
+{
+  "asset_id": "android_progressive_pairing_01",
+  "asset_name": "android-progressive-pairing.json",
+  "pairing_mode": "qr_or_code",
+  "topology_binding": "pc_and_phone_primary",
+  "asset_status": "planned"
+}
