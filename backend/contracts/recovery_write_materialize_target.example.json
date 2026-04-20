@@ -1,0 +1,9 @@
+{
+  "recovery_write_materialize_target_id": "materialize_target_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "local_repo_path": "C:/GodMode/recovered/devops_god_mode",
+  "local_target_file": "backend/main.py",
+  "patch_strategy": "recovered_script_payload",
+  "risk_level": "medium",
+  "target_status": "materialize_ready"
+}
