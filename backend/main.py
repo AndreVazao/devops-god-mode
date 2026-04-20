@@ -34,6 +34,9 @@ from app.routes.local_pc_runtime_orchestrator import router as local_pc_runtime_
 from app.routes.local_real_validator import router as local_real_validator_router
 from app.routes.mobile_cockpit_command_surface import router as mobile_cockpit_router
 from app.routes.mobile_runtime_shell import router as mobile_runtime_shell_router
+from app.routes.multi_ai_intake_and_script_repair import (
+    router as multi_ai_repair_router,
+)
 from app.routes.operation_queue import router as operation_queue_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
 from app.routes.patch_apply_preview import router as patch_apply_preview_router
@@ -89,6 +92,7 @@ app.include_router(android_real_pipeline_router)
 app.include_router(android_real_build_router)
 app.include_router(android_real_build_progressive_router)
 app.include_router(android_progressive_binding_router)
+app.include_router(multi_ai_repair_router)
 
 
 @app.get("/")
