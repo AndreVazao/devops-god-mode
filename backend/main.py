@@ -9,6 +9,7 @@ from app.routes.approval_gated_execution import router as approval_gated_executi
 from app.routes.browser_control_real import router as browser_control_real_router
 from app.routes.browser_conversation_intake import router as browser_conversation_intake_router
 from app.routes.chat_adapter_inventory import router as chat_inventory_router
+from app.routes.context_aware_orchestration import router as context_orchestration_router
 from app.routes.conversation_organization import router as conversation_organization_router
 from app.routes.conversation_repo_reconstruction import (
     router as conversation_repo_reconstruction_router,
@@ -75,6 +76,7 @@ app.include_router(conversation_organization_router)
 app.include_router(browser_control_real_router)
 app.include_router(mobile_cockpit_router)
 app.include_router(driving_mode_router)
+app.include_router(context_orchestration_router)
 
 
 @app.get("/")
