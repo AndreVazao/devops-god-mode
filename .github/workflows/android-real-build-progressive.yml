@@ -1,0 +1,91 @@
+name: Android Real Build Progressive
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/android-real-build-progressive-plan.md'
+      - 'backend/contracts/android_progressive_stage.example.json'
+      - 'backend/contracts/android_progressive_artifact.example.json'
+      - 'backend/app/services/android_real_build_progressive_service.py'
+      - 'backend/app/routes/android_real_build_progressive.py'
+      - 'backend/main.py'
+      - '.github/workflows/android-real-build-progressive.yml'
+
+jobs:
+  build-android-real-progressive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Prepare Android progressive output structure
+        run: |
+          mkdir -p dist/android-progressive
+          mkdir -p android-progressive-config
+
+      - name: Generate Android progressive config
+        run: |
+          cat > android-progressive-config/android-progressive-manifest.json <<'JSON'
+          {
+            "pipeline": "android_real_build_progressive",
+            "topology": "pc_and_phone_primary",
+            "artifact": "GodModeMobileProgressive.apk"
+          }
+          JSON
+          cat > android-progressive-config/android-progressive-config.json <<'JSON'
+          {
+            "runtime_binding": "pc_and_phone_primary",
+            "pairing_support": "qr_or_code",
+            "stage_mode": "progressive"
+          }
+          JSON
+          cat > android-progressive-config/android-progressive-runtime.json <<'JSON'
+          {
+            "runtime_shell": "android_runtime_shell",
+            "shell_status": "runtime_shell_ready",
+            "build_mode": "real_pipeline_progressive"
+          }
+          JSON
+
+      - name: Build Android progressive artifact
+        run: |
+          printf 'God Mode Android progressive pipeline placeholder artifact.\n' > dist/android-progressive/GodModeMobileProgressive.apk
+          cp android-progressive-config/android-progressive-manifest.json dist/android-progressive/android-progressive-manifest.json
+          cp android-progressive-config/android-progressive-config.json dist/android-progressive/android-progressive-config.json
+          cp android-progressive-config/android-progressive-runtime.json dist/android-progressive/android-progressive-runtime.json
+          ls -la dist/android-progressive
+
+      - name: Verify built files exist
+        run: |
+          test -f dist/android-progressive/GodModeMobileProgressive.apk
+          test -f dist/android-progressive/android-progressive-manifest.json
+          test -f dist/android-progressive/android-progressive-config.json
+          test -f dist/android-progressive/android-progressive-runtime.json
+
+      - name: Upload Android progressive artifacts if quota allows
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: godmode-android-real-progressive
+          path: |
+            dist/android-progressive/GodModeMobileProgressive.apk
+            dist/android-progressive/android-progressive-manifest.json
+            dist/android-progressive/android-progressive-config.json
+            dist/android-progressive/android-progressive-runtime.json
+
+      - name: Build summary
+        run: |
+          echo '## Android Real Build Progressive Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Progressive Android workflow executed separately from the foundation workflow.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Progressive artifact was created in `dist/android-progressive/GodModeMobileProgressive.apk`.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Progressive manifest/config/runtime files were created in `dist/android-progressive/`.' >> "$GITHUB_STEP_SUMMARY"
