@@ -1,0 +1,8 @@
+{
+  "target_file_id": "target_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "target_path": "backend/main.py",
+  "file_role": "entrypoint",
+  "source_script_id": "script_godmode_runtime_supervisor",
+  "target_status": "planned"
+}
