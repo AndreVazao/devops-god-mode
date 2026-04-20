@@ -1,0 +1,63 @@
+name: Recovery Write Guard Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/project-recovery-write-guard-plan.md'
+      - 'backend/contracts/recovery_write_guard.example.json'
+      - 'backend/contracts/recovery_write_guard_finding.example.json'
+      - 'backend/app/services/project_recovery_write_guard_service.py'
+      - 'backend/app/routes/project_recovery_write_guard.py'
+      - 'backend/main.py'
+      - '.github/workflows/recovery-write-guard-phase.yml'
+
+jobs:
+  recovery-write-guard-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate recovery write guard layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.project_recovery_write_guard_service import project_recovery_write_guard_service
+
+          guards = project_recovery_write_guard_service.get_guards()["guards"]
+          findings = project_recovery_write_guard_service.get_findings()["findings"]
+          next_action = project_recovery_write_guard_service.get_next_guard_action()["next_guard_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert guards, "Expected at least one recovery write guard"
+          assert findings, "Expected at least one recovery write guard finding"
+          assert next_action is not None
+          assert "/api/project-recovery-write-guard/status" in route_paths
+          assert "/api/project-recovery-write-guard/guards" in route_paths
+          assert "/api/project-recovery-write-guard/findings" in route_paths
+          assert "/api/project-recovery-write-guard/next-guard-action" in route_paths
+          print("recovery write guard phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Recovery Write Guard Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for recovery write guard validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
