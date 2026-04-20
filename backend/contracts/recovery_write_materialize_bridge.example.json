@@ -1,0 +1,13 @@
+{
+  "recovery_write_materialize_id": "materialize_recovery_devops_god_mode_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "handoff_id": "handoff_recovery_devops_god_mode_01",
+  "materialize_target_count": 4,
+  "executor_stack": [
+    "local_code_patch",
+    "patch_apply_preview",
+    "local_file_apply_runtime",
+    "real_local_write"
+  ],
+  "bridge_status": "executor_ready_planned"
+}
