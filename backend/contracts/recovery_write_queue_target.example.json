@@ -1,0 +1,8 @@
+{
+  "recovery_write_queue_target_id": "recovery_write_queue_target_backend_main_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "recovery_write_run_target_id": "run_candidate_handoff_write_local_target_backend_main_01",
+  "queue_target_path": "C:/GodMode/recovered/devops_god_mode/backend/main.py",
+  "queue_mode": "real_local_write_queue_entry",
+  "queue_target_status": "planned"
+}
