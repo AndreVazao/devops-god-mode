@@ -8,10 +8,15 @@ on:
       - 'feature/**'
     paths:
       - 'docs/android-real-build-progressive-plan.md'
+      - 'docs/android-progressive-runtime-binding-plan.md'
       - 'backend/contracts/android_progressive_stage.example.json'
       - 'backend/contracts/android_progressive_artifact.example.json'
+      - 'backend/contracts/android_progressive_runtime_binding.example.json'
+      - 'backend/contracts/android_progressive_pairing_asset.example.json'
       - 'backend/app/services/android_real_build_progressive_service.py'
+      - 'backend/app/services/android_progressive_runtime_binding_service.py'
       - 'backend/app/routes/android_real_build_progressive.py'
+      - 'backend/app/routes/android_progressive_runtime_binding.py'
       - 'backend/main.py'
       - '.github/workflows/android-real-build-progressive.yml'
 
@@ -55,6 +60,13 @@ jobs:
             "build_mode": "real_pipeline_progressive"
           }
           JSON
+          cat > android-progressive-config/android-progressive-pairing.json <<'JSON'
+          {
+            "pairing_mode": "qr_or_code",
+            "topology_binding": "pc_and_phone_primary",
+            "pairing_status": "planned"
+          }
+          JSON
 
       - name: Build Android progressive artifact
         run: |
@@ -62,6 +74,7 @@ jobs:
           cp android-progressive-config/android-progressive-manifest.json dist/android-progressive/android-progressive-manifest.json
           cp android-progressive-config/android-progressive-config.json dist/android-progressive/android-progressive-config.json
           cp android-progressive-config/android-progressive-runtime.json dist/android-progressive/android-progressive-runtime.json
+          cp android-progressive-config/android-progressive-pairing.json dist/android-progressive/android-progressive-pairing.json
           ls -la dist/android-progressive
 
       - name: Verify built files exist
@@ -70,6 +83,7 @@ jobs:
           test -f dist/android-progressive/android-progressive-manifest.json
           test -f dist/android-progressive/android-progressive-config.json
           test -f dist/android-progressive/android-progressive-runtime.json
+          test -f dist/android-progressive/android-progressive-pairing.json
 
       - name: Upload Android progressive artifacts if quota allows
         continue-on-error: true
@@ -81,6 +95,7 @@ jobs:
             dist/android-progressive/android-progressive-manifest.json
             dist/android-progressive/android-progressive-config.json
             dist/android-progressive/android-progressive-runtime.json
+            dist/android-progressive/android-progressive-pairing.json
 
       - name: Build summary
         run: |
@@ -88,4 +103,4 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Progressive Android workflow executed separately from the foundation workflow.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Progressive artifact was created in `dist/android-progressive/GodModeMobileProgressive.apk`.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Progressive manifest/config/runtime files were created in `dist/android-progressive/`.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Progressive manifest/config/runtime/pairing files were created in `dist/android-progressive/`.' >> "$GITHUB_STEP_SUMMARY"
