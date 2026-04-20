@@ -54,6 +54,9 @@ from app.routes.project_recovery_real_write_link import (
 from app.routes.project_recovery_write_candidate import (
     router as project_recovery_write_candidate_router,
 )
+from app.routes.project_recovery_write_create import (
+    router as project_recovery_write_create_router,
+)
 from app.routes.project_recovery_write_queue import (
     router as project_recovery_write_queue_router,
 )
@@ -123,6 +126,7 @@ app.include_router(project_recovery_write_candidate_router)
 app.include_router(project_recovery_write_run_router)
 app.include_router(project_recovery_write_queue_router)
 app.include_router(project_recovery_write_submit_router)
+app.include_router(project_recovery_write_create_router)
 
 
 @app.get("/")
