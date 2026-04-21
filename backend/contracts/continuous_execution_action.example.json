@@ -1,0 +1,8 @@
+{
+  "continuous_execution_action_id": "continuous_execution_action_01",
+  "execution_area": "command_progression",
+  "action_type": "advance_compact_remote_step",
+  "action_label": "Avançar próximo passo remoto compacto",
+  "loop_mode": "confirm_then_continue",
+  "action_status": "planned"
+}
