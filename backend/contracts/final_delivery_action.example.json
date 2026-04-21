@@ -1,0 +1,8 @@
+{
+  "final_delivery_action_id": "final_delivery_action_mobile_apk_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "build_output_entry_id": "build_output_mobile_apk_01",
+  "action_type": "download_primary_output",
+  "action_label": "Descarregar APK principal",
+  "action_status": "ready"
+}
