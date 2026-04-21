@@ -1,0 +1,8 @@
+{
+  "remote_brain_intent_id": "remote_brain_intent_voice_01",
+  "source_channel": "android_voice",
+  "interpreted_action": "link_conversations_and_open_repo",
+  "probable_target_type": "repo_or_project",
+  "confirmation_mode": "compact_voice_or_tap",
+  "intent_status": "awaiting_confirmation"
+}
