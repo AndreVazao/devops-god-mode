@@ -1,0 +1,8 @@
+{
+  "project_bootstrap_step_id": "project_bootstrap_step_rename_conversation_01",
+  "source_assistant": "chatgpt",
+  "step_type": "rename_conversation",
+  "target_entity": "conversation",
+  "step_label": "Renomear conversa para DevOps God Mode Voice Bootstrap",
+  "step_status": "planned"
+}
