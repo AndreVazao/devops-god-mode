@@ -1,0 +1,11 @@
+{
+  "conversation_provider_linkage_id": "provider_linkage_chatgpt_01",
+  "provider_name": "chatgpt",
+  "provider_scope": [
+    "new_conversation",
+    "project_naming",
+    "conversation_organization"
+  ],
+  "linkage_mode": "pc_brain_orchestrated",
+  "linkage_status": "planned_provider_integration"
+}
