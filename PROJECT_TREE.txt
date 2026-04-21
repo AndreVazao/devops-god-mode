@@ -442,5 +442,6 @@ devops-god-mode/
 │     ├─ 0001_registry_core.sql
 │     └─ 0002_repo_tree_snapshots.sql
 ├─ .gitignore
+├─ PROJECT_TREE.txt
 ├─ README.md
 └─ render.yaml
