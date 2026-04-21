@@ -1,17 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.config import settings
 from app.routes.action_center import router as action_center_router
 from app.routes.adaptation_planner import router as adaptation_planner_router
-from app.routes.android_progressive_runtime_binding import (
-    router as android_progressive_binding_router,
-)
+from app.routes.android_progressive_runtime_binding import router as android_progressive_binding_router
 from app.routes.android_real_build_pipeline import router as android_real_build_router
 from app.routes.android_real_build_progressive import router as android_real_build_progressive_router
-from app.routes.android_real_pipeline_readiness import (
-    router as android_real_pipeline_router,
-)
+from app.routes.android_real_pipeline_readiness import router as android_real_pipeline_router
 from app.routes.approval_broker import router as approval_broker_router
 from app.routes.approval_gated_execution import router as approval_gated_execution_router
 from app.routes.browser_control_real import router as browser_control_real_router
@@ -21,9 +16,8 @@ from app.routes.build_catalog import router as build_catalog_router
 from app.routes.chat_adapter_inventory import router as chat_inventory_router
 from app.routes.context_aware_orchestration import router as context_orchestration_router
 from app.routes.conversation_organization import router as conversation_organization_router
-from app.routes.conversation_repo_reconstruction import (
-    router as conversation_repo_reconstruction_router,
-)
+from app.routes.conversation_provider_linkage import router as conversation_provider_linkage_router
+from app.routes.conversation_repo_reconstruction import router as conversation_repo_reconstruction_router
 from app.routes.delivery_acknowledgment import router as delivery_acknowledgment_router
 from app.routes.delivery_history import router as delivery_history_router
 from app.routes.desktop_bootstrap import router as desktop_bootstrap_router
@@ -40,9 +34,7 @@ from app.routes.local_pc_runtime_orchestrator import router as local_pc_runtime_
 from app.routes.local_real_validator import router as local_real_validator_router
 from app.routes.mobile_cockpit_command_surface import router as mobile_cockpit_router
 from app.routes.mobile_runtime_shell import router as mobile_runtime_shell_router
-from app.routes.multi_ai_intake_and_script_repair import (
-    router as multi_ai_repair_router,
-)
+from app.routes.multi_ai_intake_and_script_repair import router as multi_ai_repair_router
 from app.routes.operation_queue import router as operation_queue_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
 from app.routes.patch_apply_preview import router as patch_apply_preview_router
@@ -50,146 +42,33 @@ from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
 from app.routes.platform_control_hardening import router as platform_control_hardening_router
 from app.routes.project_initiation_bootstrap import router as project_initiation_bootstrap_router
 from app.routes.project_recovery import router as project_recovery_router
-from app.routes.project_recovery_execution import (
-    router as project_recovery_execution_router,
-)
-from app.routes.project_recovery_local_apply import (
-    router as project_recovery_local_apply_router,
-)
-from app.routes.project_recovery_real_write_link import (
-    router as project_recovery_real_write_router,
-)
-from app.routes.project_recovery_write_approval_cockpit import (
-    router as project_recovery_write_approval_cockpit_router,
-)
-from app.routes.project_recovery_write_candidate import (
-    router as project_recovery_write_candidate_router,
-)
-from app.routes.project_recovery_write_create import (
-    router as project_recovery_write_create_router,
-)
-from app.routes.project_recovery_write_dispatch import (
-    router as project_recovery_write_dispatch_router,
-)
-from app.routes.project_recovery_write_execution import (
-    router as project_recovery_write_execution_router,
-)
-from app.routes.project_recovery_write_guard import (
-    router as project_recovery_write_guard_router,
-)
-from app.routes.project_recovery_write_materialize import (
-    router as project_recovery_write_materialize_router,
-)
-from app.routes.project_recovery_write_mobile_action_execution import (
-    router as project_recovery_write_mobile_action_execution_router,
-)
-from app.routes.project_recovery_write_queue import (
-    router as project_recovery_write_queue_router,
-)
-from app.routes.project_recovery_write_remote_command import (
-    router as project_recovery_write_remote_command_router,
-)
-from app.routes.project_recovery_write_run import (
-    router as project_recovery_write_run_router,
-)
-from app.routes.project_recovery_write_submit import (
-    router as project_recovery_write_submit_router,
-)
+from app.routes.project_recovery_execution import router as project_recovery_execution_router
+from app.routes.project_recovery_local_apply import router as project_recovery_local_apply_router
+from app.routes.project_recovery_real_write_link import router as project_recovery_real_write_router
+from app.routes.project_recovery_write_approval_cockpit import router as project_recovery_write_approval_cockpit_router
+from app.routes.project_recovery_write_candidate import router as project_recovery_write_candidate_router
+from app.routes.project_recovery_write_create import router as project_recovery_write_create_router
+from app.routes.project_recovery_write_dispatch import router as project_recovery_write_dispatch_router
+from app.routes.project_recovery_write_execution import router as project_recovery_write_execution_router
+from app.routes.project_recovery_write_guard import router as project_recovery_write_guard_router
+from app.routes.project_recovery_write_materialize import router as project_recovery_write_materialize_router
+from app.routes.project_recovery_write_mobile_action_execution import router as project_recovery_write_mobile_action_execution_router
+from app.routes.project_recovery_write_queue import router as project_recovery_write_queue_router
+from app.routes.project_recovery_write_remote_command import router as project_recovery_write_remote_command_router
+from app.routes.project_recovery_write_run import router as project_recovery_write_run_router
+from app.routes.project_recovery_write_submit import router as project_recovery_write_submit_router
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
 from app.routes.remote_brain_linkage import router as remote_brain_linkage_router
 from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
 from app.routes.script_extraction_reuse import router as script_reuse_router
 from app.routes.write_verify_rollback import router as write_verify_rollback_router
-
-app = FastAPI(title="DevOps God Mode")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(github_scan_router)
-app.include_router(registry_router)
-app.include_router(approval_broker_router)
-app.include_router(approval_gated_execution_router)
-app.include_router(conversation_repo_reconstruction_router)
-app.include_router(browser_conversation_intake_router)
-app.include_router(build_artifact_harvest_router)
-app.include_router(build_catalog_router)
-app.include_router(final_delivery_router)
-app.include_router(delivery_acknowledgment_router)
-app.include_router(delivery_history_router)
-app.include_router(final_summary_router)
-app.include_router(remote_brain_linkage_router)
-app.include_router(platform_control_hardening_router)
-app.include_router(project_initiation_bootstrap_router)
-app.include_router(local_code_patch_router)
-app.include_router(patch_apply_preview_router)
-app.include_router(local_file_apply_runtime_router)
-app.include_router(real_local_write_router)
-app.include_router(write_verify_rollback_router)
-app.include_router(local_real_validator_router)
-app.include_router(packaging_foundation_router)
-app.include_router(pc_phone_bootstrap_router)
-app.include_router(desktop_bootstrap_router)
-app.include_router(first_run_bundle_router)
-app.include_router(mobile_runtime_shell_router)
-app.include_router(desktop_installer_router)
-app.include_router(desktop_mobile_handoff_router)
-app.include_router(runtime_supervisor_router)
-app.include_router(local_pc_runtime_router)
-app.include_router(action_center_router)
-app.include_router(operation_queue_router)
-app.include_router(chat_inventory_router)
-app.include_router(script_reuse_router)
-app.include_router(adaptation_planner_router)
-app.include_router(conversation_organization_router)
-app.include_router(browser_control_real_router)
-app.include_router(mobile_cockpit_router)
-app.include_router(driving_mode_router)
-app.include_router(context_orchestration_router)
-app.include_router(android_real_pipeline_router)
-app.include_router(android_real_build_router)
-app.include_router(android_real_build_progressive_router)
-app.include_router(android_progressive_binding_router)
-app.include_router(multi_ai_repair_router)
-app.include_router(project_recovery_router)
-app.include_router(project_recovery_execution_router)
-app.include_router(project_recovery_local_apply_router)
-app.include_router(project_recovery_real_write_router)
-app.include_router(project_recovery_write_candidate_router)
-app.include_router(project_recovery_write_run_router)
-app.include_router(project_recovery_write_queue_router)
-app.include_router(project_recovery_write_submit_router)
-app.include_router(project_recovery_write_create_router)
-app.include_router(project_recovery_write_dispatch_router)
-app.include_router(project_recovery_write_guard_router)
-app.include_router(project_recovery_write_materialize_router)
-app.include_router(project_recovery_write_execution_router)
-app.include_router(project_recovery_write_approval_cockpit_router)
-app.include_router(project_recovery_write_remote_command_router)
-app.include_router(project_recovery_write_mobile_action_execution_router)
-
-
-@app.get("/")
-def root():
-    return {"status": "DevOps God Mode backend alive"}
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
-
-@app.get("/api/system/config")
-def config_status():
-    return {
-        "supabase": bool(settings.SUPABASE_URL),
-        "github": bool(settings.GITHUB_TOKEN),
-        "vercel": bool(settings.VERCEL_TOKEN),
-        "openai": bool(settings.OPENAI_KEY),
-    }
+app=FastAPI(title='DevOps God Mode')
+app.add_middleware(CORSMiddleware,allow_origins=['*'],allow_credentials=True,allow_methods=['*'],allow_headers=['*'])
+for r in [github_scan_router,registry_router,approval_broker_router,approval_gated_execution_router,conversation_repo_reconstruction_router,browser_conversation_intake_router,build_artifact_harvest_router,build_catalog_router,final_delivery_router,delivery_acknowledgment_router,delivery_history_router,final_summary_router,remote_brain_linkage_router,platform_control_hardening_router,project_initiation_bootstrap_router,conversation_provider_linkage_router,local_code_patch_router,patch_apply_preview_router,local_file_apply_runtime_router,real_local_write_router,write_verify_rollback_router,local_real_validator_router,packaging_foundation_router,pc_phone_bootstrap_router,desktop_bootstrap_router,first_run_bundle_router,mobile_runtime_shell_router,desktop_installer_router,desktop_mobile_handoff_router,runtime_supervisor_router,local_pc_runtime_router,action_center_router,operation_queue_router,chat_inventory_router,script_reuse_router,adaptation_planner_router,conversation_organization_router,browser_control_real_router,mobile_cockpit_router,driving_mode_router,context_orchestration_router,android_real_pipeline_router,android_real_build_router,android_real_build_progressive_router,android_progressive_binding_router,multi_ai_repair_router,project_recovery_router,project_recovery_execution_router,project_recovery_local_apply_router,project_recovery_real_write_router,project_recovery_write_candidate_router,project_recovery_write_run_router,project_recovery_write_queue_router,project_recovery_write_submit_router,project_recovery_write_create_router,project_recovery_write_dispatch_router,project_recovery_write_guard_router,project_recovery_write_materialize_router,project_recovery_write_execution_router,project_recovery_write_approval_cockpit_router,project_recovery_write_remote_command_router,project_recovery_write_mobile_action_execution_router]: app.include_router(r)
+@app.get('/')
+def root(): return {'status':'DevOps God Mode backend alive'}
+@app.get('/health')
+def health(): return {'status':'ok'}
+@app.get('/api/system/config')
+def config_status(): return {'supabase':bool(settings.SUPABASE_URL),'github':bool(settings.GITHUB_TOKEN),'vercel':bool(settings.VERCEL_TOKEN),'openai':bool(settings.OPENAI_KEY)}
