@@ -1,0 +1,58 @@
+name: Offline Command Buffering Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/offline-command-buffering-plan.md'
+      - 'backend/contracts/offline_command_buffer.example.json'
+      - 'backend/contracts/offline_buffer_action.example.json'
+      - 'backend/app/services/offline_command_buffering_service.py'
+      - 'backend/app/routes/offline_command_buffering.py'
+      - 'backend/main.py'
+      - '.github/workflows/offline-command-buffering-phase.yml'
+
+jobs:
+  offline-command-buffering-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate offline command buffering layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.offline_command_buffering_service import offline_command_buffering_service
+          buffers = offline_command_buffering_service.get_buffers()["buffers"]
+          actions = offline_command_buffering_service.get_buffer_actions()["actions"]
+          package = offline_command_buffering_service.get_buffer_package()["package"]
+          next_action = offline_command_buffering_service.get_next_buffer_action()["next_buffer_action"]
+          route_paths = {route.path for route in app.routes}
+          assert buffers
+          assert actions
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/offline-command-buffering/status" in route_paths
+          assert "/api/offline-command-buffering/buffers" in route_paths
+          assert "/api/offline-command-buffering/actions" in route_paths
+          assert "/api/offline-command-buffering/next-buffer-action" in route_paths
+          print("offline command buffering phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## Offline Command Buffering Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Workflow for offline command buffering validation.' >> "$GITHUB_STEP_SUMMARY"
