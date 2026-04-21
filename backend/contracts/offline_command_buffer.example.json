@@ -1,0 +1,7 @@
+{
+  "offline_command_buffer_id": "offline_buffer_apk_01",
+  "buffer_side": "apk",
+  "buffer_scope": "voice_and_short_commands",
+  "replay_mode": "send_when_pc_returns",
+  "buffer_status": "buffer_ready"
+}
