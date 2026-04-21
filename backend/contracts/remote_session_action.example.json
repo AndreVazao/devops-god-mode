@@ -1,0 +1,8 @@
+{
+  "remote_session_action_id": "remote_session_action_resume_01",
+  "session_area": "state_resume",
+  "action_type": "resume_last_confirmed_context",
+  "action_label": "Retomar último contexto confirmado",
+  "resume_mode": "compact_state_restore",
+  "action_status": "planned"
+}
