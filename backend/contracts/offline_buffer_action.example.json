@@ -1,0 +1,8 @@
+{
+  "offline_buffer_action_id": "offline_buffer_action_replay_01",
+  "buffer_area": "apk_pending_queue",
+  "action_type": "replay_buffered_commands",
+  "action_label": "Reenviar pedidos guardados quando o PC voltar",
+  "recovery_mode": "ordered_replay",
+  "action_status": "planned"
+}
