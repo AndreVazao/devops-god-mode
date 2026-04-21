@@ -1,0 +1,7 @@
+{
+  "initial_inventory_id": "initial_inventory_chatgpt_01",
+  "source_type": "conversation_provider",
+  "source_priority": 1,
+  "inventory_scope": "chat_titles_threads_project_signals",
+  "inventory_status": "queued_for_inventory"
+}
