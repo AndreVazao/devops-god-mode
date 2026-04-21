@@ -1,0 +1,8 @@
+{
+  "conversation_provider_action_id": "provider_action_chatgpt_01",
+  "provider_name": "chatgpt",
+  "action_type": "start_named_project_conversation",
+  "action_label": "Iniciar conversa nova no ChatGPT e propor nome do projeto",
+  "target_mode": "conversation_project_repo",
+  "action_status": "planned"
+}
