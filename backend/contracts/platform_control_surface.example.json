@@ -1,0 +1,12 @@
+{
+  "platform_control_id": "platform_control_github_01",
+  "platform_name": "github",
+  "control_scope": [
+    "repos",
+    "prs",
+    "actions",
+    "artifacts"
+  ],
+  "readiness_status": "connected_ready",
+  "priority_action_count": 2
+}
