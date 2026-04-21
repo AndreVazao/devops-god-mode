@@ -95,6 +95,7 @@ from app.routes.project_recovery_write_submit import (
 )
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
+from app.routes.remote_brain_linkage import router as remote_brain_linkage_router
 from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
 from app.routes.script_extraction_reuse import router as script_reuse_router
 from app.routes.write_verify_rollback import router as write_verify_rollback_router
@@ -121,6 +122,7 @@ app.include_router(final_delivery_router)
 app.include_router(delivery_acknowledgment_router)
 app.include_router(delivery_history_router)
 app.include_router(final_summary_router)
+app.include_router(remote_brain_linkage_router)
 app.include_router(local_code_patch_router)
 app.include_router(patch_apply_preview_router)
 app.include_router(local_file_apply_runtime_router)
