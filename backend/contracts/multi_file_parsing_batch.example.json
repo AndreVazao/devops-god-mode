@@ -1,0 +1,7 @@
+{
+  "multi_file_parsing_batch_id": "multi_file_parsing_batch_01",
+  "source_origin": "deepseek_mixed_output",
+  "batch_scope": "multiple_full_files_in_single_response",
+  "boundary_detection_mode": "separator_and_code_structure_inference",
+  "parsing_status": "parsing_prepared"
+}
