@@ -1,0 +1,7 @@
+{
+  "remote_brain_linkage_id": "remote_brain_linkage_android_primary_01",
+  "client_type": "apk_thin_client",
+  "backend_role": "pc_brain",
+  "voice_intent_mode": "capture_send_interpret_confirm",
+  "linkage_status": "brain_link_ready"
+}
