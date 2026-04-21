@@ -1,0 +1,8 @@
+{
+  "pc_first_extraction_action_id": "pc_first_extract_brain_01",
+  "extraction_area": "brain_runtime",
+  "action_type": "move_primary_runtime_to_pc",
+  "action_label": "Mover runtime principal para o PC",
+  "migration_target": "pc_runtime",
+  "action_status": "planned"
+}
