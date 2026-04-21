@@ -1,0 +1,33 @@
+name: Cleanup Repo Tree Internals Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/cleanup-repo-tree-internals-plan.md'
+      - '.github/workflows/cleanup-repo-tree-internals-phase.yml'
+
+jobs:
+  cleanup-repo-tree-internals-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate removed repo tree internals
+        run: |
+          test ! -f backend/app/services/repo_tree_analysis_v1.py
+          test ! -f backend/app/services/repo_tree_analysis_v2.py
+          test ! -f backend/app/services/repo_tree_cache_v2.py
+          test ! -f backend/app/services/repo_tree_cache_v3.py
+          test ! -f backend/app/services/repo_tree/github_lazy_provider.py
+
+      - name: Build summary
+        run: |
+          echo '## Cleanup Repo Tree Internals Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Removed remaining repo tree analyses, caches, and lazy provider internals.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Next cleanup can inspect any leftover repo_tree directory residue or other versioned helper families.' >> "$GITHUB_STEP_SUMMARY"
