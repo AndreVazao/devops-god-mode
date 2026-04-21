@@ -1,0 +1,12 @@
+{
+  "pc_first_core_id": "pc_first_core_01",
+  "core_runtime": "pc_brain_primary",
+  "cloud_support_mode": "optional_support_only",
+  "extraction_scope": [
+    "brain_runtime",
+    "voice_interpretation",
+    "platform_orchestration",
+    "project_context"
+  ],
+  "extraction_status": "pc_first_transition_ready"
+}
