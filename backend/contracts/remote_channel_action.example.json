@@ -1,0 +1,8 @@
+{
+  "remote_channel_action_id": "remote_channel_action_retry_01",
+  "channel_area": "transport_resilience",
+  "action_type": "retry_and_resume_compact_state",
+  "action_label": "Repetir pedido e retomar estado compacto",
+  "fallback_mode": "cached_last_state",
+  "action_status": "planned"
+}
