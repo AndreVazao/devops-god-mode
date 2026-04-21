@@ -1,0 +1,8 @@
+{
+  "delivery_ack_event_id": "delivery_ack_event_mobile_apk_01",
+  "recovery_project_id": "recovery_devops_god_mode_01",
+  "final_delivery_action_id": "final_delivery_action_build_output_mobile_apk_01",
+  "event_type": "download_pending",
+  "event_label": "APK principal por descarregar",
+  "event_status": "pending"
+}
