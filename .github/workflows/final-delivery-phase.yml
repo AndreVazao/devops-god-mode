@@ -1,0 +1,66 @@
+name: Final Delivery Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/final-delivery-plan.md'
+      - 'backend/contracts/final_delivery.example.json'
+      - 'backend/contracts/final_delivery_action.example.json'
+      - 'backend/app/services/final_delivery_service.py'
+      - 'backend/app/routes/final_delivery.py'
+      - 'backend/main.py'
+      - '.github/workflows/final-delivery-phase.yml'
+
+jobs:
+  final-delivery-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate final delivery layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.final_delivery_service import final_delivery_service
+
+          deliveries = final_delivery_service.get_deliveries()["deliveries"]
+          first_project_id = deliveries[0]["recovery_project_id"]
+          actions = final_delivery_service.get_delivery_actions(first_project_id)["actions"]
+          package = final_delivery_service.get_delivery_package(first_project_id)["package"]
+          next_action = final_delivery_service.get_next_delivery_action()["next_delivery_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert deliveries, "Expected at least one final delivery session"
+          assert actions, "Expected at least one final delivery action"
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/final-delivery/status" in route_paths
+          assert "/api/final-delivery/deliveries" in route_paths
+          assert "/api/final-delivery/actions" in route_paths
+          assert "/api/final-delivery/next-delivery-action" in route_paths
+          print("final delivery phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Final Delivery Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for final delivery validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
