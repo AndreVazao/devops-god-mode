@@ -1,0 +1,8 @@
+{
+  "local_runtime_action_id": "local_runtime_action_01",
+  "runtime_area": "brain_execution",
+  "action_type": "route_primary_execution_to_pc",
+  "action_label": "Executar cérebro principal no PC",
+  "execution_path": "pc_only_primary",
+  "action_status": "planned"
+}
