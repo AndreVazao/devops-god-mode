@@ -1,0 +1,66 @@
+name: Delivery History Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/delivery-history-plan.md'
+      - 'backend/contracts/delivery_history.example.json'
+      - 'backend/contracts/delivery_history_record.example.json'
+      - 'backend/app/services/delivery_history_service.py'
+      - 'backend/app/routes/delivery_history.py'
+      - 'backend/main.py'
+      - '.github/workflows/delivery-history-phase.yml'
+
+jobs:
+  delivery-history-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate delivery history layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.delivery_history_service import delivery_history_service
+
+          histories = delivery_history_service.get_histories()["histories"]
+          first_project_id = histories[0]["recovery_project_id"]
+          records = delivery_history_service.get_history_records(first_project_id)["records"]
+          package = delivery_history_service.get_history_package(first_project_id)["package"]
+          next_action = delivery_history_service.get_next_history_action()["next_history_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert histories, "Expected at least one delivery history session"
+          assert records, "Expected at least one delivery history record"
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/delivery-history/status" in route_paths
+          assert "/api/delivery-history/histories" in route_paths
+          assert "/api/delivery-history/records" in route_paths
+          assert "/api/delivery-history/next-history-action" in route_paths
+          print("delivery history phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Delivery History Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for delivery history validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
