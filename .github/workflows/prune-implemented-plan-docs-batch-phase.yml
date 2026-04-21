@@ -1,0 +1,40 @@
+name: Prune Implemented Plan Docs Batch Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/prune-implemented-plan-docs-batch-plan.md'
+      - '.github/workflows/prune-implemented-plan-docs-batch-phase.yml'
+
+jobs:
+  prune-implemented-plan-docs-batch-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate removed placeholders and plan docs
+        run: |
+          test ! -f backend/app/routes.py
+          test ! -f backend/app/services/repo_tree_service.py
+          test ! -f backend/app/services/repo_tree_cache_service.py
+          test ! -f docs/action-center-and-quick-actions-plan.md
+          test ! -f docs/adaptation-planner-and-target-fit-plan.md
+          test ! -f docs/android-progressive-runtime-binding-plan.md
+          test ! -f docs/browser-control-real-plan.md
+          test ! -f docs/build-artifact-harvest-plan.md
+          test ! -f docs/conversation-provider-linkage-plan.md
+          test ! -f docs/desktop-installer-manifest-and-onboarding-plan.md
+          test ! -f docs/prune-versioned-helper-family-plan.md
+          test ! -f .github/workflows/prune-versioned-helper-family-phase.yml
+
+      - name: Build summary
+        run: |
+          echo '## Prune Implemented Plan Docs Batch Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Removed obsolete placeholders and another batch of implemented phase plan docs.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Removed merged helper-prune scaffolding files.' >> "$GITHUB_STEP_SUMMARY"
