@@ -1,0 +1,8 @@
+{
+  "platform_failure_id": "platform_failure_vercel_rate_limit_01",
+  "platform_name": "vercel",
+  "failure_type": "rate_limit",
+  "impact_level": "non_blocking",
+  "continuation_policy": "continue_main_flow_and_revisit_later",
+  "failure_status": "classified"
+}
