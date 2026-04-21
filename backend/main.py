@@ -31,6 +31,7 @@ from app.routes.desktop_installer_onboarding import router as desktop_installer_
 from app.routes.desktop_mobile_handoff import router as desktop_mobile_handoff_router
 from app.routes.driving_mode_voice_first import router as driving_mode_router
 from app.routes.final_delivery import router as final_delivery_router
+from app.routes.final_summary import router as final_summary_router
 from app.routes.first_run_bundle import router as first_run_bundle_router
 from app.routes.github_scan import router as github_scan_router
 from app.routes.local_code_patch import router as local_code_patch_router
@@ -119,6 +120,7 @@ app.include_router(build_catalog_router)
 app.include_router(final_delivery_router)
 app.include_router(delivery_acknowledgment_router)
 app.include_router(delivery_history_router)
+app.include_router(final_summary_router)
 app.include_router(local_code_patch_router)
 app.include_router(patch_apply_preview_router)
 app.include_router(local_file_apply_runtime_router)
