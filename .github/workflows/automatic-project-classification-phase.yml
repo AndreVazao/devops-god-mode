@@ -1,0 +1,58 @@
+name: Automatic Project Classification Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/automatic-project-classification-plan.md'
+      - 'backend/contracts/automatic_project_classification.example.json'
+      - 'backend/contracts/project_grouping_decision.example.json'
+      - 'backend/app/services/automatic_project_classification_service.py'
+      - 'backend/app/routes/automatic_project_classification.py'
+      - 'backend/main.py'
+      - '.github/workflows/automatic-project-classification-phase.yml'
+
+jobs:
+  automatic-project-classification-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate automatic project classification layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.automatic_project_classification_service import automatic_project_classification_service
+          classifications = automatic_project_classification_service.get_classifications()["classifications"]
+          decisions = automatic_project_classification_service.get_grouping_decisions()["decisions"]
+          package = automatic_project_classification_service.get_classification_package()["package"]
+          next_action = automatic_project_classification_service.get_next_classification_action()["next_classification_action"]
+          route_paths = {route.path for route in app.routes}
+          assert classifications
+          assert decisions
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/automatic-project-classification/status" in route_paths
+          assert "/api/automatic-project-classification/classifications" in route_paths
+          assert "/api/automatic-project-classification/decisions" in route_paths
+          assert "/api/automatic-project-classification/next-classification-action" in route_paths
+          print("automatic project classification phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## Automatic Project Classification Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Workflow for automatic project classification validation.' >> "$GITHUB_STEP_SUMMARY"
