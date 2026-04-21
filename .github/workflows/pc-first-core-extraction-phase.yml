@@ -1,0 +1,65 @@
+name: PC First Core Extraction Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/pc-first-core-extraction-plan.md'
+      - 'backend/contracts/pc_first_core_extraction.example.json'
+      - 'backend/contracts/pc_first_extraction_action.example.json'
+      - 'backend/app/services/pc_first_core_extraction_service.py'
+      - 'backend/app/routes/pc_first_core_extraction.py'
+      - 'backend/main.py'
+      - '.github/workflows/pc-first-core-extraction-phase.yml'
+
+jobs:
+  pc-first-core-extraction-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate pc-first core extraction layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.pc_first_core_extraction_service import pc_first_core_extraction_service
+
+          surfaces = pc_first_core_extraction_service.get_core_surfaces()["surfaces"]
+          actions = pc_first_core_extraction_service.get_extraction_actions()["actions"]
+          package = pc_first_core_extraction_service.get_extraction_package()["package"]
+          next_action = pc_first_core_extraction_service.get_next_extraction_action()["next_extraction_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert surfaces, "Expected at least one pc-first core surface"
+          assert actions, "Expected at least one pc-first extraction action"
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/pc-first-core-extraction/status" in route_paths
+          assert "/api/pc-first-core-extraction/surfaces" in route_paths
+          assert "/api/pc-first-core-extraction/actions" in route_paths
+          assert "/api/pc-first-core-extraction/next-extraction-action" in route_paths
+          print("pc first core extraction phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## PC First Core Extraction Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for pc-first core extraction validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
