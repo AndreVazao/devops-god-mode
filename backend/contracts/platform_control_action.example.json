@@ -1,0 +1,8 @@
+{
+  "platform_control_action_id": "platform_action_vercel_01",
+  "platform_name": "vercel",
+  "action_type": "inspect_project_linkage",
+  "action_label": "Ver estado do projeto principal no Vercel",
+  "action_status": "pending",
+  "capability_state": "planned_connector_or_api_link"
+}

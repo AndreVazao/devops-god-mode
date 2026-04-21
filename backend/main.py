@@ -47,6 +47,7 @@ from app.routes.operation_queue import router as operation_queue_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
 from app.routes.patch_apply_preview import router as patch_apply_preview_router
 from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
+from app.routes.platform_control_hardening import router as platform_control_hardening_router
 from app.routes.project_recovery import router as project_recovery_router
 from app.routes.project_recovery_execution import (
     router as project_recovery_execution_router,
@@ -123,6 +124,7 @@ app.include_router(delivery_acknowledgment_router)
 app.include_router(delivery_history_router)
 app.include_router(final_summary_router)
 app.include_router(remote_brain_linkage_router)
+app.include_router(platform_control_hardening_router)
 app.include_router(local_code_patch_router)
 app.include_router(patch_apply_preview_router)
 app.include_router(local_file_apply_runtime_router)

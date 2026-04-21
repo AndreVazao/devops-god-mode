@@ -1,0 +1,65 @@
+name: Platform Control Hardening Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/platform-control-hardening-plan.md'
+      - 'backend/contracts/platform_control_surface.example.json'
+      - 'backend/contracts/platform_control_action.example.json'
+      - 'backend/app/services/platform_control_hardening_service.py'
+      - 'backend/app/routes/platform_control_hardening.py'
+      - 'backend/main.py'
+      - '.github/workflows/platform-control-hardening-phase.yml'
+
+jobs:
+  platform-control-hardening-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate platform control hardening layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.platform_control_hardening_service import platform_control_hardening_service
+
+          surfaces = platform_control_hardening_service.get_control_surfaces()["surfaces"]
+          actions = platform_control_hardening_service.get_platform_actions()["actions"]
+          package = platform_control_hardening_service.get_control_package("github")["package"]
+          next_action = platform_control_hardening_service.get_next_platform_action()["next_platform_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert surfaces, "Expected at least one platform control surface"
+          assert actions, "Expected at least one platform control action"
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/platform-control-hardening/status" in route_paths
+          assert "/api/platform-control-hardening/surfaces" in route_paths
+          assert "/api/platform-control-hardening/actions" in route_paths
+          assert "/api/platform-control-hardening/next-platform-action" in route_paths
+          print("platform control hardening phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Platform Control Hardening Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for platform control hardening validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
