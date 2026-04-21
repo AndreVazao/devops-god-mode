@@ -1,0 +1,446 @@
+devops-god-mode/
+├─ .github/
+│  └─ workflows/
+│     ├─ android-real-build-progressive.yml
+│     ├─ cleanup-repo-tree-internals-phase.yml
+│     ├─ god-mode-unified-validation.yml
+│     ├─ prune-merged-phase-plans-phase.yml
+│     ├─ prune-old-artifacts-all-repos.yml
+│     ├─ universal-total-test.yml
+│     └─ windows-exe-real-build.yml
+├─ backend/
+│  ├─ app/
+│  │  ├─ data/
+│  │  │  └─ registry_seed.json
+│  │  ├─ routes/
+│  │  │  ├─ __init__.py
+│  │  │  ├─ action_center.py
+│  │  │  ├─ adaptation_planner.py
+│  │  │  ├─ android_progressive_runtime_binding.py
+│  │  │  ├─ android_real_build_pipeline.py
+│  │  │  ├─ android_real_build_progressive.py
+│  │  │  ├─ android_real_pipeline_readiness.py
+│  │  │  ├─ approval_broker.py
+│  │  │  ├─ approval_gated_execution.py
+│  │  │  ├─ automatic_project_classification.py
+│  │  │  ├─ browser_control_real.py
+│  │  │  ├─ browser_conversation_intake.py
+│  │  │  ├─ build_artifact_harvest.py
+│  │  │  ├─ build_catalog.py
+│  │  │  ├─ chat_adapter_inventory.py
+│  │  │  ├─ context_aware_orchestration.py
+│  │  │  ├─ continuous_remote_execution.py
+│  │  │  ├─ conversation_organization.py
+│  │  │  ├─ conversation_provider_linkage.py
+│  │  │  ├─ conversation_repo_reconstruction.py
+│  │  │  ├─ delivery_acknowledgment.py
+│  │  │  ├─ delivery_history.py
+│  │  │  ├─ desktop_bootstrap.py
+│  │  │  ├─ desktop_installer_onboarding.py
+│  │  │  ├─ desktop_mobile_handoff.py
+│  │  │  ├─ driving_mode_voice_first.py
+│  │  │  ├─ final_delivery.py
+│  │  │  ├─ final_summary.py
+│  │  │  ├─ first_run_bundle.py
+│  │  │  ├─ github_scan.py
+│  │  │  ├─ initial_inventory_project_graph.py
+│  │  │  ├─ inter_provider_handoff_adaptation.py
+│  │  │  ├─ local_code_patch.py
+│  │  │  ├─ local_file_apply_runtime.py
+│  │  │  ├─ local_pc_runtime_orchestrator.py
+│  │  │  ├─ local_real_validator.py
+│  │  │  ├─ local_runtime_dominance.py
+│  │  │  ├─ mobile_cockpit_command_surface.py
+│  │  │  ├─ mobile_runtime_shell.py
+│  │  │  ├─ multi_ai_intake_and_script_repair.py
+│  │  │  ├─ multi_file_parsing_placement.py
+│  │  │  ├─ offline_command_buffering.py
+│  │  │  ├─ operation_queue.py
+│  │  │  ├─ packaging_foundation.py
+│  │  │  ├─ patch_apply_preview.py
+│  │  │  ├─ pc_first_core_extraction.py
+│  │  │  ├─ pc_phone_bootstrap.py
+│  │  │  ├─ platform_control_hardening.py
+│  │  │  ├─ project_initiation_bootstrap.py
+│  │  │  ├─ project_recovery_execution.py
+│  │  │  ├─ project_recovery_local_apply.py
+│  │  │  ├─ project_recovery_real_write_link.py
+│  │  │  ├─ project_recovery_write_approval_cockpit.py
+│  │  │  ├─ project_recovery_write_candidate.py
+│  │  │  ├─ project_recovery_write_create.py
+│  │  │  ├─ project_recovery_write_dispatch.py
+│  │  │  ├─ project_recovery_write_execution.py
+│  │  │  ├─ project_recovery_write_guard.py
+│  │  │  ├─ project_recovery_write_materialize.py
+│  │  │  ├─ project_recovery_write_mobile_action_execution.py
+│  │  │  ├─ project_recovery_write_queue.py
+│  │  │  ├─ project_recovery_write_remote_command.py
+│  │  │  ├─ project_recovery_write_run.py
+│  │  │  ├─ project_recovery_write_submit.py
+│  │  │  ├─ project_recovery.py
+│  │  │  ├─ real_local_write.py
+│  │  │  ├─ registry.py
+│  │  │  ├─ remote_brain_linkage.py
+│  │  │  ├─ remote_channel_stability.py
+│  │  │  ├─ remote_session_persistence.py
+│  │  │  ├─ runtime_supervisor_guidance.py
+│  │  │  ├─ script_extraction_reuse.py
+│  │  │  └─ write_verify_rollback.py
+│  │  ├─ services/
+│  │  │  ├─ __init__.py
+│  │  │  ├─ action_center_service.py
+│  │  │  ├─ adaptation_planner_service.py
+│  │  │  ├─ android_progressive_runtime_binding_service.py
+│  │  │  ├─ android_real_build_pipeline_service.py
+│  │  │  ├─ android_real_build_progressive_service.py
+│  │  │  ├─ android_real_pipeline_readiness_service.py
+│  │  │  ├─ android_runtime_shell_service.py
+│  │  │  ├─ approval_broker_service.py
+│  │  │  ├─ approval_gated_execution_service.py
+│  │  │  ├─ approval_shell_v1.py
+│  │  │  ├─ automatic_project_classification_service.py
+│  │  │  ├─ browser_control_real_service.py
+│  │  │  ├─ browser_conversation_intake_service.py
+│  │  │  ├─ browser_prompt_builder_v1.py
+│  │  │  ├─ build_artifact_harvest_service.py
+│  │  │  ├─ build_catalog_service.py
+│  │  │  ├─ chat_adapter_inventory_service.py
+│  │  │  ├─ code_intake_parser_v1.py
+│  │  │  ├─ code_intake_pipeline_v1.py
+│  │  │  ├─ context_aware_orchestration_service.py
+│  │  │  ├─ continuous_remote_execution_service.py
+│  │  │  ├─ conversation_organization_service.py
+│  │  │  ├─ conversation_provider_linkage_service.py
+│  │  │  ├─ conversation_repo_reconstruction_service.py
+│  │  │  ├─ delivery_acknowledgment_service.py
+│  │  │  ├─ delivery_history_service.py
+│  │  │  ├─ desktop_bootstrap_service.py
+│  │  │  ├─ desktop_installer_onboarding_service.py
+│  │  │  ├─ desktop_mobile_handoff_service.py
+│  │  │  ├─ driving_mode_voice_first_service.py
+│  │  │  ├─ final_delivery_service.py
+│  │  │  ├─ final_summary_service.py
+│  │  │  ├─ first_run_bundle_service.py
+│  │  │  ├─ git_ops_plan_v1.py
+│  │  │  ├─ github_service.py
+│  │  │  ├─ initial_inventory_project_graph_service.py
+│  │  │  ├─ inter_provider_handoff_adaptation_service.py
+│  │  │  ├─ local_code_patch_service.py
+│  │  │  ├─ local_file_apply_runtime_service.py
+│  │  │  ├─ local_pc_runtime_orchestrator_service.py
+│  │  │  ├─ local_real_validator_service.py
+│  │  │  ├─ local_runtime_dominance_service.py
+│  │  │  ├─ mobile_cockpit_command_surface_service.py
+│  │  │  ├─ mobile_cockpit_payload_v1.py
+│  │  │  ├─ multi_ai_intake_and_script_repair_service.py
+│  │  │  ├─ multi_file_parsing_placement_service.py
+│  │  │  ├─ offline_command_buffering_service.py
+│  │  │  ├─ operation_queue_service.py
+│  │  │  ├─ ops_execution_pipeline_v1.py
+│  │  │  ├─ packaging_foundation_service.py
+│  │  │  ├─ patch_apply_preview_service.py
+│  │  │  ├─ pc_first_core_extraction_service.py
+│  │  │  ├─ pc_phone_bootstrap_service.py
+│  │  │  ├─ platform_control_hardening_service.py
+│  │  │  ├─ pr_execution_plan_v1.py
+│  │  │  ├─ project_initiation_bootstrap_service.py
+│  │  │  ├─ project_recovery_execution_service.py
+│  │  │  ├─ project_recovery_local_apply_service.py
+│  │  │  ├─ project_recovery_real_write_link_service.py
+│  │  │  ├─ project_recovery_service.py
+│  │  │  ├─ project_recovery_write_approval_cockpit_service.py
+│  │  │  ├─ project_recovery_write_candidate_service.py
+│  │  │  ├─ project_recovery_write_create_service.py
+│  │  │  ├─ project_recovery_write_dispatch_service.py
+│  │  │  ├─ project_recovery_write_execution_service.py
+│  │  │  ├─ project_recovery_write_guard_service.py
+│  │  │  ├─ project_recovery_write_materialize_service.py
+│  │  │  ├─ project_recovery_write_mobile_action_execution_service.py
+│  │  │  ├─ project_recovery_write_queue_service.py
+│  │  │  ├─ project_recovery_write_remote_command_service.py
+│  │  │  ├─ project_recovery_write_run_service.py
+│  │  │  ├─ project_recovery_write_submit_service.py
+│  │  │  ├─ real_local_write_service.py
+│  │  │  ├─ registry_service.py
+│  │  │  ├─ remote_brain_linkage_service.py
+│  │  │  ├─ remote_channel_stability_service.py
+│  │  │  ├─ remote_session_persistence_service.py
+│  │  │  ├─ repo_resolution_engine_v1.py
+│  │  │  ├─ repo_tree_cache_service.py
+│  │  │  ├─ repo_tree_service.py
+│  │  │  ├─ repo_visibility_policy_v1.py
+│  │  │  ├─ runtime_supervisor_guidance_service.py
+│  │  │  ├─ script_extraction_reuse_service.py
+│  │  │  ├─ workflow_error_intake_v1.py
+│  │  │  ├─ workflow_repair_prompt_v1.py
+│  │  │  └─ write_verify_rollback_service.py
+│  │  ├─ __init__.py
+│  │  ├─ config.py
+│  │  └─ routes.py
+│  ├─ contracts/
+│  │  ├─ action_center_quick_actions.example.json
+│  │  ├─ adaptation_plan_item.example.json
+│  │  ├─ android_mobile_build_profile.example.json
+│  │  ├─ android_progressive_artifact.example.json
+│  │  ├─ android_progressive_pairing_asset.example.json
+│  │  ├─ android_progressive_runtime_binding.example.json
+│  │  ├─ android_progressive_stage.example.json
+│  │  ├─ android_real_build_profile.example.json
+│  │  ├─ android_real_output_artifact.example.json
+│  │  ├─ android_real_pipeline_profile.example.json
+│  │  ├─ android_real_pipeline_readiness.example.json
+│  │  ├─ android_replacement_step.example.json
+│  │  ├─ android_runtime_shell_profile.example.json
+│  │  ├─ approval_broker_request.example.json
+│  │  ├─ approval_gated_action.example.json
+│  │  ├─ automatic_placement_decision.example.json
+│  │  ├─ automatic_project_classification.example.json
+│  │  ├─ broken_script_issue.example.json
+│  │  ├─ browser_control_action_item.example.json
+│  │  ├─ browser_control_session_item.example.json
+│  │  ├─ browser_conversation_intake.example.json
+│  │  ├─ browser_intake_navigation_step.example.json
+│  │  ├─ browser_intake_session_item.example.json
+│  │  ├─ build_artifact_harvest.example.json
+│  │  ├─ build_artifact_item.example.json
+│  │  ├─ build_catalog.example.json
+│  │  ├─ build_output_entry.example.json
+│  │  ├─ chat_frontend_adapter.example.json
+│  │  ├─ context_decision_item.example.json
+│  │  ├─ continuous_execution_action.example.json
+│  │  ├─ continuous_remote_execution.example.json
+│  │  ├─ conversation_group_item.example.json
+│  │  ├─ conversation_inventory_item.example.json
+│  │  ├─ conversation_provider_action.example.json
+│  │  ├─ conversation_provider_linkage.example.json
+│  │  ├─ conversation_relation_item.example.json
+│  │  ├─ conversation_repo_reconstruction.example.json
+│  │  ├─ delivery_ack_event.example.json
+│  │  ├─ delivery_acknowledgment.example.json
+│  │  ├─ delivery_history_record.example.json
+│  │  ├─ delivery_history.example.json
+│  │  ├─ desktop_bootstrap_profile.example.json
+│  │  ├─ desktop_bundle_inventory.example.json
+│  │  ├─ desktop_installer_manifest.example.json
+│  │  ├─ desktop_mobile_handoff.example.json
+│  │  ├─ desktop_onboarding_profile.example.json
+│  │  ├─ driving_action_guard_item.example.json
+│  │  ├─ driving_prompt_item.example.json
+│  │  ├─ extracted_script_item.example.json
+│  │  ├─ final_delivery_action.example.json
+│  │  ├─ final_delivery.example.json
+│  │  ├─ final_summary_line.example.json
+│  │  ├─ final_summary.example.json
+│  │  ├─ first_run_bundle_profile.example.json
+│  │  ├─ fragment_adaptation.example.json
+│  │  ├─ initial_inventory_source.example.json
+│  │  ├─ inter_provider_handoff.example.json
+│  │  ├─ local_file_apply_runtime.example.json
+│  │  ├─ local_patch_engine.example.json
+│  │  ├─ local_pc_runtime_orchestrator.example.json
+│  │  ├─ local_real_validator.example.json
+│  │  ├─ local_runtime_action.example.json
+│  │  ├─ local_runtime_dominance.example.json
+│  │  ├─ mobile_cockpit_card_item.example.json
+│  │  ├─ mobile_quick_action_item.example.json
+│  │  ├─ multi_ai_source.example.json
+│  │  ├─ multi_file_parsing_batch.example.json
+│  │  ├─ offline_buffer_action.example.json
+│  │  ├─ offline_command_buffer.example.json
+│  │  ├─ operation_intent.example.json
+│  │  ├─ orchestration_lane_item.example.json
+│  │  ├─ packaging_build_profile.example.json
+│  │  ├─ patch_apply_preview.example.json
+│  │  ├─ pc_first_core_extraction.example.json
+│  │  ├─ pc_first_extraction_action.example.json
+│  │  ├─ pc_phone_bootstrap_profile.example.json
+│  │  ├─ platform_control_action.example.json
+│  │  ├─ platform_control_surface.example.json
+│  │  ├─ project_bootstrap_step.example.json
+│  │  ├─ project_graph_link.example.json
+│  │  ├─ project_grouping_decision.example.json
+│  │  ├─ project_initiation_bootstrap.example.json
+│  │  ├─ project_recovery_source.example.json
+│  │  ├─ real_local_write.example.json
+│  │  ├─ recoverable_project.example.json
+│  │  ├─ recoverable_script.example.json
+│  │  ├─ recovery_execution_bundle.example.json
+│  │  ├─ recovery_local_apply_bundle.example.json
+│  │  ├─ recovery_local_target.example.json
+│  │  ├─ recovery_real_write_handoff.example.json
+│  │  ├─ recovery_real_write_target.example.json
+│  │  ├─ recovery_target_file.example.json
+│  │  ├─ recovery_write_approval_cockpit.example.json
+│  │  ├─ recovery_write_approval_item.example.json
+│  │  ├─ recovery_write_candidate_target.example.json
+│  │  ├─ recovery_write_candidate.example.json
+│  │  ├─ recovery_write_create_target.example.json
+│  │  ├─ recovery_write_create.example.json
+│  │  ├─ recovery_write_dispatch_target.example.json
+│  │  ├─ recovery_write_dispatch.example.json
+│  │  ├─ recovery_write_execution_result.example.json
+│  │  ├─ recovery_write_execution_session.example.json
+│  │  ├─ recovery_write_guard_finding.example.json
+│  │  ├─ recovery_write_guard.example.json
+│  │  ├─ recovery_write_materialize_bridge.example.json
+│  │  ├─ recovery_write_materialize_target.example.json
+│  │  ├─ recovery_write_mobile_effect.example.json
+│  │  ├─ recovery_write_mobile_execution.example.json
+│  │  ├─ recovery_write_queue_target.example.json
+│  │  ├─ recovery_write_queue.example.json
+│  │  ├─ recovery_write_remote_action.example.json
+│  │  ├─ recovery_write_remote_command.example.json
+│  │  ├─ recovery_write_run_target.example.json
+│  │  ├─ recovery_write_run.example.json
+│  │  ├─ recovery_write_submit_target.example.json
+│  │  ├─ recovery_write_submit.example.json
+│  │  ├─ remote_brain_intent.example.json
+│  │  ├─ remote_brain_linkage.example.json
+│  │  ├─ remote_channel_action.example.json
+│  │  ├─ remote_channel_stability.example.json
+│  │  ├─ remote_session_action.example.json
+│  │  ├─ remote_session_persistence.example.json
+│  │  ├─ reuse_map_item.example.json
+│  │  ├─ runtime_supervisor_guidance.example.json
+│  │  ├─ runtime_topology_profile.example.json
+│  │  ├─ script_repair_step.example.json
+│  │  ├─ target_fit_item.example.json
+│  │  ├─ windows_bootstrap_script_profile.example.json
+│  │  ├─ windows_exe_build_profile.example.json
+│  │  ├─ windows_exe_real_build_profile.example.json
+│  │  └─ write_verify_rollback.example.json
+│  ├─ main.py
+│  └─ requirements.txt
+├─ desktop/
+│  ├─ godmode_desktop_launcher.py
+│  ├─ GodModeDesktop.spec
+│  ├─ windows_autostart_bootstrap.ps1
+│  ├─ windows_autostart_remove.ps1
+│  └─ windows_shortcut_bootstrap.ps1
+├─ docs/
+│  ├─ archive/
+│  │  ├─ android-foundation-contract-review.md
+│  │  ├─ legacy-foundations-index.md
+│  │  └─ workflow-foundation-review.md
+│  ├─ manual-rules/
+│  │  ├─ approval-gate-policy.md
+│  │  ├─ baribudos-admin-bridge-b-architecture.md
+│  │  ├─ baribudos-admin-bridge-choice-direct.md
+│  │  ├─ baribudos-admin-bridge-transport-rest-webhooks.md
+│  │  ├─ baribudos-ecosystem-governance.md
+│  │  ├─ mobile-light-backend-heavy-policy.md
+│  │  ├─ modular-evolution-policy.md
+│  │  ├─ repo-tree-default-depth.md
+│  │  ├─ repo-tree-explorer-architecture.md
+│  │  ├─ repo-tree-explorer-god-mode-choice.md
+│  │  ├─ repo-tree-explorer-scope-priority.md
+│  │  ├─ repo-tree-lazy-loading-policy.md
+│  │  ├─ repo-tree-overwrite-and-seed-policy.md
+│  │  ├─ repo-tree-preview-scope.md
+│  │  ├─ repo-tree-progressive-analysis-ui.md
+│  │  └─ structural-ai-adoption-mode.md
+│  ├─ roadmaps/
+│  │  └─ mobile-first-remediation-plan.md
+│  ├─ action-center-and-quick-actions-plan.md
+│  ├─ adaptation-planner-and-target-fit-plan.md
+│  ├─ android-mobile-build-plan.md
+│  ├─ android-progressive-runtime-binding-plan.md
+│  ├─ android-real-build-pipeline-foundation-plan.md
+│  ├─ android-real-build-progressive-plan.md
+│  ├─ android-real-pipeline-readiness-plan.md
+│  ├─ android-real-runtime-shell-plan.md
+│  ├─ android-real-runtime-shell-v2-plan.md
+│  ├─ apk-real-build-and-pc-phone-bootstrap-plan.md
+│  ├─ approval-broker-local-intelligence-plan.md
+│  ├─ branch-cleanup-plan-feature-code-intake-gitops-workflow-engine.md
+│  ├─ browser-chat-intake-real-plan.md
+│  ├─ browser-control-real-plan.md
+│  ├─ browser-conversation-intake-plan.md
+│  ├─ build-artifact-harvest-plan.md
+│  ├─ build-catalog-plan.md
+│  ├─ canonical-build-and-test-workflows.md
+│  ├─ chat-adapter-and-conversation-inventory-plan.md
+│  ├─ cleanup-obsolete-files-plan.md
+│  ├─ cleanup-repo-tree-internals-plan.md
+│  ├─ context-aware-automation-layer-plan.md
+│  ├─ conversation-organization-intelligence-plan.md
+│  ├─ conversation-provider-linkage-plan.md
+│  ├─ conversation-to-repo-reconstruction-plan.md
+│  ├─ cross-repo-artifact-cleanup.md
+│  ├─ delivery-acknowledgment-plan.md
+│  ├─ delivery-history-plan.md
+│  ├─ desktop-apk-packaging-foundation-plan.md
+│  ├─ desktop-bootstrap-shortcut-autostart-plan.md
+│  ├─ desktop-installer-manifest-and-onboarding-plan.md
+│  ├─ desktop-mobile-handoff-package-plan.md
+│  ├─ driving-mode-voice-first-plan.md
+│  ├─ execution-waits-for-approval-plan.md
+│  ├─ final-cleanup-candidates.md
+│  ├─ final-delivery-plan.md
+│  ├─ final-summary-plan.md
+│  ├─ first-run-bundle-and-pairing-assets-plan.md
+│  ├─ hybrid-local-runtime-plan.md
+│  ├─ local-code-patch-engine-plan.md
+│  ├─ local-file-apply-runtime-plan.md
+│  ├─ local-pc-runtime-orchestrator-plan.md
+│  ├─ local-real-validators-plan.md
+│  ├─ local-runtime-dominance-plan.md
+│  ├─ local-runtime-tunnel-dashboard-plan.md
+│  ├─ mobile-approval-cockpit-plan.md
+│  ├─ mobile-cockpit-command-surface-plan.md
+│  ├─ mobile-execution-status-cockpit-plan.md
+│  ├─ multi-ai-intake-and-script-repair-plan.md
+│  ├─ operation-queue-and-intents-plan.md
+│  ├─ patch-apply-and-diff-plan.md
+│  ├─ pc-first-core-extraction-plan.md
+│  ├─ platform-control-hardening-plan.md
+│  ├─ project-initiation-bootstrap-plan.md
+│  ├─ project-recovery-execution-plan.md
+│  ├─ project-recovery-local-apply-plan.md
+│  ├─ project-recovery-multi-ai-plan.md
+│  ├─ project-recovery-real-write-link-plan.md
+│  ├─ project-recovery-write-approval-cockpit-plan.md
+│  ├─ project-recovery-write-candidates-plan.md
+│  ├─ project-recovery-write-create-plan.md
+│  ├─ project-recovery-write-dispatch-plan.md
+│  ├─ project-recovery-write-execution-plan.md
+│  ├─ project-recovery-write-guard-plan.md
+│  ├─ project-recovery-write-materialize-plan.md
+│  ├─ project-recovery-write-mobile-action-execution-plan.md
+│  ├─ project-recovery-write-queue-plan.md
+│  ├─ project-recovery-write-remote-command-plan.md
+│  ├─ project-recovery-write-runs-plan.md
+│  ├─ project-recovery-write-submit-plan.md
+│  ├─ prune-merged-phase-plans-plan.md
+│  ├─ real-local-write-and-backup-plan.md
+│  ├─ remote-brain-linkage-plan.md
+│  ├─ repo-consolidation-and-legacy-mapping.md
+│  ├─ runtime-supervisor-and-guidance-plan.md
+│  ├─ script-extraction-and-reuse-mapping-plan.md
+│  ├─ selective-merge-policy.md
+│  ├─ windows-exe-build-workflow-plan.md
+│  ├─ windows-exe-real-build-plan.md
+│  ├─ windows-shortcut-autostart-scripts-plan.md
+│  └─ write-verify-and-rollback-plan.md
+├─ frontend/
+│  ├─ mobile-shell/
+│  │  ├─ app.js
+│  │  ├─ backend-presets.example.json
+│  │  ├─ index.html
+│  │  ├─ manifest.json
+│  │  ├─ README.md
+│  │  ├─ styles.css
+│  │  └─ vercel.json
+│  └─ index.html
+├─ scripts/
+│  └─ windows/
+│     ├─ start-god-mode-hybrid.ps1
+│     ├─ start-god-mode-local.ps1
+│     └─ start-mobile-shell-local.ps1
+├─ supabase/
+│  └─ migrations/
+│     ├─ 0001_registry_core.sql
+│     └─ 0002_repo_tree_snapshots.sql
+├─ .gitignore
+├─ README.md
+└─ render.yaml
