@@ -1,0 +1,8 @@
+{
+  "continuation_decision_id": "continuation_decision_botfarm_01",
+  "target_project": "Bot Farm Headless",
+  "decision_type": "continue_without_immediate_fix",
+  "decision_reason": "Current external failure does not block project code flow",
+  "requires_immediate_fix": false,
+  "decision_status": "ready"
+}
