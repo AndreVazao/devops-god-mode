@@ -1,0 +1,7 @@
+{
+  "remote_session_id": "remote_session_android_pc_01",
+  "session_scope": "apk_pc_command_context",
+  "continuity_mode": "resume_last_compact_state",
+  "state_profile": "short_operational_memory",
+  "session_status": "resume_ready"
+}
