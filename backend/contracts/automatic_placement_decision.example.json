@@ -1,0 +1,7 @@
+{
+  "automatic_placement_decision_id": "automatic_placement_decision_01",
+  "probable_file_name": "project_recovery_write_create.py",
+  "probable_target_path": "backend/app/routes/project_recovery_write_create.py",
+  "placement_mode": "direct_path_match_or_structure_inference",
+  "decision_status": "awaiting_short_confirmation"
+}
