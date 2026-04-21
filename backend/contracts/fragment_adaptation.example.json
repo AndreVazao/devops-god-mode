@@ -1,0 +1,7 @@
+{
+  "fragment_adaptation_id": "fragment_adaptation_01",
+  "probable_project_name": "Bot Farm Headless",
+  "fragment_origin": "deepseek_continuation_output",
+  "adaptation_target": "existing_headless_integration_module",
+  "adaptation_status": "adaptation_planned"
+}
