@@ -1,0 +1,58 @@
+name: Platform Failure Triage Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/platform-failure-triage-and-continuation-plan.md'
+      - 'backend/contracts/platform_failure.example.json'
+      - 'backend/contracts/continuation_decision.example.json'
+      - 'backend/app/services/platform_failure_triage_service.py'
+      - 'backend/app/routes/platform_failure_triage.py'
+      - 'backend/main.py'
+      - '.github/workflows/platform-failure-triage-phase.yml'
+
+jobs:
+  platform-failure-triage-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate platform failure triage layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.platform_failure_triage_service import platform_failure_triage_service
+          failures = platform_failure_triage_service.get_failures()["failures"]
+          decisions = platform_failure_triage_service.get_continuation_decisions()["decisions"]
+          package = platform_failure_triage_service.get_triage_package()["package"]
+          next_action = platform_failure_triage_service.get_next_triage_action()["next_triage_action"]
+          route_paths = {route.path for route in app.routes}
+          assert failures
+          assert decisions
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/platform-failure-triage/status" in route_paths
+          assert "/api/platform-failure-triage/failures" in route_paths
+          assert "/api/platform-failure-triage/decisions" in route_paths
+          assert "/api/platform-failure-triage/next-triage-action" in route_paths
+          print("platform failure triage phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## Platform Failure Triage Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Added platform failure classification and continuation decision layer.' >> "$GITHUB_STEP_SUMMARY"
