@@ -1,0 +1,42 @@
+name: Prune Versioned Helper Family Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/prune-versioned-helper-family-plan.md'
+      - '.github/workflows/prune-versioned-helper-family-phase.yml'
+
+jobs:
+  prune-versioned-helper-family-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate removed legacy helper family
+        run: |
+          test ! -f backend/app/services/approval_shell_v1.py
+          test ! -f backend/app/services/browser_prompt_builder_v1.py
+          test ! -f backend/app/services/code_intake_parser_v1.py
+          test ! -f backend/app/services/code_intake_pipeline_v1.py
+          test ! -f backend/app/services/git_ops_plan_v1.py
+          test ! -f backend/app/services/mobile_cockpit_payload_v1.py
+          test ! -f backend/app/services/ops_execution_pipeline_v1.py
+          test ! -f backend/app/services/pr_execution_plan_v1.py
+          test ! -f backend/app/services/repo_resolution_engine_v1.py
+          test ! -f backend/app/services/repo_visibility_policy_v1.py
+          test ! -f backend/app/services/workflow_error_intake_v1.py
+          test ! -f backend/app/services/workflow_repair_prompt_v1.py
+          test ! -f docs/cleanup-repo-tree-internals-plan.md
+          test ! -f .github/workflows/cleanup-repo-tree-internals-phase.yml
+
+      - name: Build summary
+        run: |
+          echo '## Prune Versioned Helper Family Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Removed one large batch of old versioned helper services.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Removed merged repo tree internals cleanup scaffolding files.' >> "$GITHUB_STEP_SUMMARY"
