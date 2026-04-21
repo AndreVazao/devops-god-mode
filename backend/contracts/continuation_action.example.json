@@ -1,0 +1,8 @@
+{
+  "continuation_action_id": "continuation_action_botfarm_01",
+  "target_project": "Bot Farm Headless",
+  "action_type": "continue_project_with_current_provider_context",
+  "action_reason": "Selected project can keep moving without immediate user intervention",
+  "requires_short_confirmation": false,
+  "action_status": "ready"
+}
