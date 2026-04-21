@@ -1,0 +1,37 @@
+name: Prune Android And Approval Plan Docs Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/prune-android-and-approval-plan-docs-plan.md'
+      - '.github/workflows/prune-android-and-approval-plan-docs-phase.yml'
+
+jobs:
+  prune-android-and-approval-plan-docs-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate removed Android and approval plan docs
+        run: |
+          test ! -f docs/android-mobile-build-plan.md
+          test ! -f docs/android-real-build-pipeline-foundation-plan.md
+          test ! -f docs/android-real-build-progressive-plan.md
+          test ! -f docs/android-real-pipeline-readiness-plan.md
+          test ! -f docs/android-real-runtime-shell-plan.md
+          test ! -f docs/android-real-runtime-shell-v2-plan.md
+          test ! -f docs/approval-broker-local-intelligence-plan.md
+          test ! -f docs/prune-implemented-plan-docs-batch-plan.md
+          test ! -f .github/workflows/prune-implemented-plan-docs-batch-phase.yml
+
+      - name: Build summary
+        run: |
+          echo '## Prune Android And Approval Plan Docs Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Removed another large Android and approval planning batch.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Removed merged pruning scaffolding from the previous round.' >> "$GITHUB_STEP_SUMMARY"
