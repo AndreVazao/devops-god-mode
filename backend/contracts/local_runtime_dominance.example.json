@@ -1,0 +1,7 @@
+{
+  "local_runtime_dominance_id": "local_runtime_dominance_01",
+  "dominant_runtime": "pc_primary_runtime",
+  "remote_client_mode": "apk_thin_remote_cockpit",
+  "support_cloud_mode": "optional_support_only",
+  "dominance_status": "local_runtime_dominant_ready"
+}
