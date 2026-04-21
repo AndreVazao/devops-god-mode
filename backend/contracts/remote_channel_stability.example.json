@@ -1,0 +1,7 @@
+{
+  "remote_channel_id": "remote_channel_android_pc_01",
+  "channel_mode": "apk_to_pc_command_state",
+  "transport_role": "pc_brain_primary_link",
+  "resilience_profile": "retry_resume_compact_state",
+  "channel_status": "stable_link_planned"
+}
