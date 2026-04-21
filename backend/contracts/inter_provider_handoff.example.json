@@ -1,0 +1,7 @@
+{
+  "inter_provider_handoff_id": "inter_provider_handoff_01",
+  "source_provider": "chatgpt",
+  "target_provider": "deepseek",
+  "handoff_scope": "blocked_real_integration_step",
+  "handoff_status": "handoff_prepared"
+}
