@@ -1,0 +1,8 @@
+{
+  "project_grouping_decision_id": "project_grouping_decision_01",
+  "source_kind": "conversation_provider",
+  "probable_project_name": "Bot Farm Headless",
+  "grouping_action": "attach_to_existing_project",
+  "confidence_band": "high",
+  "decision_status": "awaiting_short_confirmation"
+}
