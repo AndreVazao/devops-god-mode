@@ -1,0 +1,65 @@
+name: Remote Brain Linkage Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/remote-brain-linkage-plan.md'
+      - 'backend/contracts/remote_brain_linkage.example.json'
+      - 'backend/contracts/remote_brain_intent.example.json'
+      - 'backend/app/services/remote_brain_linkage_service.py'
+      - 'backend/app/routes/remote_brain_linkage.py'
+      - 'backend/main.py'
+      - '.github/workflows/remote-brain-linkage-phase.yml'
+
+jobs:
+  remote-brain-linkage-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate remote brain linkage layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.remote_brain_linkage_service import remote_brain_linkage_service
+
+          linkages = remote_brain_linkage_service.get_linkages()["linkages"]
+          intents = remote_brain_linkage_service.get_intents("android_voice")["intents"]
+          package = remote_brain_linkage_service.get_linkage_package("android_voice")["package"]
+          next_action = remote_brain_linkage_service.get_next_linkage_action()["next_linkage_action"]
+          route_paths = {route.path for route in app.routes}
+
+          assert linkages, "Expected at least one remote brain linkage"
+          assert intents, "Expected at least one remote brain intent"
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/remote-brain-linkage/status" in route_paths
+          assert "/api/remote-brain-linkage/linkages" in route_paths
+          assert "/api/remote-brain-linkage/intents" in route_paths
+          assert "/api/remote-brain-linkage/next-linkage-action" in route_paths
+          print("remote brain linkage phase passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Remote Brain Linkage Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Temporary phase workflow for remote brain linkage validation.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow must be removed in the next phase according to repo policy.' >> "$GITHUB_STEP_SUMMARY"
