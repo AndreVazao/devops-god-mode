@@ -1,0 +1,7 @@
+{
+  "continuous_remote_execution_id": "continuous_remote_execution_01",
+  "execution_loop_mode": "apk_pc_compact_command_loop",
+  "control_surface": "apk_thin_cockpit",
+  "continuity_profile": "short_command_progression",
+  "execution_status": "continuous_execution_ready"
+}
