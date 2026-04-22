@@ -40,7 +40,7 @@ Usado para:
 3. Fazer staging local.
 4. Associar `project_hint`, `repository_full_name` e `destination_path` quando existirem.
 5. Gerar um plano de publicação GitHub.
-6. Numa fase seguinte, executar a publicação real no repo.
+6. Executar publicação real ou dry run controlado no repo.
 
 ## Primeira implementação desta fase
 Nesta fase o sistema já passa a ter:
@@ -50,9 +50,18 @@ Nesta fase o sistema já passa a ter:
 - plano de publicação GitHub baseado em assets staged
 - helpers no `github_service` para leitura e escrita de ficheiros/asset no repo
 
+## Evolução adicional desta fase
+Agora o sistema também passa a ter:
+- `external_asset_publish_execution_service`
+- rota `external-asset-publish`
+- execução dry run do publish plan
+- suporte inicial a conteúdo inline staged para texto ou binário base64
+- base para futura publicação real de ícones, imagens e ficheiros estáticos durante a construção autónoma de projetos
+
 ## Próxima evolução esperada
 A seguir o sistema deve ganhar:
 - execução real de fetch/download externo
 - staging binário local de imagens e ficheiros
 - publicação real de assets para GitHub via fluxo controlado
 - ligação desta camada ao browser intake e ao continuation engine
+- distinção clara entre assets de referência e assets já materializados localmente
