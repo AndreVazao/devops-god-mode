@@ -13,6 +13,9 @@ class StageAssetRequest(BaseModel):
     project_hint: str | None = None
     repository_full_name: str | None = None
     destination_path: str | None = None
+    content_text: str | None = None
+    content_base64: str | None = None
+    content_kind: str | None = None
 
 
 @router.get("/status")
@@ -35,6 +38,9 @@ async def external_asset_stage(payload: StageAssetRequest):
             project_hint=payload.project_hint,
             repository_full_name=payload.repository_full_name,
             destination_path=payload.destination_path,
+            content_text=payload.content_text,
+            content_base64=payload.content_base64,
+            content_kind=payload.content_kind,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
