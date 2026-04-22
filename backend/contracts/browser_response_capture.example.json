@@ -1,0 +1,8 @@
+{
+  "browser_response_capture_id": "browser_response_capture_godmode_01",
+  "target_project": "DevOps God Mode",
+  "source_provider": "chatgpt",
+  "source_execution_id": "browser_continuation_execution_godmode_01",
+  "capture_mode": "capture_latest_provider_response_after_continuation",
+  "capture_status": "ready"
+}
