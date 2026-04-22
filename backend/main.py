@@ -26,7 +26,7 @@ from app.routes.conversation_organization import router as conversation_organiza
 from app.routes.conversation_provider_linkage import router as conversation_provider_linkage_router
 from app.routes.conversation_repo_reconstruction import router as conversation_repo_reconstruction_router
 from app.routes.conversation_rollover_handoff import router as conversation_rollover_handoff_router
-from app.routes.delivery_ackNOWLEDgment import router as delivery_acknowledgment_router
+from app.routes.delivery_acknowledgment import router as delivery_acknowledgment_router
 from app.routes.delivery_history import router as delivery_history_router
 from app.routes.desktop_bootstrap import router as desktop_bootstrap_router
 from app.routes.desktop_installer_onboarding import router as desktop_installer_router
