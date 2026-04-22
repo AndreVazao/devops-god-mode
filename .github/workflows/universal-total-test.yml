@@ -55,6 +55,7 @@ jobs:
           from app.services.continuous_remote_execution_service import continuous_remote_execution_service
           from app.services.runtime_supervisor_guidance_service import runtime_supervisor_guidance_service
           from app.services.external_asset_intake_service import external_asset_intake_service
+          from app.services.external_asset_publish_execution_service import external_asset_publish_execution_service
 
           route_paths = {route.path for route in app.routes}
 
@@ -71,6 +72,7 @@ jobs:
               "/api/continuous-remote-execution/status",
               "/api/remote-session-persistence/status",
               "/api/external-asset-intake/status",
+              "/api/external-asset-publish/status",
           }
 
           missing = sorted(required_routes - route_paths)
@@ -92,16 +94,25 @@ jobs:
           supervisor = runtime_supervisor_guidance_service.get_summary()
           staged_asset = external_asset_intake_service.stage_asset_request(
               source_type="browser_web_service",
-              source_ref="https://example.com/design/icon.png",
+              source_ref="inline://workflow-test/icon.svg",
               asset_role="icon",
               project_hint="workflow_test",
               repository_full_name="AndreVazao/devops-god-mode",
-              destination_path="assets/icons/example-icon.png",
+              destination_path="assets/icons/example-icon.svg",
+              content_text="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'><circle cx='4' cy='4' r='3'/></svg>",
+              content_kind="svg_text",
           )
           intake_package = external_asset_intake_service.get_package()
           publish_plan = external_asset_intake_service.build_github_publish_plan(
               repository_full_name="AndreVazao/devops-god-mode",
               project_hint="workflow_test",
+          )
+          publish_status = external_asset_publish_execution_service.get_status()
+          publish_execution = await external_asset_publish_execution_service.execute_publish_plan(
+              repository_full_name="AndreVazao/devops-god-mode",
+              project_hint="workflow_test",
+              branch="main",
+              dry_run=True,
           )
 
           assert orchestration["ok"] is True
@@ -118,6 +129,10 @@ jobs:
           assert intake_package["ok"] is True
           assert publish_plan["ok"] is True
           assert publish_plan["planned_count"] >= 1
+          assert publish_status["ok"] is True
+          assert publish_execution["ok"] is True
+          assert publish_execution["executed_count"] >= 1
+          assert publish_execution["results"][0]["publish_status"] == "dry_run_ready"
           assert repair["issues"], "Expected at least one broken script issue"
 
           storage_path = Path("data/offline_command_buffers.json")
@@ -149,5 +164,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake and GitHub publish planning were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
