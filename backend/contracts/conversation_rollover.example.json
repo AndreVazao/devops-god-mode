@@ -1,0 +1,8 @@
+{
+  "conversation_rollover_id": "conversation_rollover_godmode_01",
+  "target_project": "DevOps God Mode",
+  "source_provider": "chatgpt",
+  "rollover_reason": "conversation_degraded_or_too_large",
+  "prepared_prompt_mode": "continuation_prompt_ready",
+  "rollover_status": "ready"
+}
