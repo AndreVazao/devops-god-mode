@@ -1,0 +1,7 @@
+{
+  "mobile_command_sync_id": "mobile_command_sync_godmode_01",
+  "source_node": "mobile_apk",
+  "target_node": "local_pc",
+  "command_kind": "continue_selected_project",
+  "sync_status": "ready"
+}
