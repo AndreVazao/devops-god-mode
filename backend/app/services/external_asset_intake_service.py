@@ -1,3 +1,4 @@
+import base64
 import json
 import threading
 import uuid
@@ -72,6 +73,9 @@ class ExternalAssetIntakeService:
         project_hint: str | None = None,
         repository_full_name: str | None = None,
         destination_path: str | None = None,
+        content_text: str | None = None,
+        content_base64: str | None = None,
+        content_kind: str | None = None,
     ) -> Dict[str, Any]:
         normalized_source_type = (source_type or "").strip()
         normalized_source_ref = (source_ref or "").strip()
@@ -82,6 +86,11 @@ class ExternalAssetIntakeService:
             raise ValueError("empty_source_ref")
         if not normalized_asset_role:
             raise ValueError("empty_asset_role")
+        if content_base64:
+            try:
+                base64.b64decode(content_base64)
+            except Exception as exc:
+                raise ValueError("invalid_content_base64") from exc
 
         with self._lock:
             store = self._read_store()
@@ -93,8 +102,16 @@ class ExternalAssetIntakeService:
                 "project_hint": project_hint,
                 "repository_full_name": repository_full_name,
                 "destination_path": destination_path,
+                "content_text": content_text,
+                "content_base64": content_base64,
+                "content_kind": content_kind or "reference_only",
                 "staging_status": "staged_locally",
                 "traceability_status": "source_recorded",
+                "materialization_status": (
+                    "inline_content_ready"
+                    if content_text or content_base64
+                    else "reference_only"
+                ),
                 "created_at": self._now(),
                 "updated_at": self._now(),
             }
@@ -118,6 +135,13 @@ class ExternalAssetIntakeService:
             "staged_assets": assets,
         }
 
+    def get_staged_asset_by_id(self, staged_asset_id: str) -> Dict[str, Any] | None:
+        staged_assets = self.get_staged_assets()["staged_assets"]
+        return next(
+            (item for item in staged_assets if item.get("staged_asset_id") == staged_asset_id),
+            None,
+        )
+
     def build_github_publish_plan(
         self,
         repository_full_name: str,
@@ -134,11 +158,14 @@ class ExternalAssetIntakeService:
             plan_items.append(
                 {
                     "publish_item_id": f"publish_item_{item['staged_asset_id']}",
+                    "staged_asset_id": item["staged_asset_id"],
                     "repository_full_name": repository_full_name,
                     "asset_role": item["asset_role"],
                     "source_ref": item["source_ref"],
                     "destination_path": item.get("destination_path")
                     or f"assets/{item['asset_role']}/{item['staged_asset_id']}",
+                    "content_kind": item.get("content_kind") or "reference_only",
+                    "materialization_status": item.get("materialization_status") or "reference_only",
                     "publish_status": "planned",
                 }
             )
@@ -162,6 +189,13 @@ class ExternalAssetIntakeService:
                 "staged_assets": staged_assets,
                 "github_configured": github_service.is_configured(),
                 "staged_count": len(staged_assets),
+                "inline_ready_count": len(
+                    [
+                        item
+                        for item in staged_assets
+                        if item.get("materialization_status") == "inline_content_ready"
+                    ]
+                ),
                 "package_status": "external_asset_intake_ready",
             },
         }
@@ -173,6 +207,7 @@ class ExternalAssetIntakeService:
             "mode": "external_asset_intake_status",
             "sources_count": len(package["sources"]),
             "staged_count": package["staged_count"],
+            "inline_ready_count": package["inline_ready_count"],
             "github_configured": package["github_configured"],
             "status": package["package_status"],
         }
