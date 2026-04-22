@@ -1,0 +1,7 @@
+{
+  "runtime_topology_id": "runtime_topology_pc_mobile_01",
+  "primary_brain_node": "local_pc",
+  "remote_cockpit_node": "mobile_apk",
+  "cloud_runtime_role": "optional_non_blocking_support_only",
+  "topology_status": "ready"
+}
