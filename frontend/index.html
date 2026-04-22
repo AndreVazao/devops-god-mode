@@ -1,15 +1,394 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-PT">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DevOps God Mode</title>
 <style>
-body{background:#0b0f14;color:white;font-family:sans-serif;padding:20px}
-.card{background:#121821;padding:20px;border-radius:10px;margin-bottom:15px}
+:root{
+  --bg:#0b0f14;
+  --panel:#11161d;
+  --panel-2:#171d26;
+  --panel-3:#202836;
+  --line:#2b3443;
+  --text:#edf2f7;
+  --muted:#9aa7b8;
+  --accent:#5eead4;
+  --danger:#f87171;
+  --warning:#fbbf24;
+  --success:#4ade80;
+  --shadow:0 20px 60px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#0a0f15 0%,#0d131b 100%);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+button,input,textarea{font:inherit}
+.app{
+  height:100vh;
+  display:grid;
+  grid-template-columns:320px minmax(0,1fr) 320px;
+  gap:16px;
+  padding:16px;
+}
+.sidebar,.main,.rightbar{
+  min-height:0;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:rgba(17,22,29,.95);
+  box-shadow:var(--shadow);
+}
+.sidebar,.rightbar{padding:16px; overflow:auto}
+.main{display:grid; grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden}
+.brand{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
+}
+.brand h1{font-size:18px;margin:0}
+.brand small{color:var(--muted);display:block;margin-top:4px}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid var(--line); border-radius:999px;
+  padding:8px 12px; color:var(--muted); background:var(--panel-2);
+}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot.ok{background:var(--success)}
+.dot.warn{background:var(--warning)}
+.dot.err{background:var(--danger)}
+.section-title{
+  font-size:12px; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--muted); margin:18px 0 10px;
+}
+.stack{display:flex;flex-direction:column;gap:10px}
+.card{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+}
+.chat-item{
+  display:flex;flex-direction:column;gap:8px;cursor:pointer;
+}
+.chat-item.active{border-color:var(--accent); box-shadow:0 0 0 1px rgba(94,234,212,.2) inset}
+.chat-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.chat-title{font-weight:700;font-size:14px}
+.chat-sub{font-size:12px;color:var(--muted);line-height:1.4}
+.row{display:flex; gap:10px; align-items:center}
+.btn{
+  border:none; cursor:pointer; border-radius:14px; padding:11px 14px;
+  background:var(--panel-3); color:var(--text); transition:.18s ease;
+}
+.btn:hover{transform:translateY(-1px); filter:brightness(1.06)}
+.btn.primary{background:var(--accent); color:#052a27; font-weight:700}
+.btn.ghost{background:transparent; border:1px solid var(--line); color:var(--muted)}
+.btn.small{padding:8px 10px; border-radius:12px; font-size:12px}
+.header{
+  padding:18px 20px 14px; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.header h2{margin:0;font-size:18px}
+.header p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.messages{
+  padding:18px; overflow:auto; display:flex; flex-direction:column; gap:14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.01),rgba(255,255,255,0));
+}
+.msg{display:flex; gap:12px; align-items:flex-start}
+.avatar{
+  width:34px; height:34px; border-radius:12px; flex:0 0 auto;
+  display:grid; place-items:center; font-weight:800;
+  background:var(--panel-3); border:1px solid var(--line);
+}
+.bubble{
+  max-width:min(840px,100%);
+  background:var(--panel-2); border:1px solid var(--line); border-radius:18px;
+  padding:14px 15px; line-height:1.55;
+}
+.msg.user{justify-content:flex-end}
+.msg.user .bubble{background:#16313b; border-color:#255261}
+.msg.user .avatar{order:2; background:#16313b; border-color:#255261}
+.meta{margin-top:8px; color:var(--muted); font-size:12px}
+.composer{
+  padding:16px; border-top:1px solid var(--line);
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px;
+}
+.composer textarea{
+  width:100%; min-height:76px; resize:none; border-radius:18px;
+  border:1px solid var(--line); background:var(--panel-2); color:var(--text);
+  padding:14px 15px; outline:none;
+}
+.quick-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.kpi{padding:12px; border-radius:16px; background:var(--panel-2); border:1px solid var(--line)}
+.kpi strong{display:block; font-size:18px; margin-top:6px}
+.preview{
+  min-height:146px; display:flex; align-items:center; justify-content:center;
+  border-radius:18px; border:1px dashed var(--line); background:radial-gradient(circle at top,#22314a,#141a22);
+  color:var(--muted); text-align:center; padding:20px;
+}
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.55); display:none;
+  align-items:center; justify-content:center; padding:20px; z-index:20;
+}
+.modal-backdrop.open{display:flex}
+.modal{
+  width:min(520px,100%); border-radius:22px; background:var(--panel);
+  border:1px solid var(--line); box-shadow:var(--shadow); padding:18px;
+}
+.modal h3{margin:0 0 8px}
+.modal p{margin:0 0 16px; color:var(--muted); line-height:1.5}
+.modal input{
+  width:100%; border-radius:14px; border:1px solid var(--line);
+  background:var(--panel-2); color:var(--text); padding:12px 14px; margin-bottom:14px;
+}
+.toast{
+  position:fixed; right:18px; bottom:18px; z-index:30; display:none;
+  background:#10231c; color:#c9ffe4; border:1px solid #214b3f;
+  padding:12px 14px; border-radius:14px; box-shadow:var(--shadow);
+}
+.toast.show{display:block}
+@media (max-width:1200px){
+  .app{grid-template-columns:280px minmax(0,1fr)}
+  .rightbar{display:none}
+}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr; padding:10px}
+  .sidebar{display:none}
+}
 </style>
 </head>
 <body>
-<h1>DevOps God Mode</h1>
-<div class="card">System initializing...</div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div>
+        <h1>God Mode Cockpit</h1>
+        <small>PC cérebro · telemóvel cockpit</small>
+      </div>
+      <div class="pill"><span class="dot ok"></span> Live</div>
+    </div>
+
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn primary" id="newChatBtn">+ Chat novo</button>
+      <button class="btn ghost" id="renameBtn">Renomear</button>
+    </div>
+
+    <div class="section-title">Conversa seguida</div>
+    <div class="card chat-item active" data-chat="godmode">
+      <div class="chat-top">
+        <div class="chat-title">God Mode Runtime</div>
+        <div class="pill"><span class="dot ok"></span>Ativa</div>
+      </div>
+      <div class="chat-sub">Pipeline local-first, recuperação de sessão, assets, previews e execução remota assistida.</div>
+    </div>
+
+    <div class="section-title">Histórico de chats</div>
+    <div class="stack" id="historyList">
+      <div class="card chat-item" data-chat="barbudos">
+        <div class="chat-top">
+          <div class="chat-title">Barbudos Studio Website</div>
+          <button class="btn small ghost rename-item">Renomear</button>
+        </div>
+        <div class="chat-sub">Ícone, branding, previews mobile e revisão visual.</div>
+      </div>
+      <div class="card chat-item" data-chat="botfarm">
+        <div class="chat-top">
+          <div class="chat-title">Bot Farm Headless</div>
+          <button class="btn small ghost rename-item">Renomear</button>
+        </div>
+        <div class="chat-sub">Continuação, lanes, handoff e recuperação após quebra.</div>
+      </div>
+      <div class="card chat-item" data-chat="builds">
+        <div class="chat-top">
+          <div class="chat-title">Builds e Artifacts</div>
+          <button class="btn small ghost rename-item">Renomear</button>
+        </div>
+        <div class="chat-sub">APK, .exe, previews, downloads e aprovações rápidas.</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="header">
+      <div>
+        <h2 id="chatTitle">God Mode Runtime</h2>
+        <p>Conversa contínua com histórico, pop-ups de aceitação e ações rápidas.</p>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="approvalBtn">Popup de aceitação</button>
+        <button class="btn primary">Executar próxima ação</button>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="msg">
+        <div class="avatar">GM</div>
+        <div class="bubble">
+          Sessão ativa entre o PC e o telemóvel. A ligação está estável e o cockpit pode continuar a enviar ordens sem depender de cloud.
+          <div class="meta">Sistema · agora</div>
+        </div>
+      </div>
+      <div class="msg user">
+        <div class="avatar">AV</div>
+        <div class="bubble">
+          Quero um frontend mais parecido com os chats aqui: conversa seguida, chats novos, histórico, renomeação e pop-ups de aceitação.
+          <div class="meta">Tu · agora</div>
+        </div>
+      </div>
+      <div class="msg">
+        <div class="avatar">GM</div>
+        <div class="bubble">
+          Frontend reconstruído para cockpit estilo chat. Agora tens coluna de histórico, área central de conversa contínua e ações de aceitação/renomeação mais naturais.
+          <div class="meta">God Mode · agora</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <textarea placeholder="Diz o que queres fazer: continuar projeto, abrir chat novo, renomear, aceitar preview, pedir revisão..."></textarea>
+      <div class="stack" style="width:180px">
+        <button class="btn primary">Enviar</button>
+        <button class="btn ghost">Guardar em buffer</button>
+      </div>
+    </div>
+  </main>
+
+  <aside class="rightbar">
+    <div class="section-title">Estado rápido</div>
+    <div class="quick-grid">
+      <div class="kpi">
+        Sessão live
+        <strong>Ativa</strong>
+      </div>
+      <div class="kpi">
+        Buffer
+        <strong>3 itens</strong>
+      </div>
+      <div class="kpi">
+        Preview
+        <strong>1 pendente</strong>
+      </div>
+      <div class="kpi">
+        Próxima ação
+        <strong>Flush + resume</strong>
+      </div>
+    </div>
+
+    <div class="section-title">Preview / aceitação</div>
+    <div class="preview">Pré-visualização compacta do asset, build ou alteração visual pronta para aprovação no telefone.</div>
+
+    <div class="section-title">Ações rápidas</div>
+    <div class="stack">
+      <button class="btn ghost">Abrir chat novo</button>
+      <button class="btn ghost">Ver histórico</button>
+      <button class="btn ghost">Renomear conversa</button>
+      <button class="btn ghost">Aceitar preview</button>
+      <button class="btn ghost">Pedir revisão</button>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-backdrop" id="renameModal">
+  <div class="modal">
+    <h3>Renomear conversa</h3>
+    <p>Define um nome limpo e direto para o chat atual, para manter o histórico organizado por projeto.</p>
+    <input id="renameInput" value="God Mode Runtime" />
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn ghost" data-close="renameModal">Cancelar</button>
+      <button class="btn primary" id="confirmRename">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="approvalModal">
+  <div class="modal">
+    <h3>Popup de aceitação</h3>
+    <p>O preview do asset está pronto. Podes aceitar já, pedir uma melhoria curta ou deixar em fila para rever mais tarde.</p>
+    <div class="row" style="justify-content:flex-end; flex-wrap:wrap">
+      <button class="btn ghost" data-close="approvalModal">Fechar</button>
+      <button class="btn ghost" id="reviseBtn">Melhora isto</button>
+      <button class="btn primary" id="approveBtn">Aceitar e seguir</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Alteração guardada.</div>
+
+<script>
+const renameModal = document.getElementById('renameModal');
+const approvalModal = document.getElementById('approvalModal');
+const toast = document.getElementById('toast');
+const chatTitle = document.getElementById('chatTitle');
+const renameInput = document.getElementById('renameInput');
+const newChatBtn = document.getElementById('newChatBtn');
+const renameBtn = document.getElementById('renameBtn');
+const approvalBtn = document.getElementById('approvalBtn');
+const historyList = document.getElementById('historyList');
+
+function openModal(el){ el.classList.add('open'); }
+function closeModal(el){ el.classList.remove('open'); }
+function showToast(text){
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+renameBtn.onclick = () => {
+  renameInput.value = chatTitle.textContent;
+  openModal(renameModal);
+};
+approvalBtn.onclick = () => openModal(approvalModal);
+newChatBtn.onclick = () => showToast('Chat novo preparado no cockpit.');
+
+document.getElementById('confirmRename').onclick = () => {
+  const value = renameInput.value.trim();
+  if(!value) return;
+  chatTitle.textContent = value;
+  closeModal(renameModal);
+  showToast('Conversa renomeada.');
+};
+
+document.getElementById('approveBtn').onclick = () => {
+  closeModal(approvalModal);
+  showToast('Preview aceite e pipeline continua.');
+};
+
+document.getElementById('reviseBtn').onclick = () => {
+  closeModal(approvalModal);
+  showToast('Pedido de revisão enviado ao PC.');
+};
+
+document.querySelectorAll('[data-close]').forEach(btn => {
+  btn.onclick = () => closeModal(document.getElementById(btn.dataset.close));
+});
+
+document.querySelectorAll('.rename-item').forEach(btn => {
+  btn.onclick = (event) => {
+    event.stopPropagation();
+    const card = btn.closest('.chat-item');
+    const title = card.querySelector('.chat-title').textContent;
+    renameInput.value = title;
+    openModal(renameModal);
+  };
+});
+
+document.querySelectorAll('.chat-item').forEach(item => {
+  item.onclick = () => {
+    document.querySelectorAll('.chat-item').forEach(card => card.classList.remove('active'));
+    item.classList.add('active');
+    const title = item.querySelector('.chat-title').textContent;
+    chatTitle.textContent = title;
+    showToast('Chat aberto: ' + title);
+  };
+});
+
+[renameModal, approvalModal].forEach(modal => {
+  modal.onclick = (event) => {
+    if(event.target === modal) closeModal(modal);
+  };
+});
+</script>
 </body>
 </html>
