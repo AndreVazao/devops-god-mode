@@ -43,6 +43,7 @@ Usado para:
 6. Executar publicação real ou dry run controlado no repo.
 7. Materializar assets staged em disco local quando o fluxo exigir ficheiros reais.
 8. Transformar assets locais antes do packaging e do publish final quando necessário.
+9. Recolocar assets do workspace de volta no pipeline de publish quando uma versão local ficar pronta.
 
 ## Base já consolidada
 O sistema já passou a ter:
@@ -61,26 +62,27 @@ O sistema já passou a ter:
 - `local_asset_workspace_service`
 - rota `local-asset-workspace`
 - materialização de staged assets para disco local em `data/staged_asset_workspace`
-
-## Evolução adicional desta fase
-Agora o sistema também passa a ter:
 - `local_asset_transformation_service`
 - rota `local-asset-transformation`
-- transformações de texto locais por `prefix`, `suffix` e `replace`
-- duplicação de ficheiros do workspace
-- manifestos de transformação para rastreabilidade
+- transformações locais de texto e duplicação no workspace
+
+## Evolução desta fase
+Agora o sistema também passa a ter:
+- `workspace_publish_bridge_service`
+- rota `workspace-publish-bridge`
+- capacidade de pegar num ficheiro já transformado no workspace e restagiá-lo no intake
+- capacidade de disparar dry run de publish diretamente a partir dessa versão local transformada
 
 ## Porque isto interessa
-Esta camada aproxima o God Mode de um fluxo real de produção:
-- staged asset deixa de ser apenas estado lógico
-- passa a existir como ficheiro real no disco local
-- esse ficheiro local passa também a poder ser transformado antes de seguir para packaging ou publish
-- isto prepara melhor ícones, SVGs, snippets, templates e outros assets de website/app
+Esta ponte fecha uma lacuna importante:
+- ficheiro local transformado deixa de ficar isolado no workspace
+- passa a voltar ao pipeline normal de publish
+- isso aproxima o God Mode de um ciclo real de edição local e entrega remota
 
 ## Próxima evolução esperada
 A seguir o sistema deve ganhar:
-- execução real de fetch/download externo fora do GitHub
+- fetch binário externo real fora do GitHub
 - staging binário local de imagens e ficheiros vindos de serviços externos
-- transformação mais rica de assets no workspace local, incluindo imagens e SVGs
+- transformações mais ricas de SVG e imagem
+- publicação real controlada a partir de versões transformadas no workspace
 - ligação desta camada ao browser intake e ao continuation engine
-- distinção mais forte entre assets de referência, assets materializados, assets transformados e assets prontos para publish real
