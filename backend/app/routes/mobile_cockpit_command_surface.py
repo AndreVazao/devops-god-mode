@@ -15,11 +15,21 @@ class MobileQuickActionAdvanceRequest(BaseModel):
 @router.get("/status")
 async def mobile_cockpit_status():
     cards = mobile_cockpit_command_surface_service.get_cards()["cards"]
+    summary = mobile_cockpit_command_surface_service.get_summary()["summary"]
+    next_action = mobile_cockpit_command_surface_service.get_next_critical_action()[
+        "next_critical_action"
+    ]
     return {
         "ok": True,
         "mode": "mobile_cockpit_status",
         "cards_count": len(cards),
         "cockpit_status": "mobile_cockpit_ready",
+        "runtime_status": summary["runtime_status"],
+        "link_mode": summary["link_mode"],
+        "phone_buffered": summary["phone_buffered"],
+        "pc_ready": summary["pc_ready"],
+        "pc_active": summary["pc_active"],
+        "next_critical_action_id": next_action["action_id"] if next_action else None,
     }
 
 
