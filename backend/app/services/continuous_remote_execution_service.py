@@ -6,16 +6,16 @@ class ContinuousRemoteExecutionService:
         loops: List[Dict[str, Any]] = [
             {
                 "continuous_remote_execution_id": "continuous_remote_execution_01",
-                "execution_loop_mode": "apk_pc_compact_command_loop",
-                "control_surface": "apk_thin_cockpit",
-                "continuity_profile": "short_command_progression",
+                "execution_loop_mode": "phone_to_pc_autonomy_loop",
+                "control_surface": "phone_thin_cockpit",
+                "continuity_profile": "pc_continues_until_finished_or_blocked",
                 "execution_status": "continuous_execution_ready",
             },
             {
                 "continuous_remote_execution_id": "continuous_remote_execution_02",
-                "execution_loop_mode": "desktop_pc_compact_command_loop",
-                "control_surface": "desktop_secondary_surface",
-                "continuity_profile": "short_command_progression",
+                "execution_loop_mode": "pc_direct_autonomy_loop",
+                "control_surface": "pc_primary_surface",
+                "continuity_profile": "pc_continues_after_single_order",
                 "execution_status": "continuous_execution_ready",
             },
         ]
@@ -25,27 +25,27 @@ class ContinuousRemoteExecutionService:
         actions: List[Dict[str, Any]] = [
             {
                 "continuous_execution_action_id": "continuous_execution_action_01",
-                "execution_area": "command_progression",
-                "action_type": "advance_compact_remote_step",
-                "action_label": "Avançar próximo passo remoto compacto",
-                "loop_mode": "confirm_then_continue",
-                "action_status": "planned",
+                "execution_area": "autonomous_progression",
+                "action_type": "continue_work_until_finished_or_clarification",
+                "action_label": "Continuar trabalho até terminar ou surgir bloqueio real",
+                "loop_mode": "single_order_long_run",
+                "action_status": "ready",
             },
             {
                 "continuous_execution_action_id": "continuous_execution_action_02",
-                "execution_area": "status_refresh",
-                "action_type": "refresh_compact_state_between_steps",
-                "action_label": "Atualizar estado compacto entre passos",
-                "loop_mode": "stepwise_refresh",
-                "action_status": "planned",
+                "execution_area": "clarification_gate",
+                "action_type": "ask_only_when_missing_direction_blocks_progress",
+                "action_label": "Perguntar só quando faltar direção real",
+                "loop_mode": "blocker_only_questions",
+                "action_status": "ready",
             },
             {
                 "continuous_execution_action_id": "continuous_execution_action_03",
-                "execution_area": "confirmation_loop",
-                "action_type": "keep_short_confirmations_until_task_done",
-                "action_label": "Manter confirmações curtas até concluir tarefa",
-                "loop_mode": "short_confirm_cycle",
-                "action_status": "planned",
+                "execution_area": "offline_continuity",
+                "action_type": "keep_pc_running_even_if_phone_disconnects",
+                "action_label": "Manter o PC a trabalhar mesmo se o telefone cair",
+                "loop_mode": "pc_independent_execution",
+                "action_status": "ready",
             },
         ]
         if execution_area:
@@ -57,6 +57,8 @@ class ContinuousRemoteExecutionService:
             "loops": self.get_execution_loops()["loops"],
             "actions": self.get_execution_actions()["actions"],
             "mobile_compact": True,
+            "autonomy_rule": "pc_keeps_working_after_single_order",
+            "question_rule": "ask_only_for_real_missing_direction",
             "package_status": "continuous_execution_ready",
         }
         return {"ok": True, "mode": "continuous_remote_execution_package", "package": package}
@@ -70,7 +72,7 @@ class ContinuousRemoteExecutionService:
             "next_execution_action": {
                 "continuous_execution_action_id": next_action["continuous_execution_action_id"],
                 "execution_area": next_action["execution_area"],
-                "action": "advance_remote_task_without_breaking_flow",
+                "action": next_action["action_type"],
                 "action_status": next_action["action_status"],
             }
             if next_action
