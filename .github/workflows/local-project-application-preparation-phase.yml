@@ -1,0 +1,58 @@
+name: Local Project Application Preparation Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/local-project-application-preparation-plan.md'
+      - 'backend/contracts/local_application_preparation.example.json'
+      - 'backend/contracts/local_application_item.example.json'
+      - 'backend/app/services/local_project_application_preparation_service.py'
+      - 'backend/app/routes/local_project_application_preparation.py'
+      - 'backend/main.py'
+      - '.github/workflows/local-project-application-preparation-phase.yml'
+
+jobs:
+  local-project-application-preparation-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate local project application preparation layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.local_project_application_preparation_service import local_project_application_preparation_service
+          preparations = local_project_application_preparation_service.get_preparations()["preparations"]
+          items = local_project_application_preparation_service.get_application_items()["items"]
+          package = local_project_application_preparation_service.get_application_package()["package"]
+          next_action = local_project_application_preparation_service.get_next_application_action()["next_application_action"]
+          route_paths = {route.path for route in app.routes}
+          assert preparations
+          assert items
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/local-project-application-preparation/status" in route_paths
+          assert "/api/local-project-application-preparation/preparations" in route_paths
+          assert "/api/local-project-application-preparation/items" in route_paths
+          assert "/api/local-project-application-preparation/next-application-action" in route_paths
+          print("local project application preparation phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## Local Project Application Preparation Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Added local project application preparation and application item layer.' >> "$GITHUB_STEP_SUMMARY"
