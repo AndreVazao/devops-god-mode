@@ -18,7 +18,7 @@ class RestageWorkspaceFileRequest(BaseModel):
     content_kind: str | None = None
 
 
-class DryRunPublishWorkspaceFileRequest(BaseModel):
+class PublishWorkspaceFileRequest(BaseModel):
     workspace_file: str
     asset_role: str
     source_ref: str
@@ -27,6 +27,7 @@ class DryRunPublishWorkspaceFileRequest(BaseModel):
     project_hint: str | None = None
     branch: str | None = None
     content_kind: str | None = None
+    dry_run: bool = True
 
 
 @router.get('/status')
@@ -52,9 +53,9 @@ async def restage_workspace_file(payload: RestageWorkspaceFileRequest):
     )
 
 
-@router.post('/dry-run-publish-workspace-file')
-async def dry_run_publish_workspace_file(payload: DryRunPublishWorkspaceFileRequest):
-    return await workspace_publish_bridge_service.dry_run_publish_workspace_file(
+@router.post('/publish-workspace-file')
+async def publish_workspace_file(payload: PublishWorkspaceFileRequest):
+    return await workspace_publish_bridge_service.publish_workspace_file(
         workspace_file=payload.workspace_file,
         asset_role=payload.asset_role,
         source_ref=payload.source_ref,
@@ -63,4 +64,20 @@ async def dry_run_publish_workspace_file(payload: DryRunPublishWorkspaceFileRequ
         project_hint=payload.project_hint,
         branch=payload.branch,
         content_kind=payload.content_kind,
+        dry_run=payload.dry_run,
+    )
+
+
+@router.post('/dry-run-publish-workspace-file')
+async def dry_run_publish_workspace_file(payload: PublishWorkspaceFileRequest):
+    return await workspace_publish_bridge_service.publish_workspace_file(
+        workspace_file=payload.workspace_file,
+        asset_role=payload.asset_role,
+        source_ref=payload.source_ref,
+        repository_full_name=payload.repository_full_name,
+        destination_path=payload.destination_path,
+        project_hint=payload.project_hint,
+        branch=payload.branch,
+        content_kind=payload.content_kind,
+        dry_run=True,
     )
