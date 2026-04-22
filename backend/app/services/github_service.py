@@ -96,11 +96,13 @@ class GitHubService:
         client: httpx.AsyncClient,
         full_name: str,
         path: str,
+        ref: str | None = None,
     ) -> dict[str, Any] | None:
         try:
             response = await client.get(
                 f"{GITHUB_API_BASE}/repos/{full_name}/contents/{path}",
                 headers=self._headers(),
+                params={"ref": ref} if ref else None,
                 timeout=20.0,
             )
             if response.status_code == 404:
@@ -120,6 +122,128 @@ class GitHubService:
             )
         except Exception:
             return None
+
+    async def get_repository_file(
+        self,
+        repository_full_name: str,
+        path: str,
+        ref: str | None = None,
+    ) -> dict[str, Any]:
+        if not self.is_configured():
+            raise RuntimeError("github_not_configured")
+
+        async with httpx.AsyncClient() as client:
+            payload = await self._fetch_content(client, repository_full_name, path, ref=ref)
+
+        if not payload:
+            return {
+                "ok": False,
+                "mode": "github_repository_file",
+                "repository_full_name": repository_full_name,
+                "path": path,
+                "ref": ref,
+                "file_status": "not_found",
+            }
+
+        decoded_text = self._decode_content(payload)
+        return {
+            "ok": True,
+            "mode": "github_repository_file",
+            "repository_full_name": repository_full_name,
+            "path": path,
+            "ref": ref,
+            "sha": payload.get("sha"),
+            "size": payload.get("size"),
+            "download_url": payload.get("download_url"),
+            "encoding": payload.get("encoding"),
+            "content_text": decoded_text,
+            "file_status": "found",
+        }
+
+    async def create_or_update_repository_file(
+        self,
+        repository_full_name: str,
+        path: str,
+        content_text: str,
+        commit_message: str,
+        branch: str | None = None,
+        sha: str | None = None,
+    ) -> dict[str, Any]:
+        if not self.is_configured():
+            raise RuntimeError("github_not_configured")
+
+        encoded = base64.b64encode(content_text.encode("utf-8")).decode("utf-8")
+        payload: dict[str, Any] = {
+            "message": commit_message,
+            "content": encoded,
+        }
+        if branch:
+            payload["branch"] = branch
+        if sha:
+            payload["sha"] = sha
+
+        async with httpx.AsyncClient() as client:
+            response = await client.put(
+                f"{GITHUB_API_BASE}/repos/{repository_full_name}/contents/{path}",
+                headers=self._headers(),
+                json=payload,
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            result = response.json()
+
+        return {
+            "ok": True,
+            "mode": "github_repository_file_written",
+            "repository_full_name": repository_full_name,
+            "path": path,
+            "branch": branch,
+            "commit_sha": ((result.get("commit") or {}).get("sha")),
+            "content_sha": ((result.get("content") or {}).get("sha")),
+            "write_status": "written",
+        }
+
+    async def create_or_update_repository_asset(
+        self,
+        repository_full_name: str,
+        path: str,
+        raw_bytes: bytes,
+        commit_message: str,
+        branch: str | None = None,
+        sha: str | None = None,
+    ) -> dict[str, Any]:
+        if not self.is_configured():
+            raise RuntimeError("github_not_configured")
+
+        payload: dict[str, Any] = {
+            "message": commit_message,
+            "content": base64.b64encode(raw_bytes).decode("utf-8"),
+        }
+        if branch:
+            payload["branch"] = branch
+        if sha:
+            payload["sha"] = sha
+
+        async with httpx.AsyncClient() as client:
+            response = await client.put(
+                f"{GITHUB_API_BASE}/repos/{repository_full_name}/contents/{path}",
+                headers=self._headers(),
+                json=payload,
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            result = response.json()
+
+        return {
+            "ok": True,
+            "mode": "github_repository_asset_written",
+            "repository_full_name": repository_full_name,
+            "path": path,
+            "branch": branch,
+            "commit_sha": ((result.get("commit") or {}).get("sha")),
+            "content_sha": ((result.get("content") or {}).get("sha")),
+            "write_status": "written",
+        }
 
     async def _detect_common_files(
         self,
