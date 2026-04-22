@@ -4,7 +4,16 @@ from app.services.browser_control_real_service import browser_control_real_servi
 from app.services.browser_conversation_intake_service import (
     browser_conversation_intake_service,
 )
+from app.services.continuous_remote_execution_service import (
+    continuous_remote_execution_service,
+)
+from app.services.offline_command_buffering_service import (
+    offline_command_buffering_service,
+)
 from app.services.operation_queue_service import operation_queue_service
+from app.services.remote_session_persistence_service import (
+    remote_session_persistence_service,
+)
 from app.services.runtime_supervisor_guidance_service import (
     runtime_supervisor_guidance_service,
 )
@@ -14,17 +23,32 @@ class MobileCockpitCommandSurfaceService:
     def _runtime_summary(self) -> Dict[str, Any]:
         return runtime_supervisor_guidance_service.get_summary()["summary"]
 
+    def _session_package(self) -> Dict[str, Any]:
+        return remote_session_persistence_service.get_session_package()["package"]
+
+    def _execution_package(self) -> Dict[str, Any]:
+        return continuous_remote_execution_service.get_execution_package()["package"]
+
+    def _buffer_package(self) -> Dict[str, Any]:
+        return offline_command_buffering_service.get_buffer_package()["package"]
+
     def get_summary(self) -> Dict[str, Any]:
         runtime_summary = self._runtime_summary()
         next_browser_action = browser_control_real_service.get_next_action()["next_action"]
         next_intent = operation_queue_service.get_next_intent()["next_intent"]
         next_intake = browser_conversation_intake_service.get_next_session()["next_session"]
+        session_package = self._session_package()
+        execution_package = self._execution_package()
         return {
             "ok": True,
             "mode": "mobile_cockpit_summary",
             "summary": {
                 "runtime_status": runtime_summary.get("runtime_health"),
                 "recommended_action": runtime_summary.get("recommended_next_action"),
+                "link_mode": runtime_summary.get("link_mode"),
+                "phone_buffered": session_package["counts"]["phone_buffered"],
+                "pc_ready": execution_package["counts"]["pc_ready"],
+                "pc_active": execution_package["counts"]["pc_active"],
                 "next_browser_action_id": next_browser_action["action_id"] if next_browser_action else None,
                 "next_intent_id": next_intent["intent_id"] if next_intent else None,
                 "next_intake_session_id": next_intake["session_id"] if next_intake else None,
@@ -36,6 +60,8 @@ class MobileCockpitCommandSurfaceService:
         next_browser_action = browser_control_real_service.get_next_action()["next_action"]
         next_intent = operation_queue_service.get_next_intent()["next_intent"]
         next_intake = browser_conversation_intake_service.get_next_session()["next_session"]
+        session_package = self._session_package()
+        execution_package = self._execution_package()
 
         cards: List[Dict[str, Any]] = [
             {
@@ -47,7 +73,16 @@ class MobileCockpitCommandSurfaceService:
                 "priority": "high",
                 "source_mode": "runtime_supervisor_guidance",
                 "status": runtime_summary.get("runtime_health", "ready"),
-            }
+            },
+            {
+                "card_id": "card_autonomy_overview",
+                "card_type": "autonomy",
+                "title": "Autonomia PC + telefone",
+                "summary": f"Link {runtime_summary.get('link_mode')} | telefone em buffer {session_package['counts']['phone_buffered']} | PC ativo {execution_package['counts']['pc_active']}",
+                "priority": "high",
+                "source_mode": "persistent_runtime_state",
+                "status": "ready",
+            },
         ]
 
         if next_browser_action:
@@ -94,7 +129,23 @@ class MobileCockpitCommandSurfaceService:
     def get_quick_actions(self) -> Dict[str, Any]:
         next_browser_action = browser_control_real_service.get_next_action()["next_action"]
         next_intake = browser_conversation_intake_service.get_next_session()["next_session"]
+        runtime_summary = self._runtime_summary()
+        session_package = self._session_package()
+        buffer_package = self._buffer_package()
         quick_actions: List[Dict[str, Any]] = []
+
+        if session_package["counts"]["phone_buffered"] > 0 and runtime_summary.get("link_mode") in {"both_online", "pc_only"}:
+            quick_actions.append(
+                {
+                    "action_id": "quick_sync_phone_buffer",
+                    "action_type": "sync_phone_buffer_to_pc",
+                    "label": "Sincronizar pedidos do telefone para o PC",
+                    "target_id": "phone_pending_queue",
+                    "requires_confirmation": False,
+                    "action_status": "ready",
+                    "action_payload": {},
+                }
+            )
 
         if next_browser_action:
             quick_actions.append(
@@ -125,6 +176,19 @@ class MobileCockpitCommandSurfaceService:
                 }
             )
 
+        if buffer_package["commands"]:
+            quick_actions.append(
+                {
+                    "action_id": "quick_open_pc_autonomy_state",
+                    "action_type": "inspect_pc_autonomy_state",
+                    "label": "Ver estado da autonomia PC",
+                    "target_id": "pc_autonomy_state",
+                    "requires_confirmation": False,
+                    "action_status": "ready",
+                    "action_payload": {},
+                }
+            )
+
         return {
             "ok": True,
             "mode": "mobile_cockpit_quick_actions",
@@ -152,11 +216,19 @@ class MobileCockpitCommandSurfaceService:
                 action_id=payload["action_id"],
                 completion_note="advanced from mobile cockpit",
             )
-        else:
+        elif action["action_type"] == "continue_intake":
             payload = action["action_payload"]
             result = browser_conversation_intake_service.get_capture_progress(
                 payload["session_id"]
             )
+        elif action["action_type"] == "sync_phone_buffer_to_pc":
+            result = offline_command_buffering_service.sync_buffered_commands_to_pc()
+        else:
+            result = {
+                "ok": True,
+                "mode": "pc_autonomy_state_snapshot",
+                "summary": self.get_summary()["summary"],
+            }
 
         return {
             "ok": True,
