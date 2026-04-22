@@ -1,0 +1,7 @@
+{
+  "cloud_dependency_policy_id": "cloud_dependency_policy_pc_mobile_01",
+  "target_stack": "devops_god_mode_runtime",
+  "policy_mode": "cloud_optional_local_first",
+  "cloud_providers": ["render", "supabase"],
+  "policy_status": "ready"
+}
