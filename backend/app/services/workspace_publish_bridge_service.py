@@ -81,7 +81,7 @@ class WorkspacePublishBridgeService:
             "staged_asset": staged["staged_asset"],
         }
 
-    async def dry_run_publish_workspace_file(
+    async def publish_workspace_file(
         self,
         workspace_file: str,
         asset_role: str,
@@ -91,6 +91,7 @@ class WorkspacePublishBridgeService:
         project_hint: str | None = None,
         branch: str | None = None,
         content_kind: str | None = None,
+        dry_run: bool = True,
     ) -> Dict[str, Any]:
         restaged = self.restage_workspace_file(
             workspace_file=workspace_file,
@@ -104,7 +105,7 @@ class WorkspacePublishBridgeService:
         if not restaged.get("ok"):
             return {
                 "ok": False,
-                "mode": "workspace_publish_bridge_dry_run_result",
+                "mode": "workspace_publish_bridge_publish_result",
                 "publish_status": "restage_failed",
                 "restage": restaged,
             }
@@ -113,15 +114,39 @@ class WorkspacePublishBridgeService:
             repository_full_name=repository_full_name,
             project_hint=project_hint,
             branch=branch,
-            dry_run=True,
+            dry_run=dry_run,
         )
         return {
             "ok": True,
-            "mode": "workspace_publish_bridge_dry_run_result",
-            "publish_status": "dry_run_ready",
+            "mode": "workspace_publish_bridge_publish_result",
+            "publish_status": "dry_run_ready" if dry_run else "publish_attempted",
             "restage": restaged,
             "publish_result": publish_result,
+            "dry_run": dry_run,
         }
+
+    async def dry_run_publish_workspace_file(
+        self,
+        workspace_file: str,
+        asset_role: str,
+        source_ref: str,
+        repository_full_name: str,
+        destination_path: str,
+        project_hint: str | None = None,
+        branch: str | None = None,
+        content_kind: str | None = None,
+    ) -> Dict[str, Any]:
+        return await self.publish_workspace_file(
+            workspace_file=workspace_file,
+            asset_role=asset_role,
+            source_ref=source_ref,
+            repository_full_name=repository_full_name,
+            destination_path=destination_path,
+            project_hint=project_hint,
+            branch=branch,
+            content_kind=content_kind,
+            dry_run=True,
+        )
 
     def get_package(self) -> Dict[str, Any]:
         return {
