@@ -5,17 +5,17 @@ class RemoteSessionPersistenceService:
     def get_sessions(self) -> Dict[str, Any]:
         sessions: List[Dict[str, Any]] = [
             {
-                "remote_session_id": "remote_session_android_pc_01",
-                "session_scope": "apk_pc_command_context",
-                "continuity_mode": "resume_last_compact_state",
-                "state_profile": "short_operational_memory",
+                "remote_session_id": "remote_session_phone_pc_01",
+                "session_scope": "phone_requests_waiting_for_pc_return",
+                "continuity_mode": "store_on_phone_then_send_to_pc",
+                "state_profile": "pending_orders_and_context",
                 "session_status": "resume_ready",
             },
             {
-                "remote_session_id": "remote_session_desktop_pc_01",
-                "session_scope": "desktop_pc_command_context",
-                "continuity_mode": "resume_recent_context",
-                "state_profile": "short_operational_memory",
+                "remote_session_id": "remote_session_pc_01",
+                "session_scope": "pc_long_running_work_context",
+                "continuity_mode": "continue_without_phone_until_blocked_or_finished",
+                "state_profile": "active_work_and_clarification_gates",
                 "session_status": "resume_ready",
             },
         ]
@@ -25,27 +25,27 @@ class RemoteSessionPersistenceService:
         actions: List[Dict[str, Any]] = [
             {
                 "remote_session_action_id": "remote_session_action_resume_01",
-                "session_area": "state_resume",
-                "action_type": "resume_last_confirmed_context",
-                "action_label": "Retomar último contexto confirmado",
-                "resume_mode": "compact_state_restore",
-                "action_status": "planned",
+                "session_area": "pc_resume",
+                "action_type": "resume_long_running_pc_context",
+                "action_label": "Retomar contexto longo no PC sem reiniciar o fluxo",
+                "resume_mode": "continue_until_blocked_or_finished",
+                "action_status": "ready",
             },
             {
                 "remote_session_action_id": "remote_session_action_queue_01",
-                "session_area": "pending_command_resume",
-                "action_type": "restore_short_pending_queue",
-                "action_label": "Restaurar fila curta de pedidos pendentes",
-                "resume_mode": "pending_queue_restore",
-                "action_status": "planned",
+                "session_area": "phone_buffer_recovery",
+                "action_type": "restore_phone_pending_orders_for_pc_delivery",
+                "action_label": "Restaurar pedidos guardados no telefone para enviar ao PC",
+                "resume_mode": "ordered_delivery_when_pc_returns",
+                "action_status": "ready",
             },
             {
                 "remote_session_action_id": "remote_session_action_presence_01",
-                "session_area": "session_presence",
-                "action_type": "recover_last_known_pc_presence",
-                "action_label": "Recuperar última presença conhecida do PC",
+                "session_area": "connectivity_memory",
+                "action_type": "recover_last_known_connectivity_state",
+                "action_label": "Recuperar último estado conhecido entre PC e telefone",
                 "resume_mode": "presence_restore",
-                "action_status": "planned",
+                "action_status": "ready",
             },
         ]
         if session_area:
@@ -57,6 +57,8 @@ class RemoteSessionPersistenceService:
             "sessions": self.get_sessions()["sessions"],
             "actions": self.get_session_actions()["actions"],
             "mobile_compact": True,
+            "offline_rule": "phone_keeps_orders_until_pc_returns",
+            "pc_rule": "pc_keeps_working_without_phone",
             "package_status": "resume_ready",
         }
         return {"ok": True, "mode": "remote_session_persistence_package", "package": package}
@@ -70,7 +72,7 @@ class RemoteSessionPersistenceService:
             "next_session_action": {
                 "remote_session_action_id": next_action["remote_session_action_id"],
                 "session_area": next_action["session_area"],
-                "action": "resume_remote_work_without_restarting_flow",
+                "action": next_action["action_type"],
                 "action_status": next_action["action_status"],
             }
             if next_action
