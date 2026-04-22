@@ -1,0 +1,58 @@
+name: Live Session Control Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/live-session-control-and-recovery-plan.md'
+      - 'backend/contracts/live_session_control.example.json'
+      - 'backend/contracts/session_recovery_action.example.json'
+      - 'backend/app/services/live_session_control_service.py'
+      - 'backend/app/routes/live_session_control.py'
+      - 'backend/main.py'
+      - '.github/workflows/live-session-control-phase.yml'
+
+jobs:
+  live-session-control-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate live session control layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.live_session_control_service import live_session_control_service
+          controls = live_session_control_service.get_controls()["controls"]
+          actions = live_session_control_service.get_recovery_actions()["actions"]
+          package = live_session_control_service.get_control_package()["package"]
+          next_action = live_session_control_service.get_next_control_action()["next_control_action"]
+          route_paths = {route.path for route in app.routes}
+          assert controls
+          assert actions
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/live-session-control/status" in route_paths
+          assert "/api/live-session-control/controls" in route_paths
+          assert "/api/live-session-control/recovery-actions" in route_paths
+          assert "/api/live-session-control/next-control-action" in route_paths
+          print("live session control phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## Live Session Control Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Added live control and recovery action layer for PC plus mobile sessions.' >> "$GITHUB_STEP_SUMMARY"

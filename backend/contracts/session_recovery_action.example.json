@@ -1,0 +1,7 @@
+{
+  "session_recovery_action_id": "session_recovery_action_01",
+  "target_project": "DevOps God Mode",
+  "recovery_kind": "resume_after_link_restoration",
+  "resume_mode": "flush_buffer_and_restore_live_control",
+  "action_status": "ready"
+}

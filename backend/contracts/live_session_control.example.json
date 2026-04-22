@@ -1,0 +1,7 @@
+{
+  "live_session_control_id": "live_session_control_01",
+  "local_brain": "pc",
+  "remote_cockpit": "mobile",
+  "control_mode": "active_remote_control",
+  "control_status": "ready"
+}
