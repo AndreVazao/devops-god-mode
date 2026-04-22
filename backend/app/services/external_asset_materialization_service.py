@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 from typing import Any, Dict
 
 from app.services.external_asset_intake_service import external_asset_intake_service
@@ -28,6 +27,15 @@ class ExternalAssetMaterializationService:
         destination_path: str | None = None,
         ref: str | None = None,
     ) -> Dict[str, Any]:
+        if not github_service.is_configured():
+            return {
+                "ok": False,
+                "mode": "external_asset_materialization_result",
+                "materialization_status": "github_not_configured",
+                "repository_full_name": repository_full_name,
+                "file_path": file_path,
+            }
+
         file_result = await github_service.get_repository_file(
             repository_full_name=repository_full_name,
             path=file_path,
