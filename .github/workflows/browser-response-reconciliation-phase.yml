@@ -1,0 +1,58 @@
+name: Browser Response Reconciliation Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/browser-response-capture-and-project-reconciliation-plan.md'
+      - 'backend/contracts/browser_response_capture.example.json'
+      - 'backend/contracts/project_reconciliation.example.json'
+      - 'backend/app/services/browser_response_reconciliation_service.py'
+      - 'backend/app/routes/browser_response_reconciliation.py'
+      - 'backend/main.py'
+      - '.github/workflows/browser-response-reconciliation-phase.yml'
+
+jobs:
+  browser-response-reconciliation-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate browser response reconciliation layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.browser_response_reconciliation_service import browser_response_reconciliation_service
+          captures = browser_response_reconciliation_service.get_response_captures()["captures"]
+          reconciliations = browser_response_reconciliation_service.get_reconciliations()["reconciliations"]
+          package = browser_response_reconciliation_service.get_reconciliation_package()["package"]
+          next_action = browser_response_reconciliation_service.get_next_reconciliation_action()["next_reconciliation_action"]
+          route_paths = {route.path for route in app.routes}
+          assert captures
+          assert reconciliations
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/browser-response-reconciliation/status" in route_paths
+          assert "/api/browser-response-reconciliation/captures" in route_paths
+          assert "/api/browser-response-reconciliation/reconciliations" in route_paths
+          assert "/api/browser-response-reconciliation/next-reconciliation-action" in route_paths
+          print("browser response reconciliation phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## Browser Response Reconciliation Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Added browser response capture and project reconciliation layer.' >> "$GITHUB_STEP_SUMMARY"
