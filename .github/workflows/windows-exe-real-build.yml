@@ -72,7 +72,7 @@ jobs:
               'desktop_autostart_payload.json',
               'godmode-mobile-pairing.json'
             )
-            install_mode = 'desktop_bundle_online_actions'
+            install_mode = 'desktop_bundle_local_actions'
             installer_status = 'installer_manifest_ready'
           }
           $manifest | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-installer-manifest.json
@@ -109,7 +109,7 @@ jobs:
               'godmode-mobile-pairing.json',
               'godmode-mobile-runtime-shell.json'
             )
-            delivery_mode = 'actions_bundle_artifact'
+            delivery_mode = 'local_bundle_artifact'
             inventory_status = 'bundle_inventory_ready'
           }
           $bundleIndex | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-bundle-index.json
@@ -171,7 +171,7 @@ jobs:
         run: |
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Windows EXE Build Summary'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- This is the canonical desktop EXE build workflow.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- This is the canonical desktop EXE build workflow for the local-first PC brain.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut and autostart were added to `dist/support`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, bundle index, and handoff files were added to `dist/onboarding`.'
