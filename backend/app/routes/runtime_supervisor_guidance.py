@@ -15,6 +15,11 @@ async def runtime_supervisor_status():
         "mode": "runtime_supervisor_status",
         "supervisor_id": summary["supervisor_id"],
         "guidance_status": summary["guidance_status"],
+        "runtime_health": summary["runtime_health"],
+        "recommended_next_action": summary["recommended_next_action"],
+        "link_mode": summary["link_mode"],
+        "buffer_counts": summary["buffer_counts"],
+        "execution_counts": summary["execution_counts"],
     }
 
 
