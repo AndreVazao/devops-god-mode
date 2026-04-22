@@ -9,21 +9,18 @@ on:
       - main
       - 'feature/**'
     paths:
-      - 'docs/windows-shortcut-autostart-scripts-plan.md'
-      - 'docs/desktop-installer-manifest-and-onboarding-plan.md'
-      - 'docs/desktop-mobile-handoff-package-plan.md'
-      - 'docs/canonical-build-and-test-workflows.md'
-      - 'backend/contracts/windows_bootstrap_script_profile.example.json'
-      - 'backend/contracts/desktop_installer_manifest.example.json'
-      - 'backend/contracts/desktop_onboarding_profile.example.json'
-      - 'backend/contracts/desktop_bundle_inventory.example.json'
-      - 'backend/contracts/desktop_mobile_handoff.example.json'
-      - 'desktop/godmode_desktop_launcher.py'
-      - 'desktop/GodModeDesktop.spec'
-      - 'desktop/windows_shortcut_bootstrap.ps1'
-      - 'desktop/windows_autostart_bootstrap.ps1'
-      - 'desktop/windows_autostart_remove.ps1'
-      - '.github/workflows/windows-exe-real-build.yml'
+      - 'desktop/**'
+      - 'backend/contracts/**'
+      - 'docs/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'desktop/**'
+      - 'backend/contracts/**'
+      - 'docs/**'
+      - '.github/workflows/**'
 
 jobs:
   build-windows-exe:
@@ -172,6 +169,7 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Windows EXE Build Summary'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- This is the canonical desktop EXE build workflow for the local-first PC brain.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- The trigger scope was generalized so future phases can reuse the same workflow without phase-specific workflow churn.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut and autostart were added to `dist/support`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, bundle index, and handoff files were added to `dist/onboarding`.'
