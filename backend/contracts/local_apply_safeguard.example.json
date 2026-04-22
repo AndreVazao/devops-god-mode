@@ -1,0 +1,7 @@
+{
+  "local_apply_safeguard_id": "local_apply_safeguard_godmode_01",
+  "target_project": "DevOps God Mode",
+  "safeguard_type": "verify_and_rollback_checkpoint",
+  "safeguard_result": "rollback_ready_verify_pending",
+  "safeguard_status": "ready"
+}
