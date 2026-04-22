@@ -9,19 +9,18 @@ on:
       - main
       - 'feature/**'
     paths:
-      - 'docs/android-real-build-progressive-plan.md'
-      - 'docs/android-progressive-runtime-binding-plan.md'
-      - 'docs/canonical-build-and-test-workflows.md'
-      - 'backend/contracts/android_progressive_stage.example.json'
-      - 'backend/contracts/android_progressive_artifact.example.json'
-      - 'backend/contracts/android_progressive_runtime_binding.example.json'
-      - 'backend/contracts/android_progressive_pairing_asset.example.json'
-      - 'backend/app/services/android_real_build_progressive_service.py'
-      - 'backend/app/services/android_progressive_runtime_binding_service.py'
-      - 'backend/app/routes/android_real_build_progressive.py'
-      - 'backend/app/routes/android_progressive_runtime_binding.py'
-      - 'backend/main.py'
-      - '.github/workflows/android-real-build-progressive.yml'
+      - 'backend/app/**'
+      - 'backend/contracts/**'
+      - 'docs/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/**'
+      - 'backend/contracts/**'
+      - 'docs/**'
+      - '.github/workflows/**'
 
 jobs:
   build-android-apk:
@@ -109,5 +108,6 @@ jobs:
           echo '## Android APK Build Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- This workflow is still a placeholder pipeline, not a real APK build.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- The trigger scope was generalized so future phases can reuse the same workflow without phase-specific workflow churn.' >> "$GITHUB_STEP_SUMMARY"
           echo '- A placeholder Android artifact was created in `dist/android/GodModeMobile.apk`.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Android manifest/config/runtime/pairing files were created in `dist/android/`.' >> "$GITHUB_STEP_SUMMARY"
