@@ -10,7 +10,15 @@ on:
       - 'backend/**'
       - 'desktop/**'
       - 'docs/**'
-      - '.github/workflows/universal-total-test.yml'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'desktop/**'
+      - 'docs/**'
+      - '.github/workflows/**'
 
 jobs:
   universal-total-test:
@@ -34,11 +42,18 @@ jobs:
           PYTHONPATH: backend
         run: |
           python - <<'PY'
+          from pathlib import Path
+          import json
+
           from main import app
           from app.services.context_aware_orchestration_service import context_aware_orchestration_service
           from app.services.mobile_cockpit_command_surface_service import mobile_cockpit_command_surface_service
           from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
           from app.services.android_real_build_progressive_service import android_real_build_progressive_service
+          from app.services.offline_command_buffering_service import offline_command_buffering_service
+          from app.services.remote_session_persistence_service import remote_session_persistence_service
+          from app.services.continuous_remote_execution_service import continuous_remote_execution_service
+          from app.services.runtime_supervisor_guidance_service import runtime_supervisor_guidance_service
 
           route_paths = {route.path for route in app.routes}
 
@@ -51,6 +66,9 @@ jobs:
               "/api/context-orchestration/status",
               "/api/multi-ai-repair/status",
               "/api/android-real-build-progressive/status",
+              "/api/offline-command-buffering/status",
+              "/api/continuous-remote-execution/status",
+              "/api/remote-session-persistence/status",
           }
 
           missing = sorted(required_routes - route_paths)
@@ -60,12 +78,34 @@ jobs:
           cockpit = mobile_cockpit_command_surface_service.get_summary()
           repair = multi_ai_intake_and_script_repair_service.get_broken_scripts()
           progressive = android_real_build_progressive_service.get_summary()
+          connectivity = offline_command_buffering_service.get_connectivity()
+          queued = offline_command_buffering_service.queue_command(
+              source_side="phone",
+              command_text="continuar montagem do programa a partir da conversa alvo",
+              project_hint="workflow_test",
+          )
+          synced = offline_command_buffering_service.sync_buffered_commands_to_pc()
+          sessions = remote_session_persistence_service.get_session_package()
+          execution = continuous_remote_execution_service.get_execution_package()
+          supervisor = runtime_supervisor_guidance_service.get_summary()
 
           assert orchestration["ok"] is True
           assert cockpit["ok"] is True
           assert repair["ok"] is True
           assert progressive["ok"] is True
+          assert connectivity["ok"] is True
+          assert queued["ok"] is True
+          assert synced["mode"] == "offline_command_sync"
+          assert sessions["ok"] is True
+          assert execution["ok"] is True
+          assert supervisor["ok"] is True
           assert repair["issues"], "Expected at least one broken script issue"
+
+          storage_path = Path("data/offline_command_buffers.json")
+          assert storage_path.exists(), "Expected persistent offline buffer file to exist"
+          payload = json.loads(storage_path.read_text(encoding="utf-8"))
+          assert "commands" in payload and isinstance(payload["commands"], list)
+          assert "connectivity" in payload and isinstance(payload["connectivity"], dict)
           print("universal total test passed")
           PY
 
@@ -82,6 +122,6 @@ jobs:
           echo '## Universal Total Test Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Main route set was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Context orchestration, mobile cockpit, multi-AI repair and Android progressive services were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
