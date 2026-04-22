@@ -1,0 +1,58 @@
+name: Approved Asset Reapply Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/approved-asset-local-reapply-plan.md'
+      - 'backend/contracts/approved_asset_reapply.example.json'
+      - 'backend/contracts/visual_reapply_action.example.json'
+      - 'backend/app/services/approved_asset_reapply_service.py'
+      - 'backend/app/routes/approved_asset_reapply.py'
+      - 'backend/main.py'
+      - '.github/workflows/approved-asset-reapply-phase.yml'
+
+jobs:
+  approved-asset-reapply-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate approved asset reapply layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.approved_asset_reapply_service import approved_asset_reapply_service
+          sessions = approved_asset_reapply_service.get_reapply_sessions()["sessions"]
+          actions = approved_asset_reapply_service.get_reapply_actions()["actions"]
+          package = approved_asset_reapply_service.get_reapply_package()["package"]
+          next_action = approved_asset_reapply_service.get_next_reapply_action()["next_reapply_action"]
+          route_paths = {route.path for route in app.routes}
+          assert sessions
+          assert actions
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/approved-asset-reapply/status" in route_paths
+          assert "/api/approved-asset-reapply/sessions" in route_paths
+          assert "/api/approved-asset-reapply/actions" in route_paths
+          assert "/api/approved-asset-reapply/next-reapply-action" in route_paths
+          print("approved asset reapply phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## Approved Asset Reapply Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Added local reapply layer for mobile approved or revised assets.' >> "$GITHUB_STEP_SUMMARY"
