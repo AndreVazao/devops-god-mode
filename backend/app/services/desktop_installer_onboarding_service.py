@@ -23,7 +23,7 @@ class DesktopInstallerOnboardingService:
                     "desktop_autostart_payload.json",
                     "godmode-mobile-pairing.json",
                 ],
-                "install_mode": "desktop_bundle_online_actions",
+                "install_mode": "desktop_bundle_local_actions",
                 "installer_status": "installer_manifest_ready",
             },
         }
@@ -75,7 +75,7 @@ class DesktopInstallerOnboardingService:
                     "desktop-onboarding.json",
                 ],
                 "mobile_linked_assets": first_run["mobile_payloads"],
-                "delivery_mode": "actions_bundle_artifact",
+                "delivery_mode": "local_bundle_artifact",
                 "inventory_status": "bundle_inventory_ready",
             },
         }
