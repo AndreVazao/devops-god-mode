@@ -43,6 +43,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import asyncio
           import json
 
           from main import app
@@ -57,96 +58,99 @@ jobs:
           from app.services.external_asset_intake_service import external_asset_intake_service
           from app.services.external_asset_publish_execution_service import external_asset_publish_execution_service
 
-          route_paths = {route.path for route in app.routes}
+          async def run_checks() -> None:
+              route_paths = {route.path for route in app.routes}
 
-          required_routes = {
-              "/health",
-              "/api/browser-intake/status",
-              "/api/browser-control/status",
-              "/api/mobile-cockpit/status",
-              "/api/driving-mode/status",
-              "/api/context-orchestration/status",
-              "/api/multi-ai-repair/status",
-              "/api/android-real-build-progressive/status",
-              "/api/offline-command-buffering/status",
-              "/api/continuous-remote-execution/status",
-              "/api/remote-session-persistence/status",
-              "/api/external-asset-intake/status",
-              "/api/external-asset-publish/status",
-          }
+              required_routes = {
+                  "/health",
+                  "/api/browser-intake/status",
+                  "/api/browser-control/status",
+                  "/api/mobile-cockpit/status",
+                  "/api/driving-mode/status",
+                  "/api/context-orchestration/status",
+                  "/api/multi-ai-repair/status",
+                  "/api/android-real-build-progressive/status",
+                  "/api/offline-command-buffering/status",
+                  "/api/continuous-remote-execution/status",
+                  "/api/remote-session-persistence/status",
+                  "/api/external-asset-intake/status",
+                  "/api/external-asset-publish/status",
+              }
 
-          missing = sorted(required_routes - route_paths)
-          assert not missing, f"Missing routes: {missing}"
+              missing = sorted(required_routes - route_paths)
+              assert not missing, f"Missing routes: {missing}"
 
-          orchestration = context_aware_orchestration_service.get_context_summary()
-          cockpit = mobile_cockpit_command_surface_service.get_summary()
-          repair = multi_ai_intake_and_script_repair_service.get_broken_scripts()
-          progressive = android_real_build_progressive_service.get_summary()
-          connectivity = offline_command_buffering_service.get_connectivity()
-          queued = offline_command_buffering_service.queue_command(
-              source_side="phone",
-              command_text="continuar montagem do programa a partir da conversa alvo",
-              project_hint="workflow_test",
-          )
-          synced = offline_command_buffering_service.sync_buffered_commands_to_pc()
-          sessions = remote_session_persistence_service.get_session_package()
-          execution = continuous_remote_execution_service.get_execution_package()
-          supervisor = runtime_supervisor_guidance_service.get_summary()
-          staged_asset = external_asset_intake_service.stage_asset_request(
-              source_type="browser_web_service",
-              source_ref="inline://workflow-test/icon.svg",
-              asset_role="icon",
-              project_hint="workflow_test",
-              repository_full_name="AndreVazao/devops-god-mode",
-              destination_path="assets/icons/example-icon.svg",
-              content_text="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'><circle cx='4' cy='4' r='3'/></svg>",
-              content_kind="svg_text",
-          )
-          intake_package = external_asset_intake_service.get_package()
-          publish_plan = external_asset_intake_service.build_github_publish_plan(
-              repository_full_name="AndreVazao/devops-god-mode",
-              project_hint="workflow_test",
-          )
-          publish_status = external_asset_publish_execution_service.get_status()
-          publish_execution = await external_asset_publish_execution_service.execute_publish_plan(
-              repository_full_name="AndreVazao/devops-god-mode",
-              project_hint="workflow_test",
-              branch="main",
-              dry_run=True,
-          )
+              orchestration = context_aware_orchestration_service.get_context_summary()
+              cockpit = mobile_cockpit_command_surface_service.get_summary()
+              repair = multi_ai_intake_and_script_repair_service.get_broken_scripts()
+              progressive = android_real_build_progressive_service.get_summary()
+              connectivity = offline_command_buffering_service.get_connectivity()
+              queued = offline_command_buffering_service.queue_command(
+                  source_side="phone",
+                  command_text="continuar montagem do programa a partir da conversa alvo",
+                  project_hint="workflow_test",
+              )
+              synced = offline_command_buffering_service.sync_buffered_commands_to_pc()
+              sessions = remote_session_persistence_service.get_session_package()
+              execution = continuous_remote_execution_service.get_execution_package()
+              supervisor = runtime_supervisor_guidance_service.get_summary()
+              staged_asset = external_asset_intake_service.stage_asset_request(
+                  source_type="browser_web_service",
+                  source_ref="inline://workflow-test/icon.svg",
+                  asset_role="icon",
+                  project_hint="workflow_test",
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  destination_path="assets/icons/example-icon.svg",
+                  content_text="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'><circle cx='4' cy='4' r='3'/></svg>",
+                  content_kind="svg_text",
+              )
+              intake_package = external_asset_intake_service.get_package()
+              publish_plan = external_asset_intake_service.build_github_publish_plan(
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  project_hint="workflow_test",
+              )
+              publish_status = external_asset_publish_execution_service.get_status()
+              publish_execution = await external_asset_publish_execution_service.execute_publish_plan(
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  project_hint="workflow_test",
+                  branch="main",
+                  dry_run=True,
+              )
 
-          assert orchestration["ok"] is True
-          assert cockpit["ok"] is True
-          assert repair["ok"] is True
-          assert progressive["ok"] is True
-          assert connectivity["ok"] is True
-          assert queued["ok"] is True
-          assert synced["mode"] == "offline_command_sync"
-          assert sessions["ok"] is True
-          assert execution["ok"] is True
-          assert supervisor["ok"] is True
-          assert staged_asset["ok"] is True
-          assert intake_package["ok"] is True
-          assert publish_plan["ok"] is True
-          assert publish_plan["planned_count"] >= 1
-          assert publish_status["ok"] is True
-          assert publish_execution["ok"] is True
-          assert publish_execution["executed_count"] >= 1
-          assert publish_execution["results"][0]["publish_status"] == "dry_run_ready"
-          assert repair["issues"], "Expected at least one broken script issue"
+              assert orchestration["ok"] is True
+              assert cockpit["ok"] is True
+              assert repair["ok"] is True
+              assert progressive["ok"] is True
+              assert connectivity["ok"] is True
+              assert queued["ok"] is True
+              assert synced["mode"] == "offline_command_sync"
+              assert sessions["ok"] is True
+              assert execution["ok"] is True
+              assert supervisor["ok"] is True
+              assert staged_asset["ok"] is True
+              assert intake_package["ok"] is True
+              assert publish_plan["ok"] is True
+              assert publish_plan["planned_count"] >= 1
+              assert publish_status["ok"] is True
+              assert publish_execution["ok"] is True
+              assert publish_execution["executed_count"] >= 1
+              assert publish_execution["results"][0]["publish_status"] == "dry_run_ready"
+              assert repair["issues"], "Expected at least one broken script issue"
 
-          storage_path = Path("data/offline_command_buffers.json")
-          assert storage_path.exists(), "Expected persistent offline buffer file to exist"
-          payload = json.loads(storage_path.read_text(encoding="utf-8"))
-          assert "commands" in payload and isinstance(payload["commands"], list)
-          assert "connectivity" in payload and isinstance(payload["connectivity"], dict)
+              storage_path = Path("data/offline_command_buffers.json")
+              assert storage_path.exists(), "Expected persistent offline buffer file to exist"
+              payload = json.loads(storage_path.read_text(encoding="utf-8"))
+              assert "commands" in payload and isinstance(payload["commands"], list)
+              assert "connectivity" in payload and isinstance(payload["connectivity"], dict)
 
-          asset_storage_path = Path("data/external_asset_intake.json")
-          assert asset_storage_path.exists(), "Expected external asset intake store to exist"
-          asset_payload = json.loads(asset_storage_path.read_text(encoding="utf-8"))
-          assert "sources" in asset_payload and isinstance(asset_payload["sources"], list)
-          assert "staged_assets" in asset_payload and isinstance(asset_payload["staged_assets"], list)
-          print("universal total test passed")
+              asset_storage_path = Path("data/external_asset_intake.json")
+              assert asset_storage_path.exists(), "Expected external asset intake store to exist"
+              asset_payload = json.loads(asset_storage_path.read_text(encoding="utf-8"))
+              assert "sources" in asset_payload and isinstance(asset_payload["sources"], list)
+              assert "staged_assets" in asset_payload and isinstance(asset_payload["staged_assets"], list)
+              print("universal total test passed")
+
+          asyncio.run(run_checks())
           PY
 
       - name: Validate desktop build inputs exist
