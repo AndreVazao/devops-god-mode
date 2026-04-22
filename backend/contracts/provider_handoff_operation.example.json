@@ -1,0 +1,8 @@
+{
+  "provider_handoff_operation_id": "provider_handoff_operation_botfarm_01",
+  "target_project": "Bot Farm Headless",
+  "source_provider": "chatgpt",
+  "target_provider": "deepseek",
+  "handoff_goal": "complete_real_integration_after_current_provider_blocker",
+  "handoff_status": "ready"
+}
