@@ -59,6 +59,7 @@ jobs:
           from app.services.external_asset_publish_execution_service import external_asset_publish_execution_service
           from app.services.external_asset_materialization_service import external_asset_materialization_service
           from app.services.local_asset_workspace_service import local_asset_workspace_service
+          from app.services.local_asset_transformation_service import local_asset_transformation_service
 
           async def run_checks() -> None:
               route_paths = {route.path for route in app.routes}
@@ -79,6 +80,7 @@ jobs:
                   "/api/external-asset-publish/status",
                   "/api/external-asset-materialization/status",
                   "/api/local-asset-workspace/status",
+                  "/api/local-asset-transformation/status",
               }
 
               missing = sorted(required_routes - route_paths)
@@ -124,6 +126,17 @@ jobs:
               workspace_project = local_asset_workspace_service.materialize_project_assets_to_disk(
                   "workflow_test"
               )
+              transformation_status = local_asset_transformation_service.get_status()
+              transformed = local_asset_transformation_service.transform_text_asset(
+                  workspace_file=workspace_file["workspace_file"],
+                  operation="suffix",
+                  transform_value="\n<!-- generated in workflow -->\n",
+                  output_suffix=".wf",
+              )
+              duplicated = local_asset_transformation_service.duplicate_workspace_asset(
+                  workspace_file=workspace_file["workspace_file"],
+                  duplicate_name="example-icon-copy",
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -154,6 +167,9 @@ jobs:
               assert workspace_file["materialization_status"] == "materialized_to_workspace"
               assert workspace_project["ok"] is True
               assert workspace_project["materialized_count"] >= 1
+              assert transformation_status["ok"] is True
+              assert transformed["transformation_status"] == "transformed"
+              assert duplicated["duplicate_status"] == "duplicated"
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -177,6 +193,8 @@ jobs:
 
               workspace_root = Path("data/staged_asset_workspace")
               assert workspace_root.exists(), "Expected local asset workspace to exist"
+              assert Path(transformed["output_file"]).exists(), "Expected transformed asset file to exist"
+              assert Path(duplicated["duplicate_file"]).exists(), "Expected duplicated asset file to exist"
               print("universal total test passed")
 
           asyncio.run(run_checks())
@@ -197,5 +215,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, materialization, local workspace, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, materialization, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
