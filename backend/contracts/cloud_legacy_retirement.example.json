@@ -1,7 +1,0 @@
-{
-  "cloud_legacy_retirement_id": "cloud_legacy_retirement_render_01",
-  "legacy_stack": "render",
-  "retirement_mode": "remove_from_primary_runtime_path",
-  "runtime_role_after_retirement": "disabled_for_primary_flow",
-  "retirement_status": "ready"
-}
