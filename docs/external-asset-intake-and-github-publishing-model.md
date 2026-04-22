@@ -44,6 +44,7 @@ Usado para:
 7. Materializar assets staged em disco local quando o fluxo exigir ficheiros reais.
 8. Transformar assets locais antes do packaging e do publish final quando necessário.
 9. Recolocar assets do workspace de volta no pipeline de publish quando uma versão local ficar pronta.
+10. Fazer fetch externo real para staging quando o asset ainda não existe localmente.
 
 ## Base já consolidada
 O sistema já passou a ter:
@@ -65,24 +66,28 @@ O sistema já passou a ter:
 - `local_asset_transformation_service`
 - rota `local-asset-transformation`
 - transformações locais de texto e duplicação no workspace
+- `workspace_publish_bridge_service`
+- rota `workspace-publish-bridge`
+- restage e publish dry run a partir de versões locais transformadas
 
 ## Evolução desta fase
 Agora o sistema também passa a ter:
-- `workspace_publish_bridge_service`
-- rota `workspace-publish-bridge`
-- capacidade de pegar num ficheiro já transformado no workspace e restagiá-lo no intake
-- capacidade de disparar dry run de publish diretamente a partir dessa versão local transformada
+- `external_fetch_runtime_service`
+- rota `external-fetch-runtime`
+- fetch HTTP real de URL para staging
+- download local em `data/external_fetch_runtime`
+- inferência básica de texto/binário para staging imediato
 
 ## Porque isto interessa
-Esta ponte fecha uma lacuna importante:
-- ficheiro local transformado deixa de ficar isolado no workspace
-- passa a voltar ao pipeline normal de publish
-- isso aproxima o God Mode de um ciclo real de edição local e entrega remota
+Isto fecha outra lacuna importante:
+- o asset já não precisa de nascer sempre no GitHub ou no workspace local
+- pode vir diretamente de uma URL externa
+- e entrar logo no pipeline normal de staging, workspace e publish
 
 ## Próxima evolução esperada
 A seguir o sistema deve ganhar:
-- fetch binário externo real fora do GitHub
-- staging binário local de imagens e ficheiros vindos de serviços externos
-- transformações mais ricas de SVG e imagem
-- publicação real controlada a partir de versões transformadas no workspace
+- fetch com autenticação para fontes externas protegidas
+- materialização binária mais rica para imagens reais
+- transformação avançada de SVG/imagem/ícones
+- publicação real controlada a partir de assets fetched e transformados
 - ligação desta camada ao browser intake e ao continuation engine
