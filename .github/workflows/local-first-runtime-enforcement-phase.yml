@@ -1,0 +1,50 @@
+name: Local First Runtime Enforcement Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/local-first-runtime-enforcement-plan.md'
+      - 'backend/main.py'
+      - '.github/workflows/local-first-runtime-enforcement-phase.yml'
+
+jobs:
+  local-first-runtime-enforcement-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate local first runtime enforcement
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          route_paths = {route.path for route in app.routes}
+          assert '/api/cloud-runtime-transition/status' not in route_paths
+          config_route = next(route for route in app.routes if route.path == '/api/system/config')
+          result = config_route.endpoint()
+          assert result['runtime_mode'] == 'pc_mobile_local_first'
+          assert result['local_brain'] == 'pc'
+          assert result['remote_cockpit'] == 'mobile'
+          assert 'supabase' not in result
+          assert 'vercel' not in result
+          print('local first runtime enforcement phase passed')
+          PY
+      - name: Build summary
+        run: |
+          echo '## Local First Runtime Enforcement Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Removed cloud transition runtime layer from the primary flow.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- System config now reports local-first PC plus mobile topology only.' >> "$GITHUB_STEP_SUMMARY"
