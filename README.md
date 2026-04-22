@@ -11,6 +11,20 @@ Transformar o God Mode num sistema operacional pessoal para:
 - decidir o que continuar, adaptar, reaproveitar ou apenas arquivar
 - comandar browser control, intake e execução assistida a partir do cockpit móvel
 
+## Pivot estratégico
+
+A foundation inicial passou por uma fase com:
+- Supabase como base de dados
+- Render como backend online
+- Vercel como deploy de testes
+
+Essa fase deixou de ser a direção principal.
+O projeto está agora consolidado como **local-first**, com foco em:
+- PC como cérebro principal
+- telefone como cockpit principal
+- operação pensada para uso na rua e em condução assistida
+- redução de dependências cloud antigas que já não servem o fluxo real
+
 ## Arquitetura atual
 
 ### PC como cérebro principal
@@ -46,3 +60,8 @@ O sistema já expõe múltiplas APIs operacionais para:
 ## Nota sobre foundations antigas
 
 Algumas peças Android e de packaging inicial continuam na repo como foundation histórica/placeholder e ainda não representam o fluxo final real. A consolidação e limpeza dessas peças está mapeada em `docs/repo-consolidation-and-legacy-mapping.md`.
+
+## Nota sobre legado cloud
+
+Supabase, Render e Vercel passaram a legado arquitetural.
+A repo deve tratá-los como contexto histórico a remover, arquivar ou isolar, nunca como destino principal da stack.
