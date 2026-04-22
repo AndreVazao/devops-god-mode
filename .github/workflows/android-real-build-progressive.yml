@@ -1,5 +1,5 @@
-# Canonical Android APK build workflow.
-# Keep this as the single main Android build pipeline.
+# Canonical Android placeholder workflow.
+# Keep this as the single Android placeholder pipeline until the real APK build replaces it.
 name: Android APK Build
 
 on:
@@ -46,41 +46,45 @@ jobs:
           {
             "pipeline": "android_real_build_progressive",
             "topology": "pc_and_phone_primary",
-            "artifact": "GodModeMobile.apk"
+            "artifact": "GodModeMobile.apk",
+            "artifact_kind": "placeholder",
+            "build_truth": "not_a_real_apk_yet"
           }
           JSON
           cat > android-config/android-config.json <<'JSON'
           {
             "runtime_binding": "pc_and_phone_primary",
             "pairing_support": "qr_or_code",
-            "stage_mode": "progressive"
+            "stage_mode": "progressive",
+            "build_mode": "placeholder_only"
           }
           JSON
           cat > android-config/android-runtime.json <<'JSON'
           {
             "runtime_shell": "android_runtime_shell",
             "shell_status": "runtime_shell_ready",
-            "build_mode": "real_pipeline_progressive"
+            "build_mode": "placeholder_pipeline_progressive"
           }
           JSON
           cat > android-config/android-pairing.json <<'JSON'
           {
             "pairing_mode": "qr_or_code",
             "topology_binding": "pc_and_phone_primary",
-            "pairing_status": "planned"
+            "pairing_status": "planned",
+            "build_truth": "placeholder"
           }
           JSON
 
-      - name: Build Android APK artifact
+      - name: Build Android placeholder artifact
         run: |
-          printf 'God Mode Android APK canonical placeholder artifact.\n' > dist/android/GodModeMobile.apk
+          printf 'God Mode Android placeholder artifact. Not a real APK build yet.\n' > dist/android/GodModeMobile.apk
           cp android-config/android-manifest.json dist/android/android-manifest.json
           cp android-config/android-config.json dist/android/android-config.json
           cp android-config/android-runtime.json dist/android/android-runtime.json
           cp android-config/android-pairing.json dist/android/android-pairing.json
           ls -la dist/android
 
-      - name: Verify built files exist
+      - name: Verify placeholder files exist
         run: |
           test -f dist/android/GodModeMobile.apk
           test -f dist/android/android-manifest.json
@@ -92,7 +96,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: godmode-android-apk
+          name: godmode-android-apk-placeholder
           path: |
             dist/android/GodModeMobile.apk
             dist/android/android-manifest.json
@@ -104,6 +108,6 @@ jobs:
         run: |
           echo '## Android APK Build Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- This is the canonical Android APK build workflow.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Android APK artifact was created in `dist/android/GodModeMobile.apk`.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- This workflow is still a placeholder pipeline, not a real APK build.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- A placeholder Android artifact was created in `dist/android/GodModeMobile.apk`.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Android manifest/config/runtime/pairing files were created in `dist/android/`.' >> "$GITHUB_STEP_SUMMARY"
