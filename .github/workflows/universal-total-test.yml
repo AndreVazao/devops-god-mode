@@ -60,6 +60,7 @@ jobs:
           from app.services.external_asset_materialization_service import external_asset_materialization_service
           from app.services.local_asset_workspace_service import local_asset_workspace_service
           from app.services.local_asset_transformation_service import local_asset_transformation_service
+          from app.services.workspace_publish_bridge_service import workspace_publish_bridge_service
 
           async def run_checks() -> None:
               route_paths = {route.path for route in app.routes}
@@ -81,6 +82,7 @@ jobs:
                   "/api/external-asset-materialization/status",
                   "/api/local-asset-workspace/status",
                   "/api/local-asset-transformation/status",
+                  "/api/workspace-publish-bridge/status",
               }
 
               missing = sorted(required_routes - route_paths)
@@ -137,6 +139,26 @@ jobs:
                   workspace_file=workspace_file["workspace_file"],
                   duplicate_name="example-icon-copy",
               )
+              bridge_status = workspace_publish_bridge_service.get_status()
+              restaged = workspace_publish_bridge_service.restage_workspace_file(
+                  workspace_file=transformed["output_file"],
+                  asset_role="icon_variant",
+                  source_ref="workspace://workflow/generated-icon",
+                  project_hint="workflow_test",
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  destination_path="assets/icons/generated-icon.svg",
+                  content_kind="svg_text",
+              )
+              bridge_dry_run = await workspace_publish_bridge_service.dry_run_publish_workspace_file(
+                  workspace_file=duplicated["duplicate_file"],
+                  asset_role="icon_copy",
+                  source_ref="workspace://workflow/icon-copy",
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  destination_path="assets/icons/example-icon-copy.svg",
+                  project_hint="workflow_test",
+                  branch="main",
+                  content_kind="svg_text",
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -170,6 +192,9 @@ jobs:
               assert transformation_status["ok"] is True
               assert transformed["transformation_status"] == "transformed"
               assert duplicated["duplicate_status"] == "duplicated"
+              assert bridge_status["ok"] is True
+              assert restaged["restage_status"] == "restaged_from_workspace"
+              assert bridge_dry_run["publish_status"] == "dry_run_ready"
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -215,5 +240,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, materialization, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, materialization, local workspace, transformation, workspace publish bridge, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
