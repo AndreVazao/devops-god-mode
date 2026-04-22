@@ -16,9 +16,9 @@ class AndroidRealBuildProgressiveService:
                 "expected_outputs": [
                     "android-progressive-manifest.json",
                     "android-progressive-config.json",
-                    "GodModeMobileProgressive.apk",
+                    "GodModeMobile.apk",
                 ],
-                "stage_status": "planned",
+                "stage_status": "placeholder",
             },
             {
                 "stage_id": "android_stage_bind_runtime_and_pairing",
@@ -29,17 +29,17 @@ class AndroidRealBuildProgressiveService:
                     "android-progressive-runtime.json",
                     "android-progressive-pairing.json",
                 ],
-                "stage_status": "planned",
+                "stage_status": "placeholder",
             },
             {
                 "stage_id": "android_stage_prepare_release_candidate",
                 "stage_name": "prepare_release_candidate",
                 "stage_order": 3,
-                "stage_summary": "Prepare the progressive pipeline as the next release candidate after foundation validation.",
+                "stage_summary": "Prepare the progressive pipeline as a placeholder until the real Android build lands.",
                 "expected_outputs": [
                     "android-progressive-release-note.txt"
                 ],
-                "stage_status": "planned",
+                "stage_status": "placeholder",
             },
         ]
 
@@ -52,9 +52,9 @@ class AndroidRealBuildProgressiveService:
             "summary": {
                 "pipeline_id": pipeline["pipeline_id"],
                 "topology": pipeline["topology"],
-                "build_mode": "real_pipeline_progressive",
+                "build_mode": "placeholder_pipeline_progressive",
                 "foundation_status": pipeline["readiness_status"],
-                "progressive_status": "planned",
+                "progressive_status": "placeholder_only",
                 "next_stage": next_stage["stage_id"] if next_stage else None,
             },
         }
@@ -73,17 +73,17 @@ class AndroidRealBuildProgressiveService:
             "artifacts": [
                 {
                     "artifact_id": "android_progressive_artifact_01",
-                    "artifact_name": "GodModeMobileProgressive.apk",
-                    "artifact_role": "progressive_pipeline_output",
+                    "artifact_name": "GodModeMobile.apk",
+                    "artifact_role": "placeholder_pipeline_output",
                     "topology_binding": "pc_and_phone_primary",
-                    "artifact_status": "planned",
+                    "artifact_status": "placeholder",
                 },
                 {
                     "artifact_id": "android_progressive_manifest_01",
                     "artifact_name": "android-progressive-manifest.json",
                     "artifact_role": "progressive_manifest",
                     "topology_binding": "pc_and_phone_primary",
-                    "artifact_status": "planned",
+                    "artifact_status": "placeholder",
                 },
             ],
         }
