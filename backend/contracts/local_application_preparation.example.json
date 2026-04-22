@@ -1,0 +1,7 @@
+{
+  "local_application_preparation_id": "local_application_preparation_godmode_01",
+  "target_project": "DevOps God Mode",
+  "preparation_mode": "prepare_reconciled_output_for_local_application",
+  "prepared_output_kind": "code_patch_and_runtime_follow_up",
+  "preparation_status": "ready"
+}
