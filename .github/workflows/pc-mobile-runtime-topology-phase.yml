@@ -1,0 +1,58 @@
+name: PC Mobile Runtime Topology Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/pc-mobile-runtime-topology-plan.md'
+      - 'backend/contracts/runtime_topology.example.json'
+      - 'backend/contracts/cloud_dependency_policy.example.json'
+      - 'backend/app/services/pc_mobile_runtime_topology_service.py'
+      - 'backend/app/routes/pc_mobile_runtime_topology.py'
+      - 'backend/main.py'
+      - '.github/workflows/pc-mobile-runtime-topology-phase.yml'
+
+jobs:
+  pc-mobile-runtime-topology-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate pc mobile runtime topology layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.pc_mobile_runtime_topology_service import pc_mobile_runtime_topology_service
+          topologies = pc_mobile_runtime_topology_service.get_topologies()["topologies"]
+          policies = pc_mobile_runtime_topology_service.get_cloud_policies()["policies"]
+          package = pc_mobile_runtime_topology_service.get_topology_package()["package"]
+          next_action = pc_mobile_runtime_topology_service.get_next_topology_action()["next_topology_action"]
+          route_paths = {route.path for route in app.routes}
+          assert topologies
+          assert policies
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/pc-mobile-runtime-topology/status" in route_paths
+          assert "/api/pc-mobile-runtime-topology/topologies" in route_paths
+          assert "/api/pc-mobile-runtime-topology/cloud-policies" in route_paths
+          assert "/api/pc-mobile-runtime-topology/next-topology-action" in route_paths
+          print("pc mobile runtime topology phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## PC Mobile Runtime Topology Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Added PC plus mobile runtime topology and cloud dependency policy layer.' >> "$GITHUB_STEP_SUMMARY"
