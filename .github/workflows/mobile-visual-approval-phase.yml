@@ -1,0 +1,58 @@
+name: Mobile Visual Approval Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/mobile-visual-approval-plan.md'
+      - 'backend/contracts/visual_approval_session.example.json'
+      - 'backend/contracts/visual_revision_decision.example.json'
+      - 'backend/app/services/mobile_visual_approval_service.py'
+      - 'backend/app/routes/mobile_visual_approval.py'
+      - 'backend/main.py'
+      - '.github/workflows/mobile-visual-approval-phase.yml'
+
+jobs:
+  mobile-visual-approval-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate mobile visual approval layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.mobile_visual_approval_service import mobile_visual_approval_service
+          sessions = mobile_visual_approval_service.get_visual_sessions()["sessions"]
+          decisions = mobile_visual_approval_service.get_revision_decisions()["decisions"]
+          package = mobile_visual_approval_service.get_visual_package()["package"]
+          next_action = mobile_visual_approval_service.get_next_visual_action()["next_visual_action"]
+          route_paths = {route.path for route in app.routes}
+          assert sessions
+          assert decisions
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/mobile-visual-approval/status" in route_paths
+          assert "/api/mobile-visual-approval/sessions" in route_paths
+          assert "/api/mobile-visual-approval/decisions" in route_paths
+          assert "/api/mobile-visual-approval/next-visual-action" in route_paths
+          print("mobile visual approval phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## Mobile Visual Approval Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Added preview approval and revision loop layer for the mobile cockpit.' >> "$GITHUB_STEP_SUMMARY"
