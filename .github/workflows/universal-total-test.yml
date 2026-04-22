@@ -57,6 +57,7 @@ jobs:
           from app.services.runtime_supervisor_guidance_service import runtime_supervisor_guidance_service
           from app.services.external_asset_intake_service import external_asset_intake_service
           from app.services.external_asset_publish_execution_service import external_asset_publish_execution_service
+          from app.services.external_asset_materialization_service import external_asset_materialization_service
 
           async def run_checks() -> None:
               route_paths = {route.path for route in app.routes}
@@ -75,6 +76,7 @@ jobs:
                   "/api/remote-session-persistence/status",
                   "/api/external-asset-intake/status",
                   "/api/external-asset-publish/status",
+                  "/api/external-asset-materialization/status",
               }
 
               missing = sorted(required_routes - route_paths)
@@ -104,6 +106,15 @@ jobs:
                   content_text="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'><circle cx='4' cy='4' r='3'/></svg>",
                   content_kind="svg_text",
               )
+              materialization_status = external_asset_materialization_service.get_status()
+              materialized = await external_asset_materialization_service.materialize_github_file_to_stage(
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  file_path="README.md",
+                  asset_role="reference_doc",
+                  project_hint="workflow_test",
+                  destination_path="assets/reference/README.md",
+                  ref="main",
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -128,6 +139,9 @@ jobs:
               assert execution["ok"] is True
               assert supervisor["ok"] is True
               assert staged_asset["ok"] is True
+              assert materialization_status["ok"] is True
+              assert materialized["ok"] is True
+              assert materialized["materialization_status"] == "materialized_to_stage"
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -168,5 +182,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, materialization, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
