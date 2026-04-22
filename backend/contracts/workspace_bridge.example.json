@@ -1,0 +1,7 @@
+{
+  "workspace_bridge_id": "workspace_bridge_figma_01",
+  "workspace_kind": "figma",
+  "access_mode": "local_pc_authenticated_bridge",
+  "intended_use": "read_assets_palettes_and_design_references",
+  "bridge_status": "ready"
+}
