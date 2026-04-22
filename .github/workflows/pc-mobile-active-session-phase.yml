@@ -1,0 +1,58 @@
+name: PC Mobile Active Session Phase
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'docs/pc-mobile-active-session-and-buffered-sync-plan.md'
+      - 'backend/contracts/pc_mobile_active_session.example.json'
+      - 'backend/contracts/buffered_sync_state.example.json'
+      - 'backend/app/services/pc_mobile_active_session_service.py'
+      - 'backend/app/routes/pc_mobile_active_session.py'
+      - 'backend/main.py'
+      - '.github/workflows/pc-mobile-active-session-phase.yml'
+
+jobs:
+  pc-mobile-active-session-phase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate pc mobile active session layer
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from main import app
+          from app.services.pc_mobile_active_session_service import pc_mobile_active_session_service
+          sessions = pc_mobile_active_session_service.get_sessions()["sessions"]
+          buffers = pc_mobile_active_session_service.get_buffer_states()["buffers"]
+          package = pc_mobile_active_session_service.get_session_package()["package"]
+          next_action = pc_mobile_active_session_service.get_next_session_action()["next_session_action"]
+          route_paths = {route.path for route in app.routes}
+          assert sessions
+          assert buffers
+          assert next_action is not None
+          assert package["mobile_compact"] is True
+          assert "/api/pc-mobile-active-session/status" in route_paths
+          assert "/api/pc-mobile-active-session/sessions" in route_paths
+          assert "/api/pc-mobile-active-session/buffers" in route_paths
+          assert "/api/pc-mobile-active-session/next-session-action" in route_paths
+          print("pc mobile active session phase passed")
+          PY
+      - name: Build summary
+        run: |
+          echo '## PC Mobile Active Session Phase Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Added active PC plus mobile session and buffered sync layer.' >> "$GITHUB_STEP_SUMMARY"
