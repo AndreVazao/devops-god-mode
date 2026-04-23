@@ -80,6 +80,8 @@ from app.routes.multi_ai_intake_and_script_repair import router as multi_ai_repa
 from app.routes.multi_file_parsing_placement import router as multi_file_parsing_placement_router
 from app.routes.offline_command_buffering import router as offline_command_buffering_router
 from app.routes.operation_queue import router as operation_queue_router
+from app.routes.operator_conversation_thread import router as operator_conversation_thread_router
+from app.routes.operator_response_guidance import router as operator_response_guidance_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
 from app.routes.patch_apply_preview import router as patch_apply_preview_router
 from app.routes.pc_first_core_extraction import router as pc_first_core_extraction_router
@@ -171,7 +173,8 @@ for r in [
     first_run_bundle_router, mobile_runtime_shell_router, mobile_cockpit_sync_router,
     mobile_visual_approval_router, desktop_installer_router, desktop_mobile_handoff_router,
     runtime_supervisor_router, local_pc_runtime_router, action_center_router,
-    operation_queue_router, chat_inventory_router, repo_env_harvest_router, script_reuse_router,
+    operation_queue_router, chat_inventory_router, operator_conversation_thread_router,
+    operator_response_guidance_router, repo_env_harvest_router, script_reuse_router,
     adaptation_planner_router, conversation_organization_router, browser_control_real_router,
     mobile_cockpit_router, driving_mode_router, context_orchestration_router,
     android_real_pipeline_router, android_real_build_router,
