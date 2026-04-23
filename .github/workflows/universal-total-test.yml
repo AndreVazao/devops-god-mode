@@ -152,7 +152,7 @@ jobs:
                   bundle_name="workflow-project-bundle",
               )
               reconciliation = conversation_reconciliation_service.reconcile_bundle(
-                  bundle_id=bundle_created["bundle"]["bundle_id"]],
+                  bundle_id=bundle_created["bundle"]["bundle_id"],
               )
               reconciliation_report = conversation_reconciliation_service.get_report(
                   bundle_id=bundle_created["bundle"]["bundle_id"],
