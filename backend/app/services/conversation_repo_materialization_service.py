@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from app.services.conversation_bundle_service import conversation_bundle_service
+from app.services.conversation_reconciliation_service import conversation_reconciliation_service
 
 
 class ConversationRepoMaterializationService:
@@ -24,13 +25,46 @@ class ConversationRepoMaterializationService:
             "status": "conversation_repo_materialization_ready",
         }
 
+    def _build_effective_file_plan(self, bundle_id: str, repository_name: str | None) -> Dict[str, Any]:
+        report_result = conversation_reconciliation_service.get_report(bundle_id)
+        if report_result.get("ok"):
+            report = report_result["report"]
+            repo_name = repository_name or report.get("project_key") or "repo"
+            file_plan = []
+            for item in report.get("deduplicated_blocks", []):
+                file_plan.append(
+                    {
+                        "destination_path": item.get("destination_path"),
+                        "language": item.get("language"),
+                        "line_count": item.get("line_count"),
+                        "content_full": item.get("code") or "",
+                        "provider": item.get("provider") or "unknown",
+                        "source_kind": item.get("source_status") or "reconciled",
+                    }
+                )
+            return {
+                "ok": True,
+                "plan": {
+                    "bundle_id": bundle_id,
+                    "repository_name": repo_name,
+                    "file_plan": file_plan,
+                    "plan_status": "repo_plan_ready",
+                    "source_mode": "reconciled_report",
+                },
+            }
+
+        return conversation_bundle_service.build_repo_materialization_plan(
+            bundle_id=bundle_id,
+            repository_name=repository_name,
+        )
+
     def materialize_bundle_repo_plan(
         self,
         bundle_id: str,
         repository_name: str | None = None,
         overwrite_existing: bool = True,
     ) -> Dict[str, Any]:
-        plan_result = conversation_bundle_service.build_repo_materialization_plan(
+        plan_result = self._build_effective_file_plan(
             bundle_id=bundle_id,
             repository_name=repository_name,
         )
@@ -55,13 +89,17 @@ class ConversationRepoMaterializationService:
                 target_path.parent.mkdir(parents=True, exist_ok=True)
                 if target_path.exists() and not overwrite_existing:
                     continue
-                content_preview = str(file_plan.get("content_preview") or "")
+                content_full = str(file_plan.get("content_full") or file_plan.get("content_preview") or "")
                 language = str(file_plan.get("language") or "text")
+                provider = str(file_plan.get("provider") or "unknown")
+                source_kind = str(file_plan.get("source_kind") or "conversation_code_block")
                 target_path.write_text(
                     f"# materialized_from_conversation_bundle\n"
                     f"# bundle_id: {bundle_id}\n"
-                    f"# language: {language}\n\n"
-                    f"{content_preview}\n",
+                    f"# language: {language}\n"
+                    f"# provider: {provider}\n"
+                    f"# source_kind: {source_kind}\n\n"
+                    f"{content_full}\n",
                     encoding="utf-8",
                 )
                 materialized_files.append(
@@ -70,6 +108,8 @@ class ConversationRepoMaterializationService:
                         "materialized_file": str(target_path),
                         "language": language,
                         "line_count": int(file_plan.get("line_count") or 0),
+                        "provider": provider,
+                        "source_kind": source_kind,
                     }
                 )
 
@@ -80,6 +120,7 @@ class ConversationRepoMaterializationService:
                         "bundle_id": bundle_id,
                         "repository_name": repo_name,
                         "bundle_dir": str(bundle_dir),
+                        "source_mode": plan.get("source_mode") or "raw_plan",
                         "materialized_files": materialized_files,
                     },
                     ensure_ascii=False,
@@ -98,6 +139,7 @@ class ConversationRepoMaterializationService:
             "manifest_file": str(manifest_path),
             "materialized_count": len(materialized_files),
             "materialized_files": materialized_files,
+            "source_mode": plan.get("source_mode") or "raw_plan",
         }
 
     def get_package(self) -> Dict[str, Any]:
