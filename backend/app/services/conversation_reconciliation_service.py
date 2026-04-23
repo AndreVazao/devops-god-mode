@@ -35,6 +35,19 @@ class ConversationReconciliationService:
         language = str(block.get("language") or "text")
         return f"generated/unknown_{index}.{language}"
 
+    def _candidate_score(self, block: Dict[str, Any]) -> int:
+        score = int(block.get("line_count") or 0)
+        provider = str(block.get("provider") or "unknown").lower()
+        if provider == "chatgpt":
+            score += 3
+        elif provider == "claude":
+            score += 2
+        elif provider in {"gemini", "deepseek", "grok"}:
+            score += 1
+        if block.get("path_hint"):
+            score += 2
+        return score
+
     def reconcile_bundle(self, bundle_id: str) -> Dict[str, Any]:
         bundle = conversation_bundle_service.get_bundle(bundle_id)
         if not bundle:
@@ -71,10 +84,12 @@ class ConversationReconciliationService:
                         "candidate_count": len(unique_blocks),
                         "languages": sorted(list({str(item.get('language') or 'text') for item in unique_blocks})),
                         "line_counts": [int(item.get("line_count") or 0) for item in unique_blocks],
+                        "providers": sorted(list({str(item.get('provider') or 'unknown') for item in unique_blocks})),
                     }
                 )
 
-            chosen = sorted(unique_blocks, key=lambda item: int(item.get("line_count") or 0), reverse=True)[0]
+            ranked_blocks = sorted(unique_blocks, key=self._candidate_score, reverse=True)
+            chosen = ranked_blocks[0]
             deduplicated_blocks.append(
                 {
                     "destination_path": destination_path,
@@ -82,6 +97,10 @@ class ConversationReconciliationService:
                     "line_count": chosen.get("line_count"),
                     "code": chosen.get("code"),
                     "path_hint": chosen.get("path_hint") or destination_path,
+                    "provider": chosen.get("provider") or "unknown",
+                    "session_id": chosen.get("session_id"),
+                    "confidence_score": self._candidate_score(chosen),
+                    "alternate_candidate_count": max(0, len(unique_blocks) - 1),
                     "source_status": "conflict_selected" if len(unique_blocks) > 1 else "single_or_deduplicated",
                 }
             )
