@@ -12,6 +12,10 @@ class PreviewBundleRequest(BaseModel):
     title: str | None = None
 
 
+class PreviewBundleArchiveRequest(BaseModel):
+    bundle_name: str
+
+
 @router.get('/status')
 async def status():
     return preview_packaging_service.get_status()
@@ -28,4 +32,11 @@ async def create_preview_bundle(payload: PreviewBundleRequest):
         bundle_name=payload.bundle_name,
         workspace_files=payload.workspace_files,
         title=payload.title,
+    )
+
+
+@router.post('/create-preview-archive')
+async def create_preview_archive(payload: PreviewBundleArchiveRequest):
+    return preview_packaging_service.create_bundle_archive(
+        bundle_name=payload.bundle_name,
     )
