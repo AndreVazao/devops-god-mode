@@ -187,6 +187,26 @@ jobs:
               fetched_binary_workspace = local_asset_workspace_service.materialize_staged_asset_to_disk(
                   fetched_binary["staged_asset"]["staged_asset_id"]
               )
+              fetched_binary_restaged = workspace_publish_bridge_service.restage_workspace_file(
+                  workspace_file=fetched_binary_workspace["workspace_file"],
+                  asset_role="brand_icon_png_copy",
+                  source_ref="workspace://workflow/fetched-binary",
+                  project_hint="workflow_test",
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  destination_path="assets/fetched/favicon-copy.png",
+                  content_kind="workspace_binary",
+              )
+              fetched_binary_publish = await workspace_publish_bridge_service.publish_workspace_file(
+                  workspace_file=fetched_binary_workspace["workspace_file"],
+                  asset_role="brand_icon_png_publish",
+                  source_ref="workspace://workflow/fetched-binary-publish",
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  destination_path="assets/fetched/favicon-publish.png",
+                  project_hint="workflow_test",
+                  branch="main",
+                  content_kind="workspace_binary",
+                  dry_run=True,
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -230,6 +250,12 @@ jobs:
               assert fetched_binary["fetch_status"] == "fetched_and_staged"
               assert fetched_binary["payload_mode"] == "binary"
               assert fetched_binary_workspace["materialization_status"] == "materialized_to_workspace"
+              assert fetched_binary_restaged["restage_status"] == "restaged_from_workspace"
+              assert fetched_binary_restaged["payload_mode"] == "binary"
+              assert fetched_binary_restaged["content_kind"] == "workspace_binary"
+              assert fetched_binary_restaged["file_extension"] == ".png"
+              assert fetched_binary_restaged["file_size"] > 0
+              assert fetched_binary_publish["publish_status"] == "dry_run_ready"
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -282,5 +308,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, protected fetch runtime, binary fetch materialization, local workspace, transformation, workspace publish bridge, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, protected fetch runtime, binary fetch materialization, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
