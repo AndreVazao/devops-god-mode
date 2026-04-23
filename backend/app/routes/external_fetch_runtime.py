@@ -13,6 +13,10 @@ class FetchUrlToStageRequest(BaseModel):
     repository_full_name: str | None = None
     destination_path: str | None = None
     source_type: str = "external_url"
+    auth_mode: str | None = None
+    auth_value: str | None = None
+    extra_headers: dict[str, str] | None = None
+    user_agent: str | None = None
 
 
 @router.get('/status')
@@ -34,4 +38,8 @@ async def fetch_url_to_stage(payload: FetchUrlToStageRequest):
         repository_full_name=payload.repository_full_name,
         destination_path=payload.destination_path,
         source_type=payload.source_type,
+        auth_mode=payload.auth_mode,
+        auth_value=payload.auth_value,
+        extra_headers=payload.extra_headers,
+        user_agent=payload.user_agent,
     )
