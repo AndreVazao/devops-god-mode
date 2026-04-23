@@ -55,6 +55,7 @@ jobs:
           from app.services.conversation_reconciliation_service import conversation_reconciliation_service
           from app.services.conversation_repo_materialization_service import conversation_repo_materialization_service
           from app.services.intelligent_completion_planner_service import intelligent_completion_planner_service
+          from app.services.intelligent_merge_guard_service import intelligent_merge_guard_service
           from app.services.intelligent_patch_synthesis_service import intelligent_patch_synthesis_service
           from app.services.intelligent_patch_apply_service import intelligent_patch_apply_service
           from app.services.intelligent_repo_merge_service import intelligent_repo_merge_service
@@ -108,6 +109,7 @@ jobs:
                   "/api/intelligent-patch-apply/status",
                   "/api/intelligent-repo-merge/status",
                   "/api/intelligent-repo-state/status",
+                  "/api/intelligent-merge-guard/status",
               }
               missing = sorted(required_routes - route_paths)
               assert not missing, f"Missing routes: {missing}"
@@ -140,6 +142,7 @@ jobs:
               repo_merge = intelligent_repo_merge_service.merge_applied_patch(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"], overwrite_existing=True)
               repo_state = intelligent_repo_state_service.inspect_merge_workspace(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo")
               repo_prepare = intelligent_repo_state_service.prepare_merge_with_inspection(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"], overwrite_existing=True)
+              merge_guard = intelligent_merge_guard_service.evaluate_merge_workspace(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo")
 
               staged_asset = external_asset_intake_service.stage_asset_request(source_type="browser_web_service", source_ref="inline://workflow-test/icon.svg", asset_role="icon", project_hint="workflow_test", repository_full_name="AndreVazao/devops-god-mode", destination_path="assets/icons/example-icon.svg", content_text="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'><circle cx='4' cy='4' r='3'/></svg>", content_kind="svg_text")
               materialized = await external_asset_materialization_service.materialize_github_file_to_stage(repository_full_name="AndreVazao/devops-god-mode", file_path="README.md", asset_role="reference_doc", project_hint="workflow_test", destination_path="assets/reference/README.md", ref="main")
@@ -193,6 +196,9 @@ jobs:
               assert repo_state["file_count"] >= 2
               assert repo_prepare["ok"] is True
               assert repo_prepare["prepare_status"] == "merge_and_inspection_ready"
+              assert merge_guard["ok"] is True
+              assert merge_guard["guard_status"] == "merge_guard_evaluated"
+              assert sum(merge_guard["counts"].values()) >= 2
               assert materialized["materialization_status"] in {"materialized_to_stage", "github_not_configured"}
               assert transformed["transformation_status"] == "transformed"
               assert restaged["restage_status"] == "restaged_from_workspace"
@@ -221,6 +227,7 @@ jobs:
               assert Path(repo_merge["merged_files"][0]["merged_file"]).exists()
               assert Path(repo_state["manifest_file"]).exists()
               assert Path(repo_prepare["inspection"]["manifest_file"]).exists()
+              assert Path(merge_guard["manifest_file"]).exists()
               assert Path(preview_bundle["index_file"]).exists()
               assert Path(preview_archive["archive_file"]).exists()
               print("universal total test passed")
@@ -242,5 +249,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Multi-provider conversation intake, reconciliation, capability reuse, intelligent completion planning, intelligent patch synthesis, intelligent patch apply, controlled repo merge and merge workspace inspection were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Multi-provider conversation intake, reconciliation, capability reuse, intelligent completion planning, intelligent patch synthesis, intelligent patch apply, controlled repo merge, merge workspace inspection and merge guard decisions were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
