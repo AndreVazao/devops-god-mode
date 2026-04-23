@@ -141,7 +141,7 @@ for r in [
     browser_conversation_intake_router, browser_continuation_execution_router,
     browser_response_reconciliation_router, build_artifact_harvest_router, build_catalog_router,
     bundle_publish_link_router, final_delivery_router, delivery_acknowledgment_router,
-    delivery_history_router, deploy_executionPlan_router, deploy_target_execution_router,
+    delivery_history_router, deploy_execution_plan_router, deploy_target_execution_router,
     deployment_secret_binding_router, env_intake_router, env_vault_import_router,
     external_provider_bridge_router, final_summary_router, github_actions_connector_router,
     guarded_deploy_promotion_router, provider_connector_registry_router,
