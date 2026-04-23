@@ -84,6 +84,7 @@ from app.routes.operator_approval_gate import router as operator_approval_gate_r
 from app.routes.operator_conversation_thread import router as operator_conversation_thread_router
 from app.routes.operator_input_request import router as operator_input_request_router
 from app.routes.operator_pending_attention import router as operator_pending_attention_router
+from app.routes.operator_popup_delivery import router as operator_popup_delivery_router
 from app.routes.operator_response_guidance import router as operator_response_guidance_router
 from app.routes.operator_resumable_action import router as operator_resumable_action_router
 from app.routes.packaging_foundation import router as packaging_foundation_router
@@ -179,20 +180,20 @@ for r in [
     runtime_supervisor_router, local_pc_runtime_router, action_center_router,
     operation_queue_router, chat_inventory_router, operator_approval_gate_router,
     operator_conversation_thread_router, operator_input_request_router,
-    operator_pending_attention_router, operator_response_guidance_router,
-    operator_resumable_action_router, repo_env_harvest_router, script_reuse_router,
-    adaptation_planner_router, conversation_organization_router, browser_control_real_router,
-    mobile_cockpit_router, driving_mode_router, context_orchestration_router,
-    android_real_pipeline_router, android_real_build_router,
-    android_real_build_progressive_router, android_progressive_binding_router,
-    multi_ai_repair_router, project_recovery_router, project_recovery_execution_router,
-    project_recovery_local_apply_router, project_recovery_real_write_router,
-    project_recovery_write_candidate_router, project_recovery_write_run_router,
-    project_recovery_write_queue_router, project_recovery_write_submit_router,
-    project_recovery_write_create_router, project_recovery_write_dispatch_router,
-    project_recovery_write_guard_router, project_recovery_write_materialize_router,
-    project_recovery_write_execution_router, project_recovery_write_approval_cockpit_router,
-    project_recovery_write_remote_command_router,
+    operator_pending_attention_router, operator_popup_delivery_router,
+    operator_response_guidance_router, operator_resumable_action_router,
+    repo_env_harvest_router, script_reuse_router, adaptation_planner_router,
+    conversation_organization_router, browser_control_real_router, mobile_cockpit_router,
+    driving_mode_router, context_orchestration_router, android_real_pipeline_router,
+    android_real_build_router, android_real_build_progressive_router,
+    android_progressive_binding_router, multi_ai_repair_router, project_recovery_router,
+    project_recovery_execution_router, project_recovery_local_apply_router,
+    project_recovery_real_write_router, project_recovery_write_candidate_router,
+    project_recovery_write_run_router, project_recovery_write_queue_router,
+    project_recovery_write_submit_router, project_recovery_write_create_router,
+    project_recovery_write_dispatch_router, project_recovery_write_guard_router,
+    project_recovery_write_materialize_router, project_recovery_write_execution_router,
+    project_recovery_write_approval_cockpit_router, project_recovery_write_remote_command_router,
     project_recovery_write_mobile_action_execution_router, secret_vault_router,
     shared_secret_topology_router, tenant_browser_onboarding_executor_router,
     tenant_multirepo_linkage_router, tenant_partition_router, tenant_provider_onboarding_router,
