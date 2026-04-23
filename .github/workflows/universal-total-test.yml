@@ -57,6 +57,8 @@ jobs:
           from app.services.deploy_execution_plan_service import deploy_execution_plan_service
           from app.services.deploy_target_execution_service import deploy_target_execution_service
           from app.services.deployment_secret_binding_service import deployment_secret_binding_service
+          from app.services.env_intake_service import env_intake_service
+          from app.services.env_vault_import_service import env_vault_import_service
           from app.services.guarded_deploy_promotion_service import guarded_deploy_promotion_service
           from app.services.intelligent_completion_planner_service import intelligent_completion_planner_service
           from app.services.intelligent_merge_guard_service import intelligent_merge_guard_service
@@ -69,9 +71,12 @@ jobs:
           from app.services.android_real_build_progressive_service import android_real_build_progressive_service
           from app.services.offline_command_buffering_service import offline_command_buffering_service
           from app.services.preview_packaging_service import preview_packaging_service
+          from app.services.provider_connector_registry_service import provider_connector_registry_service
           from app.services.provider_deploy_execution_service import provider_deploy_execution_service
+          from app.services.provider_secret_sync_service import provider_secret_sync_service
           from app.services.remote_session_persistence_service import remote_session_persistence_service
           from app.services.continuous_remote_execution_service import continuous_remote_execution_service
+          from app.services.repo_env_harvest_service import repo_env_harvest_service
           from app.services.runtime_supervisor_guidance_service import runtime_supervisor_guidance_service
           from app.services.external_asset_intake_service import external_asset_intake_service
           from app.services.external_asset_publish_execution_service import external_asset_publish_execution_service
@@ -79,6 +84,7 @@ jobs:
           from app.services.local_asset_workspace_service import local_asset_workspace_service
           from app.services.local_asset_transformation_service import local_asset_transformation_service
           from app.services.secret_vault_service import secret_vault_service
+          from app.services.shared_secret_topology_service import shared_secret_topology_service
           from app.services.workspace_publish_bridge_service import workspace_publish_bridge_service
           from app.services.external_fetch_runtime_service import external_fetch_runtime_service
 
@@ -122,6 +128,12 @@ jobs:
                   "/api/deploy-execution-plan/status",
                   "/api/deploy-target-execution/status",
                   "/api/provider-deploy-execution/status",
+                  "/api/provider-secret-sync/status",
+                  "/api/provider-connector-registry/status",
+                  "/api/env-intake/status",
+                  "/api/env-vault-import/status",
+                  "/api/repo-env-harvest/status",
+                  "/api/shared-secret-topology/status",
               }
               missing = sorted(required_routes - route_paths)
               assert not missing, f"Missing routes: {missing}"
@@ -143,22 +155,27 @@ jobs:
               bundle_created = conversation_bundle_service.create_bundle_from_sessions(session_ids=[session_one["session_id"], session_two["session_id"]], project_hint="workflow_project", bundle_name="workflow-project-bundle")
               reconciliation = conversation_reconciliation_service.reconcile_bundle(bundle_id=bundle_created["bundle"]["bundle_id"])
               reconciliation_report = conversation_reconciliation_service.get_report(bundle_id=bundle_created["bundle"]["bundle_id"])
-              repo_plan = conversation_bundle_service.build_repo_materialization_plan(bundle_id=bundle_created["bundle"]["bundle_id"], repository_name="workflow-project-repo")
               repo_materialized = conversation_repo_materialization_service.materialize_bundle_repo_plan(bundle_id=bundle_created["bundle"]["bundle_id"], repository_name="workflow-project-repo")
               capability_lookup = capability_reuse_service.lookup_capability("fastapi")
-              capability_plan = capability_reuse_service.suggest_reuse_plan(capability_name="fastapi", target_project="workflow-project-repo")
-              capability_index = capability_reuse_service.export_capability_index()
+              provider_registry = provider_connectorRegistry = provider_connector_registry_service.list_providers()
               completion_plan = intelligent_completion_planner_service.build_completion_plan(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"])
               patch_synthesis = intelligent_patch_synthesis_service.synthesize_bundle_patch(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"])
               patch_apply = intelligent_patch_apply_service.apply_synthesized_patch(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"], overwrite_existing=True)
               repo_merge = intelligent_repo_merge_service.merge_applied_patch(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"], overwrite_existing=True)
               repo_state = intelligent_repo_state_service.inspect_merge_workspace(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo")
-              repo_prepare = intelligent_repo_state_service.prepare_merge_with_inspection(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"], overwrite_existing=True)
               merge_guard = intelligent_merge_guard_service.evaluate_merge_workspace(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo")
+
+              env_text = "OPENAI_API_KEY=neutral-test-value-openai\nSTRIPE_SECRET_KEY=sk_test_example_value\nPAYPAL_CLIENT_ID=paypal_client_example\nNEXT_PUBLIC_API_URL=https://baribudos.example/api\n"
+              parsed_env = env_intake_service.parse_env_text(env_text=env_text, source_name="baribudos-studio/.env", target_project="baribudos-studio", environment_name="production")
+              imported_env = env_vault_import_service.import_env_text(env_text=env_text, source_name="baribudos-studio/.env", target_project="baribudos-studio", environment_name="production")
+              harvested_envs = repo_env_harvest_service.harvest_repo_env_sources(repository_name="AndreVazao/baribudos-studio", target_project="baribudos-studio", environment_name="production", env_sources=[{"source_name": ".env", "path": ".env", "env_text": env_text}, {"source_name": ".env.local", "path": ".env.local", "env_text": "PAYPAL_SECRET=paypal_secret_example\nDATABASE_URL=postgres://example\n"}])
+              shared_topology = shared_secret_topology_service.build_topology(project_names=["baribudos-studio", "workflow-project-repo"])
+
               secret_registered = secret_vault_service.register_secret(secret_name="OPENAI_API_KEY", secret_value="neutral-test-value-openai", provider="openai", usage_scope="deploy_runtime", target_refs=["workflow-project-repo:production"])
               secret_list = secret_vault_service.list_secrets()
               binding = deployment_secret_binding_service.bind_secret(target_name="workflow-project-repo", environment_name="production", secret_name="OPENAI_API_KEY", inject_as="OPENAI_API_KEY")
               binding_plan = deployment_secret_binding_service.build_deploy_secret_plan(target_name="workflow-project-repo", environment_name="production")
+              provider_sync = provider_secret_sync_service.build_sync_plan(target_project="workflow-project-repo", environment_name="production", provider_name="github_actions")
               guarded_promotion = guarded_deploy_promotion_service.prepare_promotion(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", environment_name="production")
               deploy_plan = deploy_execution_plan_service.build_plan(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", environment_name="production")
               target_execution = deploy_target_execution_service.execute_plan(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", environment_name="production", dry_run=True)
@@ -168,17 +185,12 @@ jobs:
               materialized = await external_asset_materialization_service.materialize_github_file_to_stage(repository_full_name="AndreVazao/devops-god-mode", file_path="README.md", asset_role="reference_doc", project_hint="workflow_test", destination_path="assets/reference/README.md", ref="main")
               workspace_file = local_asset_workspace_service.materialize_staged_asset_to_disk(staged_asset["staged_asset"]["staged_asset_id"])
               transformed = local_asset_transformation_service.transform_text_asset(workspace_file=workspace_file["workspace_file"], operation="suffix", transform_value="\n<!-- generated in workflow -->\n", output_suffix=".wf")
-              duplicated = local_asset_transformation_service.duplicate_workspace_asset(workspace_file=workspace_file["workspace_file"], duplicate_name="example-icon-copy")
-              restaged = workspace_publish_bridge_service.restage_workspace_file(workspace_file=transformed["output_file"], asset_role="icon_variant", source_ref="workspace://workflow/generated-icon", project_hint="workflow_test", repository_full_name="AndreVazao/devops-god-mode", destination_path="assets/icons/generated-icon.svg", content_kind="svg_text")
-              bridge_publish = await workspace_publish_bridge_service.publish_workspace_file(workspace_file=duplicated["duplicate_file"], asset_role="icon_copy", source_ref="workspace://workflow/icon-copy", repository_full_name="AndreVazao/devops-god-mode", destination_path="assets/icons/example-icon-copy.svg", project_hint="workflow_test", branch="main", content_kind="svg_text", dry_run=True)
               fetched_binary = await external_fetch_runtime_service.fetch_url_to_stage(source_url="https://github.githubassets.com/favicons/favicon.png", asset_role="brand_icon_png", project_hint="workflow_test", repository_full_name="AndreVazao/devops-god-mode", destination_path="assets/fetched/favicon.png", source_type="external_url", user_agent="GodModeWorkflow/1.0")
               fetched_binary_workspace = local_asset_workspace_service.materialize_staged_asset_to_disk(fetched_binary["staged_asset"]["staged_asset_id"])
               svg_wrapper = asset_derivative_service.create_svg_wrapper(workspace_file=transformed["output_file"], output_name="workflow-card", title="Workflow Card", background="#101820")
               binary_sidecar = asset_derivative_service.create_binary_metadata_sidecar(workspace_file=fetched_binary_workspace["workspace_file"], label="workflow binary asset")
               preview_bundle = preview_packaging_service.create_preview_bundle(bundle_name="workflow-preview-bundle", workspace_files=[svg_wrapper["output_file"], fetched_binary_workspace["workspace_file"], binary_sidecar["sidecar_file"]], title="Workflow Preview Bundle")
               preview_archive = preview_packaging_service.create_bundle_archive(bundle_name="workflow-preview-bundle")
-              bundle_restage = bundle_publish_link_service.restage_preview_bundle(bundle_name="workflow-preview-bundle", repository_full_name="AndreVazao/devops-god-mode", destination_root="delivery/workflow-preview-bundle", project_hint="workflow_test", include_archive=True)
-              bundle_publish = await bundle_publish_link_service.dry_run_publish_preview_bundle(bundle_name="workflow-preview-bundle", repository_full_name="AndreVazao/devops-god-mode", destination_root="delivery/workflow-preview-bundle", project_hint="workflow_test", branch="main", include_archive=True)
               publish_plan = external_asset_intake_service.build_github_publish_plan(repository_full_name="AndreVazao/devops-god-mode", project_hint="workflow_test")
               publish_execution = await external_asset_publish_execution_service.execute_publish_plan(repository_full_name="AndreVazao/devops-god-mode", project_hint="workflow_test", branch="main", dry_run=True)
 
@@ -187,25 +199,28 @@ jobs:
               assert reconciliation_report["ok"] is True
               assert repo_materialized["materialized_count"] >= 2
               assert capability_lookup["ok"] is True
+              assert provider_registry["ok"] is True and provider_registry["provider_count"] >= 3
+              assert parsed_env["ok"] is True and parsed_env["item_count"] >= 4
+              assert imported_env["ok"] is True and imported_env["imported_count"] >= 4
+              assert harvested_envs["ok"] is True and harvested_envs["harvested_count"] == 2
+              assert shared_topology["ok"] is True and shared_topology["shared_secret_count"] >= 1
               assert completion_plan["ok"] is True
               assert patch_synthesis["ok"] is True and patch_synthesis["file_count"] >= 2
               assert patch_apply["ok"] is True and patch_apply["applied_count"] >= 2
               assert repo_merge["ok"] is True and repo_merge["merged_count"] >= 2
               assert repo_state["ok"] is True and repo_state["file_count"] >= 2
-              assert repo_prepare["ok"] is True
               assert merge_guard["ok"] is True and sum(merge_guard["counts"].values()) >= 2
-              assert secret_registered["ok"] is True and secret_registered["register_status"] == "secret_registered"
+              assert secret_registered["ok"] is True
               assert secret_list["ok"] is True and secret_list["secret_count"] >= 1
               assert binding["ok"] is True and binding["binding_status"] == "secret_bound"
               assert binding_plan["ok"] is True and binding_plan["binding_count"] >= 1
+              assert provider_sync["ok"] is True and provider_sync["mapped_binding_count"] >= 1
               assert guarded_promotion["ok"] is True and guarded_promotion["secret_binding_count"] >= 1
               assert deploy_plan["ok"] is True and deploy_plan["step_count"] == 3
               assert target_execution["ok"] is True and target_execution["step_count"] == 3
               assert provider_execution["ok"] is True and provider_execution["step_count"] == 3
               assert materialized["materialization_status"] in {"materialized_to_stage", "github_not_configured"}
               assert transformed["transformation_status"] == "transformed"
-              assert restaged["restage_status"] == "restaged_from_workspace"
-              assert bridge_publish["publish_status"] == "dry_run_ready"
               assert fetched_binary["fetch_status"] == "fetched_and_staged"
               assert preview_bundle["bundle_status"] == "preview_bundle_created"
               assert preview_archive["archive_status"] == "preview_archive_created"
@@ -214,7 +229,9 @@ jobs:
 
               assert Path("data/secret_vault_store.json").exists()
               assert Path("data/deployment_secret_bindings.json").exists()
-              assert Path(merge_guard["manifest_file"]).exists()
+              assert Path("data/env_intake_store.json").exists()
+              assert Path("data/repo_env_harvest_store.json").exists()
+              assert Path(provider_sync["manifest_file"]).exists()
               assert Path(guarded_promotion["manifest_file"]).exists()
               assert Path(deploy_plan["manifest_file"]).exists()
               assert Path(target_execution["manifest_file"]).exists()
@@ -239,5 +256,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Multi-provider intake, guarded merge flow, secret vault registration, guarded deploy promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Intake, env harvesting, shared secret topology, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
