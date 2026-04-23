@@ -111,6 +111,7 @@ from app.routes.provider_deploy_execution import router as provider_deploy_execu
 from app.routes.provider_live_capability import router as provider_live_capability_router
 from app.routes.provider_real_execution_guard import router as provider_real_execution_guard_router
 from app.routes.provider_secret_sync import router as provider_secret_sync_router
+from app.routes.provider_session_partition import router as provider_session_partition_router
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
 from app.routes.remote_brain_linkage import router as remote_brain_linkage_router
@@ -121,6 +122,8 @@ from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_
 from app.routes.script_extraction_reuse import router as script_reuse_router
 from app.routes.secret_vault import router as secret_vault_router
 from app.routes.shared_secret_topology import router as shared_secret_topology_router
+from app.routes.tenant_partition import router as tenant_partition_router
+from app.routes.tenant_scoped_vault_projection import router as tenant_scoped_vault_projection_router
 from app.routes.workspace_publish_bridge import router as workspace_publish_bridge_router
 from app.routes.write_verify_rollback import router as write_verify_rollback_router
 
@@ -141,7 +144,7 @@ for r in [
     guarded_deploy_promotion_router, provider_connector_registry_router,
     provider_deploy_execution_router, provider_live_capability_router,
     provider_real_execution_guard_router, provider_secret_sync_router,
-    remote_brain_linkage_router, remote_channel_stability_router,
+    provider_session_partition_router, remote_brain_linkage_router, remote_channel_stability_router,
     remote_session_persistence_router, continuous_remote_execution_router,
     offline_command_buffering_router, external_asset_intake_router,
     external_asset_materialization_router, external_asset_publish_router,
@@ -179,7 +182,7 @@ for r in [
     project_recovery_write_execution_router, project_recovery_write_approval_cockpit_router,
     project_recovery_write_remote_command_router,
     project_recovery_write_mobile_action_execution_router, secret_vault_router,
-    shared_secret_topology_router,
+    shared_secret_topology_router, tenant_partition_router, tenant_scoped_vault_projection_router,
 ]:
     app.include_router(r)
 
