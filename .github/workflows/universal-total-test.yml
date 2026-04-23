@@ -49,6 +49,7 @@ jobs:
           from app.services.asset_derivative_service import asset_derivative_service
           from app.services.browser_conversation_intake_service import browser_conversation_intake_service
           from app.services.bundle_publish_link_service import bundle_publish_link_service
+          from app.services.capability_reuse_service import capability_reuse_service
           from app.services.context_aware_orchestration_service import context_aware_orchestration_service
           from app.services.conversation_bundle_service import conversation_bundle_service
           from app.services.conversation_reconciliation_service import conversation_reconciliation_service
@@ -93,6 +94,7 @@ jobs:
                   "/api/asset-derivative/status",
                   "/api/preview-packaging/status",
                   "/api/bundle-publish-link/status",
+                  "/api/capability-reuse/status",
                   "/api/conversation-bundles/status",
                   "/api/conversation-reconciliation/status",
                   "/api/conversation-repo-materialization/status",
@@ -159,6 +161,12 @@ jobs:
                   bundle_id=bundle_created["bundle"]["bundle_id"],
                   repository_name="workflow-project-repo",
               )
+              capability_lookup = capability_reuse_service.lookup_capability("fastapi")
+              capability_plan = capability_reuse_service.suggest_reuse_plan(
+                  capability_name="fastapi",
+                  target_project="workflow-project-repo",
+              )
+              capability_index = capability_reuse_service.export_capability_index()
 
               staged_asset = external_asset_intake_service.stage_asset_request(
                   source_type="browser_web_service",
@@ -212,6 +220,11 @@ jobs:
               assert repo_materialized["materialization_status"] == "repo_plan_materialized"
               assert repo_materialized["materialized_count"] >= 2
               assert repo_materialized["source_mode"] == "reconciled_report"
+              assert capability_lookup["ok"] is True
+              assert capability_lookup["match_count"] >= 1
+              assert capability_plan["ok"] is True
+              assert capability_plan["reuse_candidate_count"] >= 1
+              assert capability_index["ok"] is True
               assert materialized["materialization_status"] in {"materialized_to_stage", "github_not_configured"}
               assert transformed["transformation_status"] == "transformed"
               assert restaged["restage_status"] == "restaged_from_workspace"
@@ -229,6 +242,7 @@ jobs:
               assert Path("data/browser_conversation_intake_store.json").exists()
               assert Path("data/conversation_bundle_store.json").exists()
               assert Path("data/conversation_reconciliation_store.json").exists()
+              assert Path("data/capability_reuse_index.json").exists()
               assert Path(repo_materialized["manifest_file"]).exists()
               assert Path(repo_materialized["materialized_files"][0]["materialized_file"]).exists()
               assert Path(preview_bundle["index_file"]).exists()
@@ -252,5 +266,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Multi-provider conversation intake, reconciliation, repo planning, repo materialization, packaging and delivery dry-runs were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Multi-provider conversation intake, reconciliation, capability reuse, repo planning, repo materialization, packaging and delivery dry-runs were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
