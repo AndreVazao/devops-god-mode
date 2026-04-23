@@ -53,6 +53,7 @@ jobs:
           from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
           from app.services.android_real_build_progressive_service import android_real_build_progressive_service
           from app.services.offline_command_buffering_service import offline_command_buffering_service
+          from app.services.preview_packaging_service import preview_packaging_service
           from app.services.remote_session_persistence_service import remote_session_persistence_service
           from app.services.continuous_remote_execution_service import continuous_remote_execution_service
           from app.services.runtime_supervisor_guidance_service import runtime_supervisor_guidance_service
@@ -87,6 +88,7 @@ jobs:
                   "/api/workspace-publish-bridge/status",
                   "/api/external-fetch-runtime/status",
                   "/api/asset-derivative/status",
+                  "/api/preview-packaging/status",
               }
 
               missing = sorted(required_routes - route_paths)
@@ -220,6 +222,16 @@ jobs:
                   workspace_file=fetched_binary_workspace["workspace_file"],
                   label="workflow binary asset",
               )
+              preview_status = preview_packaging_service.get_status()
+              preview_bundle = preview_packaging_service.create_preview_bundle(
+                  bundle_name="workflow-preview-bundle",
+                  workspace_files=[
+                      svg_wrapper["output_file"],
+                      fetched_binary_workspace["workspace_file"],
+                      binary_sidecar["sidecar_file"],
+                  ],
+                  title="Workflow Preview Bundle",
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -272,6 +284,9 @@ jobs:
               assert derivative_status["ok"] is True
               assert svg_wrapper["derivative_status"] == "svg_wrapper_created"
               assert binary_sidecar["derivative_status"] == "binary_sidecar_created"
+              assert preview_status["ok"] is True
+              assert preview_bundle["bundle_status"] == "preview_bundle_created"
+              assert preview_bundle["asset_count"] == 3
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -307,6 +322,8 @@ jobs:
               assert Path(svg_wrapper["output_file"]).exists(), "Expected svg wrapper output to exist"
               assert Path(svg_wrapper["manifest_file"]).exists(), "Expected svg wrapper manifest to exist"
               assert Path(binary_sidecar["sidecar_file"]).exists(), "Expected binary sidecar to exist"
+              assert Path(preview_bundle["index_file"]).exists(), "Expected preview bundle index to exist"
+              assert Path(preview_bundle["manifest_file"]).exists(), "Expected preview bundle manifest to exist"
               print("universal total test passed")
 
           asyncio.run(run_checks())
@@ -327,5 +344,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, protected fetch runtime, binary fetch materialization, asset derivatives, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, protected fetch runtime, asset derivatives, preview packaging, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
