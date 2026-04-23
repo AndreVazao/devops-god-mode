@@ -71,6 +71,7 @@ jobs:
           from app.services.android_real_build_progressive_service import android_real_build_progressive_service
           from app.services.offline_command_buffering_service import offline_command_buffering_service
           from app.services.operator_approval_gate_service import operator_approval_gate_service
+          from app.services.operator_chat_runtime_snapshot_service import operator_chat_runtime_snapshot_service
           from app.services.operator_conversation_thread_service import operator_conversation_thread_service
           from app.services.operator_input_request_service import operator_input_request_service
           from app.services.operator_pending_attention_service import operator_pending_attention_service
@@ -106,6 +107,7 @@ jobs:
               required_routes = {
                   "/health",
                   "/app/operator-chat",
+                  "/api/operator-chat-runtime-snapshot/status",
                   "/api/browser-intake/status",
                   "/api/browser-control/status",
                   "/api/mobile-cockpit/status",
@@ -167,6 +169,7 @@ jobs:
 
               assert context_aware_orchestration_service.get_context_summary()["ok"] is True
               assert mobile_cockpit_command_surface_service.get_summary()["ok"] is True
+              assert operator_chat_runtime_snapshot_service.get_status()["ok"] is True
               repair = multi_ai_intake_and_script_repair_service.get_broken_scripts()
               assert repair["ok"] is True and repair["issues"]
               assert android_real_build_progressive_service.get_summary()["ok"] is True
@@ -184,7 +187,7 @@ jobs:
               reconciliation_report = conversation_reconciliation_service.get_report(bundle_id=bundle_created["bundle"]["bundle_id"])
               repo_materialized = conversation_repo_materialization_service.materialize_bundle_repo_plan(bundle_id=bundle_created["bundle"]["bundle_id"], repository_name="workflow-project-repo")
               capability_lookup = capability_reuse_service.lookup_capability("fastapi")
-              provider_registry = provider_connector_registry_service.list_providers()
+              provider_registry = provider_connectorRegistry_service.list_providers()
               completion_plan = intelligent_completion_planner_service.build_completion_plan(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"])
               patch_synthesis = intelligent_patch_synthesis_service.synthesize_bundle_patch(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"])
               patch_apply = intelligent_patch_apply_service.apply_synthesized_patch(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"], overwrite_existing=True)
@@ -207,6 +210,7 @@ jobs:
               popup_delivered = operator_popup_delivery_service.mark_delivered(delivery_id=popup_delivery["delivery"]["delivery_id"])
               approval_gate = operator_approval_gate_service.create_gate(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], action_label="Continuar login automatizado", action_scope="provider_login", action_payload_summary="Vai transcrever o próximo input do operador para o fluxo do provider.", risk_level="medium")
               resumable_action = operator_resumable_action_service.create_action(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], provider_name="ctt", action_kind="provider_login_flow", purpose_summary="Continuar login no site CTT depois de sincronizar input offline.", resume_strategy="retry_from_latest_safe_checkpoint", requires_fresh_provider_session=True)
+              snapshot = operator_chat_runtime_snapshot_service.build_snapshot(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"])
               attention_feed = operator_pending_attention_service.build_attention_feed(tenant_id="owner-andre")
               submit_input = operator_input_request_service.submit_request(request_id=input_request["request"]["request_id"], submitted_value="my-secure-value")
               popup_ack = operator_popup_delivery_service.acknowledge_response(delivery_id=popup_delivery["delivery"]["delivery_id"])
@@ -266,6 +270,8 @@ jobs:
               assert popup_delivered["ok"] is True and popup_delivered["mark_status"] == "popup_delivered"
               assert approval_gate["ok"] is True and approval_gate["create_status"] == "approval_gate_created"
               assert resumable_action["ok"] is True and resumable_action["create_status"] == "resumable_action_created"
+              assert snapshot["ok"] is True and snapshot["thread_count"] >= 1
+              assert snapshot["active_thread"]["ok"] is True
               assert attention_feed["ok"] is True and attention_feed["waiting_thread_count"] >= 1
               assert submit_input["ok"] is True and submit_input["submit_status"] == "input_received"
               assert popup_ack["ok"] is True and popup_ack["ack_status"] == "operator_response_acknowledged"
@@ -315,6 +321,8 @@ jobs:
               assert Path("data/operator_popup_deliveries.json").exists()
               assert Path("data/operator_resumable_actions.json").exists()
               assert Path("backend/app/routes/operator_chat_frontend.py").exists()
+              assert Path("backend/app/routes/operator_chat_runtime_snapshot.py").exists()
+              assert Path("docs/frontend/operator-chat-runtime-snapshot-api.md").exists()
               assert Path(tenant_onboarding["manifest_file"]).exists()
               assert Path(browser_executor["manifest_file"]).exists()
               assert Path(multirepo_linkage["manifest_file"]).exists()
@@ -343,5 +351,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Operator chat frontend route, tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, popup delivery reissue, offline resumable replay, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Operator chat frontend route, runtime snapshot API, tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, popup delivery reissue, offline resumable replay, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
