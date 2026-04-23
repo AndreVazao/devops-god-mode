@@ -123,6 +123,7 @@ from app.routes.script_extraction_reuse import router as script_reuse_router
 from app.routes.secret_vault import router as secret_vault_router
 from app.routes.shared_secret_topology import router as shared_secret_topology_router
 from app.routes.tenant_partition import router as tenant_partition_router
+from app.routes.tenant_provider_onboarding import router as tenant_provider_onboarding_router
 from app.routes.tenant_scoped_vault_projection import router as tenant_scoped_vault_projection_router
 from app.routes.workspace_publish_bridge import router as workspace_publish_bridge_router
 from app.routes.write_verify_rollback import router as write_verify_rollback_router
@@ -182,7 +183,8 @@ for r in [
     project_recovery_write_execution_router, project_recovery_write_approval_cockpit_router,
     project_recovery_write_remote_command_router,
     project_recovery_write_mobile_action_execution_router, secret_vault_router,
-    shared_secret_topology_router, tenant_partition_router, tenant_scoped_vault_projection_router,
+    shared_secret_topology_router, tenant_partition_router, tenant_provider_onboarding_router,
+    tenant_scoped_vault_projection_router,
 ]:
     app.include_router(r)
 
