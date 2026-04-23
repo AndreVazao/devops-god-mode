@@ -47,6 +47,7 @@ Usado para:
 10. Fazer fetch externo real para staging quando o asset ainda não existe localmente.
 11. Gerar derivados locais úteis para entrega, preview e packaging quando o asset base já existir.
 12. Agrupar assets e derivados em bundles locais navegáveis para preview e entrega.
+13. Recolocar bundles locais completos de volta no pipeline de staging e publish.
 
 ## Base já consolidada
 O sistema já passou a ter:
@@ -84,24 +85,30 @@ O sistema já passou a ter:
 - criação de `svg wrapper` para assets textuais do workspace
 - criação de sidecar metadata `.asset.json` para binários
 - base para variantes locais de preview, entrega e packaging
-
-## Evolução desta fase
-Agora o sistema também passa a ter:
 - `preview_packaging_service`
 - rota `preview-packaging`
 - criação de bundles locais em `data/preview_packages`
 - geração de `index.html` navegável para preview
 - manifesto `bundle.manifest.json` por pacote local
+- criação de `.zip` local do bundle
+
+## Evolução desta fase
+Agora o sistema também passa a ter:
+- `bundle_publish_link_service`
+- rota `bundle-publish-link`
+- restage de bundles completos para o intake
+- dry run de publish do bundle para destino remoto controlado
+- base para tratar bundle como unidade de entrega e publicação
 
 ## Porque isto interessa
-Esta camada fecha um passo muito prático:
-- já não basta ter ficheiros soltos e derivados locais
-- agora o sistema consegue agrupar assets relevantes num pacote navegável
-- isso prepara melhor preview, validação humana, entrega local e futura publicação organizada
+Esta camada fecha outro passo crítico:
+- já não basta gerar bundle e archive localmente
+- o sistema passa a conseguir pegar nesse bundle pronto e devolvê-lo ao pipeline normal
+- isso aproxima bastante a entrega final real, com menos trabalho manual entre packaging e publicação
 
 ## Próxima evolução esperada
 A seguir o sistema deve ganhar:
+- publicação real controlada do bundle completo
 - previews gráficos mais ricos para SVG/imagem/ícones
-- packaging mais orientado a entrega final
-- publicação real controlada a partir de bundles derivados
+- packaging mais orientado a entrega final multi-target
 - ligação desta camada ao browser intake e ao continuation engine
