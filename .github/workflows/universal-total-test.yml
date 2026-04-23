@@ -70,6 +70,11 @@ jobs:
           from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
           from app.services.android_real_build_progressive_service import android_real_build_progressive_service
           from app.services.offline_command_buffering_service import offline_command_buffering_service
+          from app.services.operator_approval_gate_service import operator_approval_gate_service
+          from app.services.operator_conversation_thread_service import operator_conversation_thread_service
+          from app.services.operator_input_request_service import operator_input_request_service
+          from app.services.operator_pending_attention_service import operator_pending_attention_service
+          from app.services.operator_response_guidance_service import operator_response_guidance_service
           from app.services.preview_packaging_service import preview_packaging_service
           from app.services.provider_connector_registry_service import provider_connector_registry_service
           from app.services.provider_deploy_execution_service import provider_deploy_execution_service
@@ -146,6 +151,11 @@ jobs:
                   "/api/tenant-provider-onboarding/status",
                   "/api/tenant-browser-onboarding-executor/status",
                   "/api/tenant-multirepo-linkage/status",
+                  "/api/operator-conversation-thread/status",
+                  "/api/operator-response-guidance/status",
+                  "/api/operator-approval-gate/status",
+                  "/api/operator-input-request/status",
+                  "/api/operator-pending-attention/status",
               }
               missing = sorted(required_routes - route_paths)
               assert not missing, f"Missing routes: {missing}"
@@ -183,6 +193,16 @@ jobs:
               provider_session = tenant_provider_onboarding_service.materialize_session_preview(tenant_id="owner-andre", provider_name="github", account_label="owner-andre-github", notes="main owner account")
               browser_executor = tenant_browser_onboarding_executor_service.execute_first_run_capture(tenant_id="owner-andre", project_name="baribudos-studio", provider_name="github", account_label="owner-andre-github-live", multirepo_mode=True)
               multirepo_linkage = tenant_multirepo_linkage_service.build_linkage(tenant_id="owner-andre", project_name="baribudos-studio", frontend_runtime="vercel", backend_runtime="render")
+
+              operator_thread = operator_conversation_thread_service.open_thread(tenant_id="owner-andre", conversation_title="God Mode mobile operator thread", channel_mode="mobile_chat")
+              append_user = operator_conversation_thread_service.append_message(thread_id=operator_thread["thread"]["thread_id"], role="user", content="Preciso que continues o login no provider e aguardes pelo meu input.", suggested_next_steps=["Abrir popup seguro", "Esperar input do operador"])
+              input_request = operator_input_request_service.create_request(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], provider_name="github", request_kind="credential_field", title="Login necessário", prompt_text="Escreve a credencial pedida para continuar o login.", field_label="Password", field_mode="password", is_sensitive=True)
+              approval_gate = operator_approval_gate_service.create_gate(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], action_label="Continuar login automatizado", action_scope="provider_login", action_payload_summary="Vai transcrever o próximo input do operador para o fluxo do provider.", risk_level="medium")
+              attention_feed = operator_pending_attention_service.build_attention_feed(tenant_id="owner-andre")
+              submit_input = operator_input_request_service.submit_request(request_id=input_request["request"]["request_id"], submitted_value="my-secure-value")
+              resolve_gate = operator_approval_gate_service.resolve_gate(gate_id=approval_gate["gate"]["gate_id"], decision="approve")
+              guidance = operator_response_guidance_service.build_guidance(thread_id=operator_thread["thread"]["thread_id"])
+              attention_after = operator_pending_attention_service.build_attention_feed(tenant_id="owner-andre")
 
               env_text = "OPENAI_API_KEY=neutral-test-value-openai\nSTRIPE_SECRET_KEY=sk_test_example_value\nPAYPAL_CLIENT_ID=paypal_client_example\nNEXT_PUBLIC_API_URL=https://baribudos.example/api\n"
               parsed_env = env_intake_service.parse_env_text(env_text=env_text, source_name="baribudos-studio/.env", target_project="baribudos-studio", environment_name="production")
@@ -226,6 +246,16 @@ jobs:
               assert provider_session["ok"] is True and provider_session["upsert_status"] == "provider_session_saved"
               assert browser_executor["ok"] is True and browser_executor["step_count"] == 4
               assert multirepo_linkage["ok"] is True and multirepo_linkage["frontend_repo"] == "baribudos-studio-frontend"
+              assert operator_thread["ok"] is True and operator_thread["open_status"] == "thread_opened"
+              assert append_user["ok"] is True and append_user["append_status"] == "message_appended"
+              assert input_request["ok"] is True and input_request["create_status"] == "operator_input_requested"
+              assert approval_gate["ok"] is True and approval_gate["create_status"] == "approval_gate_created"
+              assert attention_feed["ok"] is True and attention_feed["waiting_thread_count"] >= 1
+              assert submit_input["ok"] is True and submit_input["submit_status"] == "input_received"
+              assert resolve_gate["ok"] is True and resolve_gate["resolve_status"] == "approved"
+              assert guidance["ok"] is True and guidance["guidance_status"] == "operator_guidance_ready"
+              assert attention_after["ok"] is True and attention_after["pending_gate_count"] == 0
+              assert attention_after["pending_input_count"] == 0
               assert parsed_env["ok"] is True and parsed_env["item_count"] >= 4
               assert imported_env["ok"] is True and imported_env["imported_count"] >= 4
               assert harvested_envs["ok"] is True and harvested_envs["harvested_count"] == 2
@@ -260,6 +290,9 @@ jobs:
               assert Path("data/repo_env_harvest_store.json").exists()
               assert Path("data/tenant_partition_store.json").exists()
               assert Path("data/provider_session_partition_store.json").exists()
+              assert Path("data/operator_conversation_threads.json").exists()
+              assert Path("data/operator_input_requests.json").exists()
+              assert Path("data/operator_approval_gates.json").exists()
               assert Path(tenant_onboarding["manifest_file"]).exists()
               assert Path(browser_executor["manifest_file"]).exists()
               assert Path(multirepo_linkage["manifest_file"]).exists()
@@ -288,5 +321,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, session partition, scoped vault projection, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
