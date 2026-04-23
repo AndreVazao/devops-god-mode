@@ -41,6 +41,8 @@ from app.routes.desktop_bootstrap import router as desktop_bootstrap_router
 from app.routes.desktop_installer_onboarding import router as desktop_installer_router
 from app.routes.desktop_mobile_handoff import router as desktop_mobile_handoff_router
 from app.routes.driving_mode_voice_first import router as driving_mode_router
+from app.routes.env_intake import router as env_intake_router
+from app.routes.env_vault_import import router as env_vault_import_router
 from app.routes.external_asset_intake import router as external_asset_intake_router
 from app.routes.external_asset_materialization import router as external_asset_materialization_router
 from app.routes.external_asset_publish_execution import router as external_asset_publish_router
@@ -128,7 +130,8 @@ for r in [
     browser_response_reconciliation_router, build_artifact_harvest_router, build_catalog_router,
     bundle_publish_link_router, final_delivery_router, delivery_acknowledgment_router,
     delivery_history_router, deploy_execution_plan_router, deploy_target_execution_router,
-    deployment_secret_binding_router, final_summary_router, guarded_deploy_promotion_router,
+    deployment_secret_binding_router, env_intake_router, env_vault_import_router,
+    final_summary_router, guarded_deploy_promotion_router,
     provider_connector_registry_router, provider_deploy_execution_router, provider_secret_sync_router,
     remote_brain_linkage_router, remote_channel_stability_router,
     remote_session_persistence_router, continuous_remote_execution_router,
@@ -171,16 +174,13 @@ for r in [
 ]:
     app.include_router(r)
 
-
 @app.get('/')
 def root():
     return {'status': 'DevOps God Mode backend alive'}
 
-
 @app.get('/health')
 def health():
     return {'status': 'ok'}
-
 
 @app.get('/api/system/config')
 def config_status():
