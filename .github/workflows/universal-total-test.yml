@@ -48,6 +48,7 @@ jobs:
 
           from main import app
           from app.services.asset_derivative_service import asset_derivative_service
+          from app.services.bundle_publish_link_service import bundle_publish_link_service
           from app.services.context_aware_orchestration_service import context_aware_orchestration_service
           from app.services.mobile_cockpit_command_surface_service import mobile_cockpit_command_surface_service
           from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
@@ -89,6 +90,7 @@ jobs:
                   "/api/external-fetch-runtime/status",
                   "/api/asset-derivative/status",
                   "/api/preview-packaging/status",
+                  "/api/bundle-publish-link/status",
               }
 
               missing = sorted(required_routes - route_paths)
@@ -235,6 +237,22 @@ jobs:
               preview_archive = preview_packaging_service.create_bundle_archive(
                   bundle_name="workflow-preview-bundle",
               )
+              bundle_link_status = bundle_publish_link_service.get_status()
+              bundle_restage = bundle_publish_link_service.restage_preview_bundle(
+                  bundle_name="workflow-preview-bundle",
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  destination_root="delivery/workflow-preview-bundle",
+                  project_hint="workflow_test",
+                  include_archive=True,
+              )
+              bundle_publish = await bundle_publish_link_service.dry_run_publish_preview_bundle(
+                  bundle_name="workflow-preview-bundle",
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  destination_root="delivery/workflow-preview-bundle",
+                  project_hint="workflow_test",
+                  branch="main",
+                  include_archive=True,
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -292,6 +310,10 @@ jobs:
               assert preview_bundle["asset_count"] == 3
               assert preview_archive["archive_status"] == "preview_archive_created"
               assert preview_archive["archive_size"] > 0
+              assert bundle_link_status["ok"] is True
+              assert bundle_restage["restage_status"] == "bundle_restaged"
+              assert bundle_restage["restaged_count"] >= 5
+              assert bundle_publish["publish_status"] == "dry_run_ready"
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -351,5 +373,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, protected fetch runtime, asset derivatives, preview packaging, preview archives, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, bundle publish link, protected fetch runtime, asset derivatives, preview packaging, preview archives, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
