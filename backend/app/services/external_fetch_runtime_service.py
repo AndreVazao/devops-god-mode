@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import base64
-import mimetypes
+import json
 from pathlib import Path
 from typing import Any, Dict
 from urllib.parse import urlparse
@@ -31,6 +31,55 @@ class ExternalFetchRuntimeService:
             return "text"
         return "binary"
 
+    def _build_request_headers(
+        self,
+        auth_mode: str | None = None,
+        auth_value: str | None = None,
+        extra_headers: Dict[str, str] | None = None,
+        user_agent: str | None = None,
+    ) -> Dict[str, str]:
+        headers: Dict[str, str] = {}
+        if user_agent:
+            headers["User-Agent"] = user_agent
+        if extra_headers:
+            headers.update({str(k): str(v) for k, v in extra_headers.items()})
+        normalized_mode = (auth_mode or "none").strip().lower()
+        if normalized_mode == "bearer" and auth_value:
+            headers["Authorization"] = f"Bearer {auth_value}"
+        elif normalized_mode == "basic" and auth_value:
+            headers["Authorization"] = f"Basic {auth_value}"
+        elif normalized_mode == "header" and auth_value:
+            try:
+                header_name, header_value = auth_value.split(":", 1)
+                headers[header_name.strip()] = header_value.strip()
+            except ValueError:
+                headers["Authorization"] = auth_value
+        return headers
+
+    def _write_fetch_manifest(
+        self,
+        download_path: Path,
+        source_url: str,
+        content_type: str | None,
+        payload_mode: str,
+        auth_mode: str,
+        extra_headers: Dict[str, str] | None,
+    ) -> str:
+        manifest_path = download_path.with_suffix(download_path.suffix + ".fetch.json")
+        manifest_payload = {
+            "source_url": source_url,
+            "download_path": str(download_path),
+            "content_type": content_type,
+            "payload_mode": payload_mode,
+            "auth_mode": auth_mode,
+            "extra_header_names": sorted(list((extra_headers or {}).keys())),
+        }
+        manifest_path.write_text(
+            json.dumps(manifest_payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return str(manifest_path)
+
     def get_status(self) -> Dict[str, Any]:
         intake_status = external_asset_intake_service.get_status()
         return {
@@ -50,14 +99,24 @@ class ExternalFetchRuntimeService:
         repository_full_name: str | None = None,
         destination_path: str | None = None,
         source_type: str = "external_url",
+        auth_mode: str | None = None,
+        auth_value: str | None = None,
+        extra_headers: Dict[str, str] | None = None,
+        user_agent: str | None = None,
     ) -> Dict[str, Any]:
         filename = self._infer_filename(source_url)
         target_dir = self.download_root / (project_hint or "general")
         target_dir.mkdir(parents=True, exist_ok=True)
         download_path = target_dir / filename
+        headers = self._build_request_headers(
+            auth_mode=auth_mode,
+            auth_value=auth_value,
+            extra_headers=extra_headers,
+            user_agent=user_agent,
+        )
 
         async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
-            response = await client.get(source_url)
+            response = await client.get(source_url, headers=headers or None)
             response.raise_for_status()
             raw_bytes = response.content
             content_type = response.headers.get("content-type")
@@ -91,15 +150,29 @@ class ExternalFetchRuntimeService:
             )
             payload_mode = "binary"
 
+        fetch_manifest = self._write_fetch_manifest(
+            download_path=download_path,
+            source_url=source_url,
+            content_type=content_type,
+            payload_mode=payload_mode,
+            auth_mode=(auth_mode or "none"),
+            extra_headers=extra_headers,
+        )
+
         return {
             "ok": True,
             "mode": "external_fetch_runtime_result",
             "fetch_status": "fetched_and_staged",
             "source_url": source_url,
             "download_path": str(download_path),
+            "fetch_manifest": fetch_manifest,
             "content_type": content_type,
+            "content_kind": content_kind,
             "payload_mode": payload_mode,
+            "bytes_downloaded": len(raw_bytes),
             "staged_asset": staged["staged_asset"],
+            "auth_mode": (auth_mode or "none"),
+            "extra_header_count": len(extra_headers or {}),
         }
 
     def get_package(self) -> Dict[str, Any]:
