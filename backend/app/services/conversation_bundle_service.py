@@ -53,7 +53,7 @@ class ConversationBundleService:
             return "deepseek"
         return "unknown"
 
-    def _normalize_code_block(self, block: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_code_block(self, block: Dict[str, Any], provider: str, session_id: str) -> Dict[str, Any]:
         code = str(block.get("code") or block.get("content") or "")
         language = str(block.get("language") or block.get("lang") or "text")
         path_hint = str(block.get("path") or block.get("file_path") or "")
@@ -63,6 +63,8 @@ class ConversationBundleService:
             "code": code,
             "line_count": len(code.splitlines()) if code else 0,
             "has_code": bool(code.strip()),
+            "provider": provider,
+            "session_id": session_id,
         }
 
     def _extract_repo_targets(self, code_blocks: List[Dict[str, Any]]) -> List[str]:
@@ -120,11 +122,18 @@ class ConversationBundleService:
         warnings: List[str] = []
         titles: List[str] = []
         for session in sessions:
+            provider = self._infer_provider(
+                source_url=str(session.get("source_url") or ""),
+                source_type=str(session.get("source_type") or ""),
+            )
             titles.append(str(session.get("conversation_title") or ""))
             warnings.extend([str(item) for item in session.get("warnings", [])])
             snippets.extend(session.get("snippets", []))
             normalized_code_blocks.extend(
-                [self._normalize_code_block(block) for block in session.get("code_blocks", [])]
+                [
+                    self._normalize_code_block(block, provider=provider, session_id=session["session_id"])
+                    for block in session.get("code_blocks", [])
+                ]
             )
 
         project_key = self._slugify(project_hint or titles[0] if titles else "project")
@@ -236,6 +245,9 @@ class ConversationBundleService:
                     "language": block.get("language"),
                     "line_count": block.get("line_count"),
                     "content_preview": (block.get("code") or "")[:200],
+                    "content_full": block.get("code") or "",
+                    "provider": block.get("provider") or "unknown",
+                    "session_id": block.get("session_id"),
                     "source_kind": "conversation_code_block",
                 }
             )
