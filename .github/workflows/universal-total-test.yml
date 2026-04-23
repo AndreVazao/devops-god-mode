@@ -187,7 +187,7 @@ jobs:
               reconciliation_report = conversation_reconciliation_service.get_report(bundle_id=bundle_created["bundle"]["bundle_id"])
               repo_materialized = conversation_repo_materialization_service.materialize_bundle_repo_plan(bundle_id=bundle_created["bundle"]["bundle_id"], repository_name="workflow-project-repo")
               capability_lookup = capability_reuse_service.lookup_capability("fastapi")
-              provider_registry = provider_connectorRegistry_service.list_providers()
+              provider_registry = provider_connector_registry_service.list_providers()
               completion_plan = intelligent_completion_planner_service.build_completion_plan(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"])
               patch_synthesis = intelligent_patch_synthesis_service.synthesize_bundle_patch(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"])
               patch_apply = intelligent_patch_apply_service.apply_synthesized_patch(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", desired_capabilities=["fastapi", "ocr"], overwrite_existing=True)
