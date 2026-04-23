@@ -46,6 +46,7 @@ Usado para:
 9. Recolocar assets do workspace de volta no pipeline de publish quando uma versão local ficar pronta.
 10. Fazer fetch externo real para staging quando o asset ainda não existe localmente.
 11. Gerar derivados locais úteis para entrega, preview e packaging quando o asset base já existir.
+12. Agrupar assets e derivados em bundles locais navegáveis para preview e entrega.
 
 ## Base já consolidada
 O sistema já passou a ter:
@@ -78,24 +79,29 @@ O sistema já passou a ter:
 - suporte a `auth_mode`, `auth_value`, `extra_headers` e `user_agent` no fetch externo
 - manifesto `.fetch.json` por download externo
 - metadados de `bytes_downloaded`, `content_kind` e contagem de headers extra
-
-## Evolução desta fase
-Agora o sistema também passa a ter:
 - `asset_derivative_service`
 - rota `asset-derivative`
 - criação de `svg wrapper` para assets textuais do workspace
 - criação de sidecar metadata `.asset.json` para binários
 - base para variantes locais de preview, entrega e packaging
 
+## Evolução desta fase
+Agora o sistema também passa a ter:
+- `preview_packaging_service`
+- rota `preview-packaging`
+- criação de bundles locais em `data/preview_packages`
+- geração de `index.html` navegável para preview
+- manifesto `bundle.manifest.json` por pacote local
+
 ## Porque isto interessa
-Esta camada prepara melhor o God Mode para produção real:
-- nem todo asset final é o ficheiro base puro
-- às vezes é preciso uma variante derivada para preview, card, embalagem ou entrega
-- o sistema passa a conseguir produzir esses derivados localmente com rastreabilidade
+Esta camada fecha um passo muito prático:
+- já não basta ter ficheiros soltos e derivados locais
+- agora o sistema consegue agrupar assets relevantes num pacote navegável
+- isso prepara melhor preview, validação humana, entrega local e futura publicação organizada
 
 ## Próxima evolução esperada
 A seguir o sistema deve ganhar:
-- derivação mais rica de SVG/imagem/ícones
-- geração de previews mais reais para assets gráficos
-- publicação real controlada a partir de assets derivados
+- previews gráficos mais ricos para SVG/imagem/ícones
+- packaging mais orientado a entrega final
+- publicação real controlada a partir de bundles derivados
 - ligação desta camada ao browser intake e ao continuation engine
