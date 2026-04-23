@@ -46,8 +46,10 @@ class WorkspacePublishBridgeService:
             }
 
         suffix = path.suffix.lower()
+        file_size = path.stat().st_size
         text_suffixes = {".txt", ".md", ".json", ".svg", ".html", ".css", ".js", ".ts", ".xml"}
         if suffix in text_suffixes:
+            final_content_kind = content_kind or "workspace_text"
             staged = external_asset_intake_service.stage_asset_request(
                 source_type="local_workspace_file",
                 source_ref=source_ref,
@@ -56,10 +58,11 @@ class WorkspacePublishBridgeService:
                 repository_full_name=repository_full_name,
                 destination_path=destination_path,
                 content_text=path.read_text(encoding="utf-8"),
-                content_kind=content_kind or "workspace_text",
+                content_kind=final_content_kind,
             )
             payload_mode = "text"
         else:
+            final_content_kind = content_kind or "workspace_binary"
             staged = external_asset_intake_service.stage_asset_request(
                 source_type="local_workspace_file",
                 source_ref=source_ref,
@@ -68,7 +71,7 @@ class WorkspacePublishBridgeService:
                 repository_full_name=repository_full_name,
                 destination_path=destination_path,
                 content_base64=base64.b64encode(path.read_bytes()).decode("utf-8"),
-                content_kind=content_kind or "workspace_binary",
+                content_kind=final_content_kind,
             )
             payload_mode = "binary"
 
@@ -77,6 +80,9 @@ class WorkspacePublishBridgeService:
             "mode": "workspace_publish_bridge_restage_result",
             "restage_status": "restaged_from_workspace",
             "payload_mode": payload_mode,
+            "content_kind": final_content_kind,
+            "file_extension": suffix,
+            "file_size": file_size,
             "workspace_file": workspace_file,
             "staged_asset": staged["staged_asset"],
         }
