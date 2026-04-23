@@ -51,6 +51,7 @@ jobs:
           from app.services.bundle_publish_link_service import bundle_publish_link_service
           from app.services.context_aware_orchestration_service import context_aware_orchestration_service
           from app.services.conversation_bundle_service import conversation_bundle_service
+          from app.services.conversation_reconciliation_service import conversation_reconciliation_service
           from app.services.conversation_repo_materialization_service import conversation_repo_materialization_service
           from app.services.mobile_cockpit_command_surface_service import mobile_cockpit_command_surface_service
           from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
@@ -93,6 +94,7 @@ jobs:
                   "/api/preview-packaging/status",
                   "/api/bundle-publish-link/status",
                   "/api/conversation-bundles/status",
+                  "/api/conversation-reconciliation/status",
                   "/api/conversation-repo-materialization/status",
               }
               missing = sorted(required_routes - route_paths)
@@ -123,19 +125,31 @@ jobs:
               browser_conversation_intake_service.append_capture(
                   session_id=session_one["session_id"],
                   snippets=[{"kind": "decision", "text": "usar FastAPI no backend"}],
-                  code_blocks=[{"language": "python", "path": "backend/app/main.py", "code": "print('workflow one')\n"}],
+                  code_blocks=[
+                      {"language": "python", "path": "backend/app/main.py", "code": "print('workflow one')\n"},
+                      {"language": "python", "path": "backend/app/main.py", "code": "print('workflow one')\n"},
+                  ],
                   capture_status="captured",
               )
               browser_conversation_intake_service.append_capture(
                   session_id=session_two["session_id"],
                   snippets=[{"kind": "decision", "text": "usar Next.js no cockpit"}],
-                  code_blocks=[{"language": "typescript", "path": "frontend/src/app/page.tsx", "code": "export default function Page(){return <div>workflow</div>}\n"}],
+                  code_blocks=[
+                      {"language": "python", "path": "backend/app/main.py", "code": "print('workflow one improved')\nprint('extra')\n"},
+                      {"language": "typescript", "path": "frontend/src/app/page.tsx", "code": "export default function Page(){return <div>workflow</div>}\n"},
+                  ],
                   capture_status="captured",
               )
               bundle_created = conversation_bundle_service.create_bundle_from_sessions(
                   session_ids=[session_one["session_id"], session_two["session_id"]],
                   project_hint="workflow_project",
                   bundle_name="workflow-project-bundle",
+              )
+              reconciliation = conversation_reconciliation_service.reconcile_bundle(
+                  bundle_id=bundle_created["bundle"]["bundle_id"],
+              )
+              reconciliation_report = conversation_reconciliation_service.get_report(
+                  bundle_id=bundle_created["bundle"]["bundle_id"],
               )
               repo_plan = conversation_bundle_service.build_repo_materialization_plan(
                   bundle_id=bundle_created["bundle"]["bundle_id"],
@@ -189,10 +203,15 @@ jobs:
               publish_execution = await external_asset_publish_execution_service.execute_publish_plan(repository_full_name="AndreVazao/devops-god-mode", project_hint="workflow_test", branch="main", dry_run=True)
 
               assert bundle_created["bundle_status"] == "bundle_created"
+              assert reconciliation["reconciliation_status"] == "reconciled"
+              assert reconciliation_report["ok"] is True
+              assert reconciliation_report["report"]["conflict_count"] >= 1
+              assert reconciliation_report["report"]["duplicates_removed"] >= 1
               assert repo_plan["plan_status"] == "repo_plan_ready"
               assert len(repo_plan["plan"]["file_plan"]) >= 2
               assert repo_materialized["materialization_status"] == "repo_plan_materialized"
               assert repo_materialized["materialized_count"] >= 2
+              assert repo_materialized["source_mode"] == "reconciled_report"
               assert materialized["materialization_status"] in {"materialized_to_stage", "github_not_configured"}
               assert transformed["transformation_status"] == "transformed"
               assert restaged["restage_status"] == "restaged_from_workspace"
@@ -209,6 +228,7 @@ jobs:
 
               assert Path("data/browser_conversation_intake_store.json").exists()
               assert Path("data/conversation_bundle_store.json").exists()
+              assert Path("data/conversation_reconciliation_store.json").exists()
               assert Path(repo_materialized["manifest_file"]).exists()
               assert Path(repo_materialized["materialized_files"][0]["materialized_file"]).exists()
               assert Path(preview_bundle["index_file"]).exists()
@@ -232,5 +252,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Multi-provider conversation intake, bundling, repo planning, repo materialization, packaging and delivery dry-runs were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Multi-provider conversation intake, reconciliation, repo planning, repo materialization, packaging and delivery dry-runs were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
