@@ -175,6 +175,18 @@ jobs:
                   extra_headers={"X-Workflow": "universal"},
                   user_agent="GodModeWorkflow/1.0",
               )
+              fetched_binary = await external_fetch_runtime_service.fetch_url_to_stage(
+                  source_url="https://github.githubassets.com/favicons/favicon.png",
+                  asset_role="brand_icon_png",
+                  project_hint="workflow_test",
+                  repository_full_name="AndreVazao/devops-god-mode",
+                  destination_path="assets/fetched/favicon.png",
+                  source_type="external_url",
+                  user_agent="GodModeWorkflow/1.0",
+              )
+              fetched_binary_workspace = local_asset_workspace_service.materialize_staged_asset_to_disk(
+                  fetched_binary["staged_asset"]["staged_asset_id"]
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -215,6 +227,9 @@ jobs:
               assert fetched["fetch_status"] == "fetched_and_staged"
               assert fetched["auth_mode"] == "header"
               assert fetched["extra_header_count"] == 1
+              assert fetched_binary["fetch_status"] == "fetched_and_staged"
+              assert fetched_binary["payload_mode"] == "binary"
+              assert fetched_binary_workspace["materialization_status"] == "materialized_to_workspace"
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -244,6 +259,9 @@ jobs:
               assert Path(duplicated["duplicate_file"]).exists(), "Expected duplicated asset file to exist"
               assert Path(fetched["download_path"]).exists(), "Expected fetched file to exist"
               assert Path(fetched["fetch_manifest"]).exists(), "Expected fetched manifest to exist"
+              assert Path(fetched_binary["download_path"]).exists(), "Expected fetched binary file to exist"
+              assert Path(fetched_binary["fetch_manifest"]).exists(), "Expected fetched binary manifest to exist"
+              assert Path(fetched_binary_workspace["workspace_file"]).exists(), "Expected binary workspace file to exist"
               print("universal total test passed")
 
           asyncio.run(run_checks())
@@ -264,5 +282,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, protected fetch runtime, materialization, local workspace, transformation, workspace publish bridge, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, protected fetch runtime, binary fetch materialization, local workspace, transformation, workspace publish bridge, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
