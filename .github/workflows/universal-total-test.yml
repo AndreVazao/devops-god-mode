@@ -57,6 +57,7 @@ jobs:
           from app.services.intelligent_completion_planner_service import intelligent_completion_planner_service
           from app.services.intelligent_patch_synthesis_service import intelligent_patch_synthesis_service
           from app.services.intelligent_patch_apply_service import intelligent_patch_apply_service
+          from app.services.intelligent_repo_merge_service import intelligent_repo_merge_service
           from app.services.mobile_cockpit_command_surface_service import mobile_cockpit_command_surface_service
           from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
           from app.services.android_real_build_progressive_service import android_real_build_progressive_service
@@ -104,6 +105,7 @@ jobs:
                   "/api/intelligent-completion-planner/status",
                   "/api/intelligent-patch-synthesis/status",
                   "/api/intelligent-patch-apply/status",
+                  "/api/intelligent-repo-merge/status",
               }
               missing = sorted(required_routes - route_paths)
               assert not missing, f"Missing routes: {missing}"
@@ -189,6 +191,12 @@ jobs:
                   desired_capabilities=["fastapi", "ocr"],
                   overwrite_existing=True,
               )
+              repo_merge = intelligent_repo_merge_service.merge_applied_patch(
+                  bundle_id=bundle_created["bundle"]["bundle_id"],
+                  target_project="workflow-project-repo",
+                  desired_capabilities=["fastapi", "ocr"],
+                  overwrite_existing=True,
+              )
 
               staged_asset = external_asset_intake_service.stage_asset_request(
                   source_type="browser_web_service",
@@ -258,6 +266,9 @@ jobs:
               assert patch_apply["ok"] is True
               assert patch_apply["apply_status"] == "patch_applied_to_local_workspace"
               assert patch_apply["applied_count"] >= 2
+              assert repo_merge["ok"] is True
+              assert repo_merge["merge_status"] == "merged_to_controlled_repo_workspace"
+              assert repo_merge["merged_count"] >= 2
               assert materialized["materialization_status"] in {"materialized_to_stage", "github_not_configured"}
               assert transformed["transformation_status"] == "transformed"
               assert restaged["restage_status"] == "restaged_from_workspace"
@@ -282,6 +293,8 @@ jobs:
               assert Path(patch_synthesis["files"][0]["output_file"]).exists()
               assert Path(patch_apply["manifest_file"]).exists()
               assert Path(patch_apply["applied_files"][0]["applied_file"]).exists()
+              assert Path(repo_merge["manifest_file"]).exists()
+              assert Path(repo_merge["merged_files"][0]["merged_file"]).exists()
               assert Path(preview_bundle["index_file"]).exists()
               assert Path(preview_archive["archive_file"]).exists()
               print("universal total test passed")
@@ -303,5 +316,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Multi-provider conversation intake, reconciliation, capability reuse, intelligent completion planning, intelligent patch synthesis, intelligent patch apply, repo planning, repo materialization, packaging and delivery dry-runs were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Multi-provider conversation intake, reconciliation, capability reuse, intelligent completion planning, intelligent patch synthesis, intelligent patch apply, controlled repo merge, repo planning, repo materialization, packaging and delivery dry-runs were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
