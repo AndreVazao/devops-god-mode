@@ -105,6 +105,7 @@ jobs:
               route_paths = {route.path for route in app.routes}
               required_routes = {
                   "/health",
+                  "/app/operator-chat",
                   "/api/browser-intake/status",
                   "/api/browser-control/status",
                   "/api/mobile-cockpit/status",
@@ -313,6 +314,7 @@ jobs:
               assert Path("data/operator_approval_gates.json").exists()
               assert Path("data/operator_popup_deliveries.json").exists()
               assert Path("data/operator_resumable_actions.json").exists()
+              assert Path("backend/app/routes/operator_chat_frontend.py").exists()
               assert Path(tenant_onboarding["manifest_file"]).exists()
               assert Path(browser_executor["manifest_file"]).exists()
               assert Path(multirepo_linkage["manifest_file"]).exists()
@@ -341,5 +343,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, popup delivery reissue, offline resumable replay, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Operator chat frontend route, tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, popup delivery reissue, offline resumable replay, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
