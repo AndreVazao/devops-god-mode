@@ -45,6 +45,7 @@ Usado para:
 8. Transformar assets locais antes do packaging e do publish final quando necessário.
 9. Recolocar assets do workspace de volta no pipeline de publish quando uma versão local ficar pronta.
 10. Fazer fetch externo real para staging quando o asset ainda não existe localmente.
+11. Gerar derivados locais úteis para entrega, preview e packaging quando o asset base já existir.
 
 ## Base já consolidada
 O sistema já passou a ter:
@@ -74,23 +75,27 @@ O sistema já passou a ter:
 - fetch HTTP real de URL para staging
 - download local em `data/external_fetch_runtime`
 - inferência básica de texto/binário para staging imediato
-
-## Evolução desta fase
-Agora o sistema também passa a ter:
 - suporte a `auth_mode`, `auth_value`, `extra_headers` e `user_agent` no fetch externo
 - manifesto `.fetch.json` por download externo
 - metadados de `bytes_downloaded`, `content_kind` e contagem de headers extra
 
+## Evolução desta fase
+Agora o sistema também passa a ter:
+- `asset_derivative_service`
+- rota `asset-derivative`
+- criação de `svg wrapper` para assets textuais do workspace
+- criação de sidecar metadata `.asset.json` para binários
+- base para variantes locais de preview, entrega e packaging
+
 ## Porque isto interessa
-Esta camada aproxima o fetch externo de casos reais:
-- alguns assets vivem atrás de headers específicos ou autenticação simples
-- o sistema passa a conseguir transportar esse contexto sem partir o pipeline
-- cada fetch deixa rasto local para auditoria e troubleshooting
+Esta camada prepara melhor o God Mode para produção real:
+- nem todo asset final é o ficheiro base puro
+- às vezes é preciso uma variante derivada para preview, card, embalagem ou entrega
+- o sistema passa a conseguir produzir esses derivados localmente com rastreabilidade
 
 ## Próxima evolução esperada
 A seguir o sistema deve ganhar:
-- autenticação mais rica para fontes protegidas
-- materialização binária mais rica para imagens reais
-- transformação avançada de SVG/imagem/ícones
-- publicação real controlada a partir de assets fetched e transformados
+- derivação mais rica de SVG/imagem/ícones
+- geração de previews mais reais para assets gráficos
+- publicação real controlada a partir de assets derivados
 - ligação desta camada ao browser intake e ao continuation engine
