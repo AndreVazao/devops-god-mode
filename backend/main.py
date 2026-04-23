@@ -102,7 +102,9 @@ from app.routes.project_recovery_write_queue import router as project_recovery_w
 from app.routes.project_recovery_write_remote_command import router as project_recovery_write_remote_command_router
 from app.routes.project_recovery_write_run import router as project_recovery_write_run_router
 from app.routes.project_recovery_write_submit import router as project_recovery_write_submit_router
+from app.routes.provider_connector_registry import router as provider_connector_registry_router
 from app.routes.provider_deploy_execution import router as provider_deploy_execution_router
+from app.routes.provider_secret_sync import router as provider_secret_sync_router
 from app.routes.real_local_write import router as real_local_write_router
 from app.routes.registry import router as registry_router
 from app.routes.remote_brain_linkage import router as remote_brain_linkage_router
@@ -127,7 +129,8 @@ for r in [
     bundle_publish_link_router, final_delivery_router, delivery_acknowledgment_router,
     delivery_history_router, deploy_execution_plan_router, deploy_target_execution_router,
     deployment_secret_binding_router, final_summary_router, guarded_deploy_promotion_router,
-    provider_deploy_execution_router, remote_brain_linkage_router, remote_channel_stability_router,
+    provider_connector_registry_router, provider_deploy_execution_router, provider_secret_sync_router,
+    remote_brain_linkage_router, remote_channel_stability_router,
     remote_session_persistence_router, continuous_remote_execution_router,
     offline_command_buffering_router, external_asset_intake_router,
     external_asset_materialization_router, external_asset_publish_router,
