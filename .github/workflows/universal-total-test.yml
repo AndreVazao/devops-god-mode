@@ -170,6 +170,10 @@ jobs:
                   repository_full_name="AndreVazao/devops-god-mode",
                   destination_path="assets/fetched/example.html",
                   source_type="external_url",
+                  auth_mode="header",
+                  auth_value="X-Test-Token: workflow",
+                  extra_headers={"X-Workflow": "universal"},
+                  user_agent="GodModeWorkflow/1.0",
               )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
@@ -209,6 +213,8 @@ jobs:
               assert bridge_publish["publish_status"] == "dry_run_ready"
               assert fetch_status["ok"] is True
               assert fetched["fetch_status"] == "fetched_and_staged"
+              assert fetched["auth_mode"] == "header"
+              assert fetched["extra_header_count"] == 1
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -237,6 +243,7 @@ jobs:
               assert Path(transformed["output_file"]).exists(), "Expected transformed asset file to exist"
               assert Path(duplicated["duplicate_file"]).exists(), "Expected duplicated asset file to exist"
               assert Path(fetched["download_path"]).exists(), "Expected fetched file to exist"
+              assert Path(fetched["fetch_manifest"]).exists(), "Expected fetched manifest to exist"
               print("universal total test passed")
 
           asyncio.run(run_checks())
@@ -257,5 +264,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, fetch runtime, materialization, local workspace, transformation, workspace publish bridge, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, protected fetch runtime, materialization, local workspace, transformation, workspace publish bridge, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
