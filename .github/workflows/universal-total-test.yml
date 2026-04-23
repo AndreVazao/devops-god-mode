@@ -47,6 +47,7 @@ jobs:
           import json
 
           from main import app
+          from app.services.asset_derivative_service import asset_derivative_service
           from app.services.context_aware_orchestration_service import context_aware_orchestration_service
           from app.services.mobile_cockpit_command_surface_service import mobile_cockpit_command_surface_service
           from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
@@ -85,6 +86,7 @@ jobs:
                   "/api/local-asset-transformation/status",
                   "/api/workspace-publish-bridge/status",
                   "/api/external-fetch-runtime/status",
+                  "/api/asset-derivative/status",
               }
 
               missing = sorted(required_routes - route_paths)
@@ -207,6 +209,17 @@ jobs:
                   content_kind="workspace_binary",
                   dry_run=True,
               )
+              derivative_status = asset_derivative_service.get_status()
+              svg_wrapper = asset_derivative_service.create_svg_wrapper(
+                  workspace_file=transformed["output_file"],
+                  output_name="workflow-card",
+                  title="Workflow Card",
+                  background="#101820",
+              )
+              binary_sidecar = asset_derivative_service.create_binary_metadata_sidecar(
+                  workspace_file=fetched_binary_workspace["workspace_file"],
+                  label="workflow binary asset",
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -256,6 +269,9 @@ jobs:
               assert fetched_binary_restaged["file_extension"] == ".png"
               assert fetched_binary_restaged["file_size"] > 0
               assert fetched_binary_publish["publish_status"] == "dry_run_ready"
+              assert derivative_status["ok"] is True
+              assert svg_wrapper["derivative_status"] == "svg_wrapper_created"
+              assert binary_sidecar["derivative_status"] == "binary_sidecar_created"
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -288,6 +304,9 @@ jobs:
               assert Path(fetched_binary["download_path"]).exists(), "Expected fetched binary file to exist"
               assert Path(fetched_binary["fetch_manifest"]).exists(), "Expected fetched binary manifest to exist"
               assert Path(fetched_binary_workspace["workspace_file"]).exists(), "Expected binary workspace file to exist"
+              assert Path(svg_wrapper["output_file"]).exists(), "Expected svg wrapper output to exist"
+              assert Path(svg_wrapper["manifest_file"]).exists(), "Expected svg wrapper manifest to exist"
+              assert Path(binary_sidecar["sidecar_file"]).exists(), "Expected binary sidecar to exist"
               print("universal total test passed")
 
           asyncio.run(run_checks())
@@ -308,5 +327,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, protected fetch runtime, binary fetch materialization, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, protected fetch runtime, binary fetch materialization, asset derivatives, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
