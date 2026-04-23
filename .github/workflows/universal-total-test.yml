@@ -74,6 +74,7 @@ jobs:
           from app.services.operator_conversation_thread_service import operator_conversation_thread_service
           from app.services.operator_input_request_service import operator_input_request_service
           from app.services.operator_pending_attention_service import operator_pending_attention_service
+          from app.services.operator_popup_delivery_service import operator_popup_delivery_service
           from app.services.operator_response_guidance_service import operator_response_guidance_service
           from app.services.operator_resumable_action_service import operator_resumable_action_service
           from app.services.preview_packaging_service import preview_packaging_service
@@ -157,6 +158,7 @@ jobs:
                   "/api/operator-approval-gate/status",
                   "/api/operator-input-request/status",
                   "/api/operator-pending-attention/status",
+                  "/api/operator-popup-delivery/status",
                   "/api/operator-resumable-action/status",
               }
               missing = sorted(required_routes - route_paths)
@@ -199,10 +201,14 @@ jobs:
               operator_thread = operator_conversation_thread_service.open_thread(tenant_id="owner-andre", conversation_title="God Mode mobile operator thread", channel_mode="mobile_chat")
               append_user = operator_conversation_thread_service.append_message(thread_id=operator_thread["thread"]["thread_id"], role="user", content="Preciso que continues o login no provider e aguardes pelo meu input.", suggested_next_steps=["Abrir popup seguro", "Esperar input do operador"])
               input_request = operator_input_request_service.create_request(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], provider_name="github", request_kind="credential_field", title="Login necessário", prompt_text="Escreve a credencial pedida para continuar o login.", field_label="Password", field_mode="password", is_sensitive=True)
+              popup_delivery = operator_popup_delivery_service.create_delivery(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], popup_kind="input_request", popup_ref_id=input_request["request"]["request_id"], title="Login necessário", requires_operator_response=True)
+              popup_reissue = operator_popup_delivery_service.reissue_pending_delivery(delivery_id=popup_delivery["delivery"]["delivery_id"])
+              popup_delivered = operator_popup_delivery_service.mark_delivered(delivery_id=popup_delivery["delivery"]["delivery_id"])
               approval_gate = operator_approval_gate_service.create_gate(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], action_label="Continuar login automatizado", action_scope="provider_login", action_payload_summary="Vai transcrever o próximo input do operador para o fluxo do provider.", risk_level="medium")
               resumable_action = operator_resumable_action_service.create_action(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], provider_name="ctt", action_kind="provider_login_flow", purpose_summary="Continuar login no site CTT depois de sincronizar input offline.", resume_strategy="retry_from_latest_safe_checkpoint", requires_fresh_provider_session=True)
               attention_feed = operator_pending_attention_service.build_attention_feed(tenant_id="owner-andre")
-              submit_input = operator_input_request_service.submit_request(request_id=input_request["request"]["request_id"], submitted_value="my-secure-value")
+              submit_input = operator_inputRequest_service.submit_request(request_id=input_request["request"]["request_id"], submitted_value="my-secure-value")
+              popup_ack = operator_popup_delivery_service.acknowledge_response(delivery_id=popup_delivery["delivery"]["delivery_id"])
               offline_sync = operator_resumable_action_service.submit_offline_sync(action_id=resumable_action["action"]["action_id"], payload_summary="Password preenchida offline e pronta a sincronizar.")
               resume_expired = operator_resumable_action_service.resume_action(action_id=resumable_action["action"]["action_id"], provider_session_still_valid=False)
               resolve_gate = operator_approval_gate_service.resolve_gate(gate_id=approval_gate["gate"]["gate_id"], decision="approve")
@@ -254,10 +260,14 @@ jobs:
               assert operator_thread["ok"] is True and operator_thread["open_status"] == "thread_opened"
               assert append_user["ok"] is True and append_user["append_status"] == "message_appended"
               assert input_request["ok"] is True and input_request["create_status"] == "operator_input_requested"
+              assert popup_delivery["ok"] is True and popup_delivery["create_status"] == "popup_delivery_created"
+              assert popup_reissue["ok"] is True and popup_reissue["reissue_status"] == "popup_reissue_required"
+              assert popup_delivered["ok"] is True and popup_delivered["mark_status"] == "popup_delivered"
               assert approval_gate["ok"] is True and approval_gate["create_status"] == "approval_gate_created"
               assert resumable_action["ok"] is True and resumable_action["create_status"] == "resumable_action_created"
               assert attention_feed["ok"] is True and attention_feed["waiting_thread_count"] >= 1
               assert submit_input["ok"] is True and submit_input["submit_status"] == "input_received"
+              assert popup_ack["ok"] is True and popup_ack["ack_status"] == "operator_response_acknowledged"
               assert offline_sync["ok"] is True and offline_sync["sync_status"] == "offline_sync_received"
               assert resume_expired["ok"] is True and resume_expired["resume_status"] == "provider_session_expired_restart_required"
               assert resolve_gate["ok"] is True and resolve_gate["resolve_status"] == "approved"
@@ -278,7 +288,7 @@ jobs:
               assert secret_registered["ok"] is True
               assert secret_list["ok"] is True and secret_list["secret_count"] >= 1
               assert binding["ok"] is True and binding["binding_status"] == "secret_bound"
-              assert binding_plan["ok"] is True and binding_plan["binding_count"] >= 1
+              assert binding_plan["ok"] is True and bindingPlan["binding_count"] >= 1
               assert provider_sync["ok"] is True and provider_sync["mapped_binding_count"] >= 1
               assert guarded_promotion["ok"] is True and guarded_promotion["secret_binding_count"] >= 1
               assert deploy_plan["ok"] is True and deploy_plan["step_count"] == 3
@@ -301,6 +311,7 @@ jobs:
               assert Path("data/operator_conversation_threads.json").exists()
               assert Path("data/operator_input_requests.json").exists()
               assert Path("data/operator_approval_gates.json").exists()
+              assert Path("data/operator_popup_deliveries.json").exists()
               assert Path("data/operator_resumable_actions.json").exists()
               assert Path(tenant_onboarding["manifest_file"]).exists()
               assert Path(browser_executor["manifest_file"]).exists()
@@ -330,5 +341,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, offline resumable replay, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, popup delivery reissue, offline resumable replay, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
