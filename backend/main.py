@@ -122,6 +122,8 @@ from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_
 from app.routes.script_extraction_reuse import router as script_reuse_router
 from app.routes.secret_vault import router as secret_vault_router
 from app.routes.shared_secret_topology import router as shared_secret_topology_router
+from app.routes.tenant_browser_onboarding_executor import router as tenant_browser_onboarding_executor_router
+from app.routes.tenant_multirepo_linkage import router as tenant_multirepo_linkage_router
 from app.routes.tenant_partition import router as tenant_partition_router
 from app.routes.tenant_provider_onboarding import router as tenant_provider_onboarding_router
 from app.routes.tenant_scoped_vault_projection import router as tenant_scoped_vault_projection_router
@@ -139,7 +141,7 @@ for r in [
     browser_conversation_intake_router, browser_continuation_execution_router,
     browser_response_reconciliation_router, build_artifact_harvest_router, build_catalog_router,
     bundle_publish_link_router, final_delivery_router, delivery_acknowledgment_router,
-    delivery_history_router, deploy_execution_plan_router, deploy_target_execution_router,
+    delivery_history_router, deploy_executionPlan_router, deploy_target_execution_router,
     deployment_secret_binding_router, env_intake_router, env_vault_import_router,
     external_provider_bridge_router, final_summary_router, github_actions_connector_router,
     guarded_deploy_promotion_router, provider_connector_registry_router,
@@ -183,7 +185,8 @@ for r in [
     project_recovery_write_execution_router, project_recovery_write_approval_cockpit_router,
     project_recovery_write_remote_command_router,
     project_recovery_write_mobile_action_execution_router, secret_vault_router,
-    shared_secret_topology_router, tenant_partition_router, tenant_provider_onboarding_router,
+    shared_secret_topology_router, tenant_browser_onboarding_executor_router,
+    tenant_multirepo_linkage_router, tenant_partition_router, tenant_provider_onboarding_router,
     tenant_scoped_vault_projection_router,
 ]:
     app.include_router(r)
