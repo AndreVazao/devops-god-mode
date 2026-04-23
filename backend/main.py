@@ -112,9 +112,11 @@ from app.routes.registry import router as registry_router
 from app.routes.remote_brain_linkage import router as remote_brain_linkage_router
 from app.routes.remote_channel_stability import router as remote_channel_stability_router
 from app.routes.remote_session_persistence import router as remote_session_persistence_router
+from app.routes.repo_env_harvest import router as repo_env_harvest_router
 from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
 from app.routes.script_extraction_reuse import router as script_reuse_router
 from app.routes.secret_vault import router as secret_vault_router
+from app.routes.shared_secret_topology import router as shared_secret_topology_router
 from app.routes.workspace_publish_bridge import router as workspace_publish_bridge_router
 from app.routes.write_verify_rollback import router as write_verify_rollback_router
 
@@ -157,7 +159,7 @@ for r in [
     first_run_bundle_router, mobile_runtime_shell_router, mobile_cockpit_sync_router,
     mobile_visual_approval_router, desktop_installer_router, desktop_mobile_handoff_router,
     runtime_supervisor_router, local_pc_runtime_router, action_center_router,
-    operation_queue_router, chat_inventory_router, script_reuse_router,
+    operation_queue_router, chat_inventory_router, repo_env_harvest_router, script_reuse_router,
     adaptation_planner_router, conversation_organization_router, browser_control_real_router,
     mobile_cockpit_router, driving_mode_router, context_orchestration_router,
     android_real_pipeline_router, android_real_build_router,
@@ -171,6 +173,7 @@ for r in [
     project_recovery_write_execution_router, project_recovery_write_approval_cockpit_router,
     project_recovery_write_remote_command_router,
     project_recovery_write_mobile_action_execution_router, secret_vault_router,
+    shared_secret_topology_router,
 ]:
     app.include_router(r)
 
