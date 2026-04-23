@@ -86,6 +86,8 @@ jobs:
           from app.services.local_asset_transformation_service import local_asset_transformation_service
           from app.services.secret_vault_service import secret_vault_service
           from app.services.shared_secret_topology_service import shared_secret_topology_service
+          from app.services.tenant_browser_onboarding_executor_service import tenant_browser_onboarding_executor_service
+          from app.services.tenant_multirepo_linkage_service import tenant_multirepo_linkage_service
           from app.services.tenant_partition_service import tenant_partition_service
           from app.services.tenant_provider_onboarding_service import tenant_provider_onboarding_service
           from app.services.tenant_scoped_vault_projection_service import tenant_scoped_vault_projection_service
@@ -142,6 +144,8 @@ jobs:
                   "/api/provider-session-partition/status",
                   "/api/tenant-scoped-vault-projection/status",
                   "/api/tenant-provider-onboarding/status",
+                  "/api/tenant-browser-onboarding-executor/status",
+                  "/api/tenant-multirepo-linkage/status",
               }
               missing = sorted(required_routes - route_paths)
               assert not missing, f"Missing routes: {missing}"
@@ -177,6 +181,8 @@ jobs:
               tenant_plan = tenant_partition_service.build_partition_plan(tenant_id="owner-andre", project_name="baribudos-studio", multirepo_mode=True)
               tenant_onboarding = tenant_provider_onboarding_service.build_plan(tenant_id="owner-andre", project_name="baribudos-studio", providers=["github", "vercel", "supabase"], multirepo_mode=True)
               provider_session = tenant_provider_onboarding_service.materialize_session_preview(tenant_id="owner-andre", provider_name="github", account_label="owner-andre-github", notes="main owner account")
+              browser_executor = tenant_browser_onboarding_executor_service.execute_first_run_capture(tenant_id="owner-andre", project_name="baribudos-studio", provider_name="github", account_label="owner-andre-github-live", multirepo_mode=True)
+              multirepo_linkage = tenant_multirepo_linkage_service.build_linkage(tenant_id="owner-andre", project_name="baribudos-studio", frontend_runtime="vercel", backend_runtime="render")
 
               env_text = "OPENAI_API_KEY=neutral-test-value-openai\nSTRIPE_SECRET_KEY=sk_test_example_value\nPAYPAL_CLIENT_ID=paypal_client_example\nNEXT_PUBLIC_API_URL=https://baribudos.example/api\n"
               parsed_env = env_intake_service.parse_env_text(env_text=env_text, source_name="baribudos-studio/.env", target_project="baribudos-studio", environment_name="production")
@@ -218,6 +224,8 @@ jobs:
               assert tenant_plan["ok"] is True and tenant_plan["plan"]["multirepo_mode"] is True
               assert tenant_onboarding["ok"] is True and tenant_onboarding["provider_count"] == 3
               assert provider_session["ok"] is True and provider_session["upsert_status"] == "provider_session_saved"
+              assert browser_executor["ok"] is True and browser_executor["step_count"] == 4
+              assert multirepo_linkage["ok"] is True and multirepo_linkage["frontend_repo"] == "baribudos-studio-frontend"
               assert parsed_env["ok"] is True and parsed_env["item_count"] >= 4
               assert imported_env["ok"] is True and imported_env["imported_count"] >= 4
               assert harvested_envs["ok"] is True and harvested_envs["harvested_count"] == 2
@@ -253,6 +261,8 @@ jobs:
               assert Path("data/tenant_partition_store.json").exists()
               assert Path("data/provider_session_partition_store.json").exists()
               assert Path(tenant_onboarding["manifest_file"]).exists()
+              assert Path(browser_executor["manifest_file"]).exists()
+              assert Path(multirepo_linkage["manifest_file"]).exists()
               assert Path(provider_sync["manifest_file"]).exists()
               assert Path(guarded_promotion["manifest_file"]).exists()
               assert Path(deploy_plan["manifest_file"]).exists()
@@ -278,5 +288,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Tenant partition, tenant provider onboarding, session partition, scoped vault projection, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, session partition, scoped vault projection, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
