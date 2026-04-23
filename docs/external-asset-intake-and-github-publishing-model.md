@@ -69,24 +69,27 @@ O sistema já passou a ter:
 - `workspace_publish_bridge_service`
 - rota `workspace-publish-bridge`
 - restage e publish dry run a partir de versões locais transformadas
-
-## Evolução desta fase
-Agora o sistema também passa a ter:
 - `external_fetch_runtime_service`
 - rota `external-fetch-runtime`
 - fetch HTTP real de URL para staging
 - download local em `data/external_fetch_runtime`
 - inferência básica de texto/binário para staging imediato
 
+## Evolução desta fase
+Agora o sistema também passa a ter:
+- suporte a `auth_mode`, `auth_value`, `extra_headers` e `user_agent` no fetch externo
+- manifesto `.fetch.json` por download externo
+- metadados de `bytes_downloaded`, `content_kind` e contagem de headers extra
+
 ## Porque isto interessa
-Isto fecha outra lacuna importante:
-- o asset já não precisa de nascer sempre no GitHub ou no workspace local
-- pode vir diretamente de uma URL externa
-- e entrar logo no pipeline normal de staging, workspace e publish
+Esta camada aproxima o fetch externo de casos reais:
+- alguns assets vivem atrás de headers específicos ou autenticação simples
+- o sistema passa a conseguir transportar esse contexto sem partir o pipeline
+- cada fetch deixa rasto local para auditoria e troubleshooting
 
 ## Próxima evolução esperada
 A seguir o sistema deve ganhar:
-- fetch com autenticação para fontes externas protegidas
+- autenticação mais rica para fontes protegidas
 - materialização binária mais rica para imagens reais
 - transformação avançada de SVG/imagem/ícones
 - publicação real controlada a partir de assets fetched e transformados
