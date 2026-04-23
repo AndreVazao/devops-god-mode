@@ -207,7 +207,7 @@ jobs:
               approval_gate = operator_approval_gate_service.create_gate(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], action_label="Continuar login automatizado", action_scope="provider_login", action_payload_summary="Vai transcrever o próximo input do operador para o fluxo do provider.", risk_level="medium")
               resumable_action = operator_resumable_action_service.create_action(tenant_id="owner-andre", thread_id=operator_thread["thread"]["thread_id"], provider_name="ctt", action_kind="provider_login_flow", purpose_summary="Continuar login no site CTT depois de sincronizar input offline.", resume_strategy="retry_from_latest_safe_checkpoint", requires_fresh_provider_session=True)
               attention_feed = operator_pending_attention_service.build_attention_feed(tenant_id="owner-andre")
-              submit_input = operator_inputRequest_service.submit_request(request_id=input_request["request"]["request_id"], submitted_value="my-secure-value")
+              submit_input = operator_input_request_service.submit_request(request_id=input_request["request"]["request_id"], submitted_value="my-secure-value")
               popup_ack = operator_popup_delivery_service.acknowledge_response(delivery_id=popup_delivery["delivery"]["delivery_id"])
               offline_sync = operator_resumable_action_service.submit_offline_sync(action_id=resumable_action["action"]["action_id"], payload_summary="Password preenchida offline e pronta a sincronizar.")
               resume_expired = operator_resumable_action_service.resume_action(action_id=resumable_action["action"]["action_id"], provider_session_still_valid=False)
@@ -288,7 +288,7 @@ jobs:
               assert secret_registered["ok"] is True
               assert secret_list["ok"] is True and secret_list["secret_count"] >= 1
               assert binding["ok"] is True and binding["binding_status"] == "secret_bound"
-              assert binding_plan["ok"] is True and bindingPlan["binding_count"] >= 1
+              assert binding_plan["ok"] is True and binding_plan["binding_count"] >= 1
               assert provider_sync["ok"] is True and provider_sync["mapped_binding_count"] >= 1
               assert guarded_promotion["ok"] is True and guarded_promotion["secret_binding_count"] >= 1
               assert deploy_plan["ok"] is True and deploy_plan["step_count"] == 3
