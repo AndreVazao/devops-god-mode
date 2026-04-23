@@ -117,6 +117,45 @@ class PreviewPackagingService:
             "assets": copied_assets,
         }
 
+    def create_bundle_archive(self, bundle_name: str) -> Dict[str, Any]:
+        bundle_dir = self.package_root / bundle_name
+        if not bundle_dir.exists():
+            return {
+                "ok": False,
+                "mode": "preview_packaging_archive_result",
+                "archive_status": "bundle_not_found",
+                "bundle_name": bundle_name,
+            }
+
+        archive_base = self.package_root / f"{bundle_name}-archive"
+        archive_file = shutil.make_archive(str(archive_base), "zip", root_dir=bundle_dir)
+        archive_path = Path(archive_file)
+        archive_manifest = archive_path.with_suffix(".zip.manifest.json")
+        archive_manifest.write_text(
+            json.dumps(
+                {
+                    "bundle_name": bundle_name,
+                    "bundle_dir": str(bundle_dir),
+                    "archive_file": str(archive_path),
+                    "archive_size": archive_path.stat().st_size,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
+        return {
+            "ok": True,
+            "mode": "preview_packaging_archive_result",
+            "archive_status": "preview_archive_created",
+            "bundle_name": bundle_name,
+            "bundle_dir": str(bundle_dir),
+            "archive_file": str(archive_path),
+            "archive_manifest": str(archive_manifest),
+            "archive_size": archive_path.stat().st_size,
+        }
+
     def get_package(self) -> Dict[str, Any]:
         return {
             "ok": True,
