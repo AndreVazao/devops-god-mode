@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import mimetypes
 from pathlib import Path
 from typing import Any, Dict
 from urllib.parse import urlparse
@@ -20,6 +21,14 @@ class ExternalFetchRuntimeService:
         parsed = urlparse(source_url)
         candidate = Path(parsed.path).name.strip()
         return candidate or fallback
+
+    def _finalize_filename(self, filename: str, content_type: str | None) -> str:
+        if Path(filename).suffix:
+            return filename
+        guessed_extension = mimetypes.guess_extension((content_type or "").split(";")[0].strip())
+        if guessed_extension:
+            return f"{filename}{guessed_extension}"
+        return filename
 
     def _infer_content_kind(self, filename: str, content_type: str | None) -> str:
         lowered = filename.lower()
@@ -64,13 +73,17 @@ class ExternalFetchRuntimeService:
         payload_mode: str,
         auth_mode: str,
         extra_headers: Dict[str, str] | None,
+        bytes_downloaded: int,
+        content_kind: str,
     ) -> str:
         manifest_path = download_path.with_suffix(download_path.suffix + ".fetch.json")
         manifest_payload = {
             "source_url": source_url,
             "download_path": str(download_path),
             "content_type": content_type,
+            "content_kind": content_kind,
             "payload_mode": payload_mode,
+            "bytes_downloaded": bytes_downloaded,
             "auth_mode": auth_mode,
             "extra_header_names": sorted(list((extra_headers or {}).keys())),
         }
@@ -104,10 +117,9 @@ class ExternalFetchRuntimeService:
         extra_headers: Dict[str, str] | None = None,
         user_agent: str | None = None,
     ) -> Dict[str, Any]:
-        filename = self._infer_filename(source_url)
+        initial_filename = self._infer_filename(source_url)
         target_dir = self.download_root / (project_hint or "general")
         target_dir.mkdir(parents=True, exist_ok=True)
-        download_path = target_dir / filename
         headers = self._build_request_headers(
             auth_mode=auth_mode,
             auth_value=auth_value,
@@ -121,6 +133,8 @@ class ExternalFetchRuntimeService:
             raw_bytes = response.content
             content_type = response.headers.get("content-type")
 
+        filename = self._finalize_filename(initial_filename, content_type)
+        download_path = target_dir / filename
         download_path.write_bytes(raw_bytes)
         content_kind = self._infer_content_kind(filename, content_type)
 
@@ -157,6 +171,8 @@ class ExternalFetchRuntimeService:
             payload_mode=payload_mode,
             auth_mode=(auth_mode or "none"),
             extra_headers=extra_headers,
+            bytes_downloaded=len(raw_bytes),
+            content_kind=content_kind,
         )
 
         return {
