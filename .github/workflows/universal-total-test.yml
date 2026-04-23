@@ -54,6 +54,7 @@ jobs:
           from app.services.conversation_bundle_service import conversation_bundle_service
           from app.services.conversation_reconciliation_service import conversation_reconciliation_service
           from app.services.conversation_repo_materialization_service import conversation_repo_materialization_service
+          from app.services.intelligent_completion_planner_service import intelligent_completion_planner_service
           from app.services.mobile_cockpit_command_surface_service import mobile_cockpit_command_surface_service
           from app.services.multi_ai_intake_and_script_repair_service import multi_ai_intake_and_script_repair_service
           from app.services.android_real_build_progressive_service import android_real_build_progressive_service
@@ -98,6 +99,7 @@ jobs:
                   "/api/conversation-bundles/status",
                   "/api/conversation-reconciliation/status",
                   "/api/conversation-repo-materialization/status",
+                  "/api/intelligent-completion-planner/status",
               }
               missing = sorted(required_routes - route_paths)
               assert not missing, f"Missing routes: {missing}"
@@ -135,7 +137,7 @@ jobs:
               )
               browser_conversation_intake_service.append_capture(
                   session_id=session_two["session_id"],
-                  snippets=[{"kind": "decision", "text": "usar Next.js no cockpit"}],
+                  snippets=[{"kind": "decision", "text": "usar OCR no módulo de imagem"}],
                   code_blocks=[
                       {"language": "python", "path": "backend/app/main.py", "code": "print('workflow one improved')\nprint('extra')\n"},
                       {"language": "typescript", "path": "frontend/src/app/page.tsx", "code": "export default function Page(){return <div>workflow</div>}\n"},
@@ -167,6 +169,11 @@ jobs:
                   target_project="workflow-project-repo",
               )
               capability_index = capability_reuse_service.export_capability_index()
+              completion_plan = intelligent_completion_planner_service.build_completion_plan(
+                  bundle_id=bundle_created["bundle"]["bundle_id"],
+                  target_project="workflow-project-repo",
+                  desired_capabilities=["fastapi", "ocr"],
+              )
 
               staged_asset = external_asset_intake_service.stage_asset_request(
                   source_type="browser_web_service",
@@ -225,6 +232,11 @@ jobs:
               assert capability_plan["ok"] is True
               assert capability_plan["reuse_candidate_count"] >= 1
               assert capability_index["ok"] is True
+              assert completion_plan["ok"] is True
+              assert completion_plan["plan_status"] == "completion_plan_ready"
+              assert completion_plan["plan"]["repo_file_target_count"] >= 2
+              assert len(completion_plan["plan"]["capability_actions"]) == 2
+              assert len(completion_plan["plan"]["action_items"]) >= 2
               assert materialized["materialization_status"] in {"materialized_to_stage", "github_not_configured"}
               assert transformed["transformation_status"] == "transformed"
               assert restaged["restage_status"] == "restaged_from_workspace"
@@ -266,5 +278,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Multi-provider conversation intake, reconciliation, capability reuse, repo planning, repo materialization, packaging and delivery dry-runs were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Multi-provider conversation intake, reconciliation, capability reuse, intelligent completion planning, repo planning, repo materialization, packaging and delivery dry-runs were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
