@@ -55,6 +55,7 @@ jobs:
           from app.services.conversation_reconciliation_service import conversation_reconciliation_service
           from app.services.conversation_repo_materialization_service import conversation_repo_materialization_service
           from app.services.deploy_execution_plan_service import deploy_execution_plan_service
+          from app.services.deploy_target_execution_service import deploy_target_execution_service
           from app.services.deployment_secret_binding_service import deployment_secret_binding_service
           from app.services.guarded_deploy_promotion_service import guarded_deploy_promotion_service
           from app.services.intelligent_completion_planner_service import intelligent_completion_planner_service
@@ -68,6 +69,7 @@ jobs:
           from app.services.android_real_build_progressive_service import android_real_build_progressive_service
           from app.services.offline_command_buffering_service import offline_command_buffering_service
           from app.services.preview_packaging_service import preview_packaging_service
+          from app.services.provider_deploy_execution_service import provider_deploy_execution_service
           from app.services.remote_session_persistence_service import remote_session_persistence_service
           from app.services.continuous_remote_execution_service import continuous_remote_execution_service
           from app.services.runtime_supervisor_guidance_service import runtime_supervisor_guidance_service
@@ -118,6 +120,8 @@ jobs:
                   "/api/deployment-secret-binding/status",
                   "/api/guarded-deploy-promotion/status",
                   "/api/deploy-execution-plan/status",
+                  "/api/deploy-target-execution/status",
+                  "/api/provider-deploy-execution/status",
               }
               missing = sorted(required_routes - route_paths)
               assert not missing, f"Missing routes: {missing}"
@@ -157,6 +161,8 @@ jobs:
               binding_plan = deployment_secret_binding_service.build_deploy_secret_plan(target_name="workflow-project-repo", environment_name="production")
               guarded_promotion = guarded_deploy_promotion_service.prepare_promotion(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", environment_name="production")
               deploy_plan = deploy_execution_plan_service.build_plan(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", environment_name="production")
+              target_execution = deploy_target_execution_service.execute_plan(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", environment_name="production", dry_run=True)
+              provider_execution = provider_deploy_execution_service.execute_provider_plan(bundle_id=bundle_created["bundle"]["bundle_id"], target_project="workflow-project-repo", environment_name="production", provider_name="github_actions", dry_run=True)
 
               staged_asset = external_asset_intake_service.stage_asset_request(source_type="browser_web_service", source_ref="inline://workflow-test/icon.svg", asset_role="icon", project_hint="workflow_test", repository_full_name="AndreVazao/devops-god-mode", destination_path="assets/icons/example-icon.svg", content_text="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'><circle cx='4' cy='4' r='3'/></svg>", content_kind="svg_text")
               materialized = await external_asset_materialization_service.materialize_github_file_to_stage(repository_full_name="AndreVazao/devops-god-mode", file_path="README.md", asset_role="reference_doc", project_hint="workflow_test", destination_path="assets/reference/README.md", ref="main")
@@ -194,6 +200,8 @@ jobs:
               assert binding_plan["ok"] is True and binding_plan["binding_count"] >= 1
               assert guarded_promotion["ok"] is True and guarded_promotion["secret_binding_count"] >= 1
               assert deploy_plan["ok"] is True and deploy_plan["step_count"] == 3
+              assert target_execution["ok"] is True and target_execution["step_count"] == 3
+              assert provider_execution["ok"] is True and provider_execution["step_count"] == 3
               assert materialized["materialization_status"] in {"materialized_to_stage", "github_not_configured"}
               assert transformed["transformation_status"] == "transformed"
               assert restaged["restage_status"] == "restaged_from_workspace"
@@ -209,6 +217,8 @@ jobs:
               assert Path(merge_guard["manifest_file"]).exists()
               assert Path(guarded_promotion["manifest_file"]).exists()
               assert Path(deploy_plan["manifest_file"]).exists()
+              assert Path(target_execution["manifest_file"]).exists()
+              assert Path(provider_execution["manifest_file"]).exists()
               assert Path(preview_archive["archive_file"]).exists()
               print("universal total test passed")
 
@@ -229,5 +239,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Multi-provider intake, guarded merge flow, secret vault registration, guarded deploy promotion and deploy execution planning were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Multi-provider intake, guarded merge flow, secret vault registration, guarded deploy promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
