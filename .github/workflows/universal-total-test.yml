@@ -232,6 +232,9 @@ jobs:
                   ],
                   title="Workflow Preview Bundle",
               )
+              preview_archive = preview_packaging_service.create_bundle_archive(
+                  bundle_name="workflow-preview-bundle",
+              )
               intake_package = external_asset_intake_service.get_package()
               publish_plan = external_asset_intake_service.build_github_publish_plan(
                   repository_full_name="AndreVazao/devops-god-mode",
@@ -287,6 +290,8 @@ jobs:
               assert preview_status["ok"] is True
               assert preview_bundle["bundle_status"] == "preview_bundle_created"
               assert preview_bundle["asset_count"] == 3
+              assert preview_archive["archive_status"] == "preview_archive_created"
+              assert preview_archive["archive_size"] > 0
               assert intake_package["ok"] is True
               assert publish_plan["ok"] is True
               assert publish_plan["planned_count"] >= 1
@@ -324,6 +329,8 @@ jobs:
               assert Path(binary_sidecar["sidecar_file"]).exists(), "Expected binary sidecar to exist"
               assert Path(preview_bundle["index_file"]).exists(), "Expected preview bundle index to exist"
               assert Path(preview_bundle["manifest_file"]).exists(), "Expected preview bundle manifest to exist"
+              assert Path(preview_archive["archive_file"]).exists(), "Expected preview archive to exist"
+              assert Path(preview_archive["archive_manifest"]).exists(), "Expected preview archive manifest to exist"
               print("universal total test passed")
 
           asyncio.run(run_checks())
@@ -344,5 +351,5 @@ jobs:
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Offline buffering, remote session persistence, continuous execution and supervisor guidance were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- External asset intake, protected fetch runtime, asset derivatives, preview packaging, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- External asset intake, protected fetch runtime, asset derivatives, preview packaging, preview archives, binary workspace bridge, local workspace, transformation, publish planning and dry-run publish execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
