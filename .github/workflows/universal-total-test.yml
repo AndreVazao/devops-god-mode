@@ -107,6 +107,7 @@ jobs:
               required_routes = {
                   "/health",
                   "/app/operator-chat",
+                  "/app/operator-chat-sync",
                   "/api/operator-chat-runtime-snapshot/status",
                   "/api/browser-intake/status",
                   "/api/browser-control/status",
@@ -322,7 +323,9 @@ jobs:
               assert Path("data/operator_resumable_actions.json").exists()
               assert Path("backend/app/routes/operator_chat_frontend.py").exists()
               assert Path("backend/app/routes/operator_chat_runtime_snapshot.py").exists()
+              assert Path("backend/app/routes/operator_chat_sync_frontend.py").exists()
               assert Path("docs/frontend/operator-chat-runtime-snapshot-api.md").exists()
+              assert Path("docs/frontend/operator-chat-sync-runtime-ui.md").exists()
               assert Path(tenant_onboarding["manifest_file"]).exists()
               assert Path(browser_executor["manifest_file"]).exists()
               assert Path(multirepo_linkage["manifest_file"]).exists()
@@ -351,5 +354,5 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Core backend imports were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Main route set was validated for generic evolving phases.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Operator chat frontend route, runtime snapshot API, tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, popup delivery reissue, offline resumable replay, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Operator chat frontend route, operator chat sync frontend route, runtime snapshot API, tenant partition, tenant provider onboarding, browser onboarding executor, multirepo linkage, operator approval and input flows, popup delivery reissue, offline resumable replay, pending attention badges, env harvesting, guarded promotion, target execution and provider-aware deploy execution were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Desktop EXE input files were validated.' >> "$GITHUB_STEP_SUMMARY"
