@@ -1,0 +1,142 @@
+name: Mobile Approval Cockpit V2 Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase30-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/mobile-approval-cockpit-v2-test.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/mobile-approval-cockpit-v2-test.yml'
+
+jobs:
+  mobile-approval-cockpit-v2-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate mobile approval cockpit cards and decisions
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
+          from app.services.operator_command_intake_service import operator_command_intake_service
+          from app.services.repo_relationship_graph_service import repo_relationship_graph_service
+          from app.services.tenant_partition_service import tenant_partition_service
+          from app.services.vault_deploy_env_planner_service import vault_deploy_env_planner_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/mobile-approval-cockpit-v2/status",
+              "/api/mobile-approval-cockpit-v2/package",
+              "/api/mobile-approval-cockpit-v2/cards",
+              "/api/mobile-approval-cockpit-v2/decide",
+              "/api/mobile-approval-cockpit-v2/seed-from-latest-command",
+              "/api/mobile-approval-cockpit-v2/seed-from-deploy-readiness",
+              "/api/mobile-approval-cockpit-v2/dashboard",
+              "/app/mobile-approval-cockpit-v2",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          tenant_partition_service.upsert_tenant(
+              tenant_id="owner-andre",
+              owner_type="self",
+              display_name="André",
+              repo_scope_mode="private_default",
+              provider_scope_mode="private_default",
+              vault_namespace="vault/owner-andre",
+              notes="mobile approval cockpit v2 validation tenant",
+          )
+
+          command_result = operator_command_intake_service.submit_command(
+              tenant_id="owner-andre",
+              project_hint="baribudos-studio",
+              source_channel="mobile_chat",
+              command_text="Audita o Baribudos Studio e o Website e prepara PRs só depois da minha aprovação.",
+          )
+          assert command_result["ok"] is True
+
+          seeded_command = mobile_approval_cockpit_v2_service.seed_from_latest_operator_command(tenant_id="owner-andre")
+          assert seeded_command["ok"] is True
+          command_card = seeded_command["card"]
+          assert command_card["requires_approval"] is True
+          assert command_card["status"] == "pending_approval"
+          assert command_card["card_type"] == "operator_command"
+
+          decision = mobile_approval_cockpit_v2_service.decide_card(
+              card_id=command_card["card_id"],
+              decision="approved",
+              operator_note="Pode avançar com leitura segura.",
+              tenant_id="owner-andre",
+          )
+          assert decision["ok"] is True
+          assert decision["card"]["status"] == "approved"
+
+          repo_relationship_graph_service.seed_demo_baribudos_graph(tenant_id="owner-andre")
+          vault_deploy_env_planner_service.seed_demo_baribudos_secrets(tenant_id="owner-andre")
+          readiness_card = mobile_approval_cockpit_v2_service.seed_from_deploy_readiness(
+              project_id="baribudos-studio",
+              tenant_id="owner-andre",
+          )
+          assert readiness_card["ok"] is True
+          assert readiness_card["card"]["card_type"] == "deploy_env_sync_approval"
+          assert readiness_card["card"]["project_id"] == "baribudos-studio"
+
+          manual = mobile_approval_cockpit_v2_service.create_card(
+              title="Teste manual",
+              body="Progresso de teste para cockpit mobile.",
+              card_type="progress_update",
+              project_id="baribudos-studio",
+              tenant_id="owner-andre",
+              priority="medium",
+              requires_approval=False,
+          )
+          assert manual["ok"] is True
+          assert manual["card"]["status"] == "open"
+
+          cards = mobile_approval_cockpit_v2_service.list_cards(tenant_id="owner-andre", project_id="baribudos-studio")
+          dashboard = mobile_approval_cockpit_v2_service.build_dashboard(tenant_id="owner-andre")
+          assert cards["card_count"] >= 3
+          assert dashboard["card_count"] >= 3
+          assert Path("data/mobile_approval_cockpit_v2.json").exists()
+          assert Path("backend/app/services/mobile_approval_cockpit_v2_service.py").exists()
+          assert Path("backend/app/routes/mobile_approval_cockpit_v2.py").exists()
+          assert Path("backend/app/routes/mobile_approval_cockpit_v2_frontend.py").exists()
+          assert Path("docs/frontend/mobile-approval-cockpit-v2.md").exists()
+
+          print("mobile approval cockpit v2 test passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Mobile Approval Cockpit V2 Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile approval cards and decisions were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Operator command and deploy readiness seeding were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile cockpit frontend route and documentation were validated.' >> "$GITHUB_STEP_SUMMARY"
