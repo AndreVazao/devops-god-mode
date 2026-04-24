@@ -1,0 +1,133 @@
+name: Vault Deploy Env Planner Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase29-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/vault-deploy-env-planner-test.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/vault-deploy-env-planner-test.yml'
+
+jobs:
+  vault-deploy-env-planner-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate vault-aware deployment env planning
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.repo_relationship_graph_service import repo_relationship_graph_service
+          from app.services.tenant_partition_service import tenant_partition_service
+          from app.services.vault_deploy_env_planner_service import vault_deploy_env_planner_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/vault-deploy-env-planner/status",
+              "/api/vault-deploy-env-planner/package",
+              "/api/vault-deploy-env-planner/secret-presence",
+              "/api/vault-deploy-env-planner/project-env-manifest",
+              "/api/vault-deploy-env-planner/readiness-report",
+              "/api/vault-deploy-env-planner/readiness-reports",
+              "/api/vault-deploy-env-planner/dashboard",
+              "/api/vault-deploy-env-planner/seed-demo-baribudos-secrets",
+              "/app/vault-deploy-env-planner",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          tenant_partition_service.upsert_tenant(
+              tenant_id="owner-andre",
+              owner_type="self",
+              display_name="André",
+              repo_scope_mode="private_default",
+              provider_scope_mode="private_default",
+              vault_namespace="vault/owner-andre",
+              notes="vault deploy env planner validation tenant",
+          )
+
+          seeded_repos = repo_relationship_graph_service.seed_demo_baribudos_graph(tenant_id="owner-andre")
+          assert seeded_repos["ok"] is True
+
+          manifest_result = vault_deploy_env_planner_service.build_project_env_manifest(
+              project_id="baribudos-studio",
+              tenant_id="owner-andre",
+          )
+          assert manifest_result["ok"] is True
+          manifest = manifest_result["manifest"]
+          required_env_names = {item["env_name"] for item in manifest["required_env"]}
+          assert "GITHUB_TOKEN" in required_env_names
+          assert "VERCEL_TOKEN" in required_env_names
+          assert "SUPABASE_URL" in required_env_names
+          assert "NEXT_PUBLIC_API_URL" in required_env_names
+          assert "DATABASE_URL" in required_env_names
+          assert any(item["env_name"] == "NEXT_PUBLIC_API_URL" and item["is_public"] for item in manifest["required_env"])
+          assert any(item["env_name"] == "SUPABASE_SERVICE_ROLE_KEY" and item["is_secret"] for item in manifest["required_env"])
+
+          blocked_report = vault_deploy_env_planner_service.build_readiness_report(
+              project_id="baribudos-studio",
+              tenant_id="owner-andre",
+          )["report"]
+          assert blocked_report["status"] == "blocked_missing_secrets"
+          assert blocked_report["missing_secret_count"] >= 1
+
+          seeded_secrets = vault_deploy_env_planner_service.seed_demo_baribudos_secrets(tenant_id="owner-andre")
+          assert seeded_secrets["ok"] is True
+          assert seeded_secrets["seeded_count"] >= 5
+
+          partial_report = vault_deploy_env_planner_service.build_readiness_report(
+              project_id="baribudos-studio",
+              tenant_id="owner-andre",
+          )["report"]
+          assert partial_report["present_secret_count"] >= 5
+          assert partial_report["readiness_score"] > blocked_report["readiness_score"]
+          assert any(step["step_id"] == "confirm-secret-binding" for step in partial_report["approval_steps"])
+
+          dashboard = vault_deploy_env_planner_service.build_dashboard(tenant_id="owner-andre")
+          reports = vault_deploy_env_planner_service.list_readiness_reports(tenant_id="owner-andre", project_id="baribudos-studio")
+          assert dashboard["manifest_count"] >= 1
+          assert dashboard["secret_presence_count"] >= 5
+          assert reports["report_count"] >= 2
+          assert Path("data/vault_deploy_env_planner.json").exists()
+          assert Path("backend/app/services/vault_deploy_env_planner_service.py").exists()
+          assert Path("backend/app/routes/vault_deploy_env_planner.py").exists()
+          assert Path("backend/app/routes/vault_deploy_env_planner_frontend.py").exists()
+          assert Path("docs/frontend/vault-deploy-env-planner.md").exists()
+
+          print("vault deploy env planner test passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Vault Deploy Env Planner Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Vault-aware env planner routes were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Project env manifest and secret presence tracking were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Deploy readiness reporting without exposing secret values was validated.' >> "$GITHUB_STEP_SUMMARY"
