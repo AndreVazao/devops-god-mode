@@ -1,0 +1,117 @@
+name: Core Atomic Stores Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase38-*'
+    paths:
+      - 'backend/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-core-atomic-stores-validation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-core-atomic-stores-validation.yml'
+
+jobs:
+  core-atomic-stores-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate remaining core atomic stores
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.multi_ai_conversation_inventory_service import multi_ai_conversation_inventory_service
+          from app.services.repo_relationship_graph_service import repo_relationship_graph_service
+          from app.services.vault_deploy_env_planner_service import vault_deploy_env_planner_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/multi-ai-conversation-inventory/status",
+              "/api/repo-relationship-graph/status",
+              "/api/vault-deploy-env-planner/status",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          for service in [multi_ai_conversation_inventory_service, repo_relationship_graph_service, vault_deploy_env_planner_service]:
+              status = service.get_status()
+              assert status["ok"] is True
+              assert status["atomic_store_enabled"] is True
+
+          staged = multi_ai_conversation_inventory_service.stage_conversation(
+              provider="chatgpt",
+              title="God Mode core atomic migration",
+              snippet="DevOps God Mode repo graph vault planner backend FastAPI GitHub Actions Supabase Vercel.",
+              project_hint="devops-god-mode",
+              tenant_id="owner-andre",
+          )
+          assert staged["ok"] is True
+
+          seeded = repo_relationship_graph_service.seed_from_conversation_inventory(tenant_id="owner-andre")
+          assert seeded["ok"] is True
+          repo = repo_relationship_graph_service.upsert_repository(
+              repository_full_name="AndreVazao/devops-god-mode",
+              project_id="devops-god-mode",
+              project_name="DevOps God Mode",
+              roles=["backend", "frontend", "workflow", "vault"],
+              description="FastAPI backend with local-first cockpit and GitHub Actions build workflows.",
+              deploy_targets=["github-actions"],
+              tenant_id="owner-andre",
+          )
+          assert repo["ok"] is True
+          graph = repo_relationship_graph_service.build_graph(tenant_id="owner-andre")
+          assert graph["repository_count"] >= 1
+          plan = repo_relationship_graph_service.build_deep_audit_plan(project_id="devops-god-mode", tenant_id="owner-andre")
+          assert plan["ok"] is True
+
+          vault_deploy_env_planner_service.register_secret_presence("GITHUB_TOKEN", provider="github", scope="devops-god-mode", tenant_id="owner-andre")
+          manifest = vault_deploy_env_planner_service.build_project_env_manifest(project_id="devops-god-mode", tenant_id="owner-andre")
+          report = vault_deploy_env_planner_service.build_readiness_report(project_id="devops-god-mode", tenant_id="owner-andre")
+          assert manifest["ok"] is True
+          assert report["ok"] is True
+
+          for path in [
+              Path("data/multi_ai_conversation_inventory.json"),
+              Path("data/repo_relationship_graph.json"),
+              Path("data/vault_deploy_env_planner.json"),
+          ]:
+              assert path.exists(), path
+              assert path.with_suffix(path.suffix + ".lock").exists(), path
+
+          tree = Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+          assert "prune-core-atomic-stores-validation.yml" in tree
+
+          print("core atomic stores validation passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Core Atomic Stores Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Multi-AI inventory now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Repo relationship graph now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Vault deploy env planner now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
