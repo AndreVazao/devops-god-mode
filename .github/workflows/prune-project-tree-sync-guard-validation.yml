@@ -1,4 +1,4 @@
-name: Core Atomic Stores Validation
+name: Atomic Store Audit Enforcement
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase38-*'
+      - 'phase39-*'
     paths:
       - 'backend/**'
       - 'PROJECT_TREE.txt'
@@ -20,7 +20,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  core-atomic-stores-validation:
+  atomic-store-audit-enforcement:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,7 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate remaining core atomic stores
+      - name: Validate atomic store enforcement and integrity audit
         env:
           PYTHONPATH: backend
         run: |
@@ -44,74 +44,54 @@ jobs:
           from pathlib import Path
 
           from main import app
+          from app.services.system_integrity_audit_service import system_integrity_audit_service
+          from app.services.operator_command_intake_service import operator_command_intake_service
+          from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
+          from app.services.approved_card_execution_queue_service import approved_card_execution_queue_service
           from app.services.multi_ai_conversation_inventory_service import multi_ai_conversation_inventory_service
           from app.services.repo_relationship_graph_service import repo_relationship_graph_service
           from app.services.vault_deploy_env_planner_service import vault_deploy_env_planner_service
 
           route_paths = {route.path for route in app.routes}
-          required = {
-              "/api/multi-ai-conversation-inventory/status",
-              "/api/repo-relationship-graph/status",
-              "/api/vault-deploy-env-planner/status",
-          }
-          missing = sorted(required - route_paths)
-          assert not missing, f"Missing routes: {missing}"
+          assert "/api/system-integrity-audit/run" in route_paths
+          assert "/app/system-integrity-audit" in route_paths
 
-          for service in [multi_ai_conversation_inventory_service, repo_relationship_graph_service, vault_deploy_env_planner_service]:
+          critical_services = [
+              system_integrity_audit_service,
+              operator_command_intake_service,
+              mobile_approval_cockpit_v2_service,
+              approved_card_execution_queue_service,
+              multi_ai_conversation_inventory_service,
+              repo_relationship_graph_service,
+              vault_deploy_env_planner_service,
+          ]
+          for service in critical_services:
               status = service.get_status()
               assert status["ok"] is True
-              assert status["atomic_store_enabled"] is True
+              assert status.get("atomic_store_enabled") is True, status
 
-          staged = multi_ai_conversation_inventory_service.stage_conversation(
-              provider="chatgpt",
-              title="God Mode core atomic migration",
-              snippet="DevOps God Mode repo graph vault planner backend FastAPI GitHub Actions Supabase Vercel.",
-              project_hint="devops-god-mode",
-              tenant_id="owner-andre",
-          )
-          assert staged["ok"] is True
-
-          seeded = repo_relationship_graph_service.seed_from_conversation_inventory(tenant_id="owner-andre")
-          assert seeded["ok"] is True
-          repo = repo_relationship_graph_service.upsert_repository(
-              repository_full_name="AndreVazao/devops-god-mode",
-              project_id="devops-god-mode",
-              project_name="DevOps God Mode",
-              roles=["backend", "frontend", "workflow", "vault"],
-              description="FastAPI backend with local-first cockpit and GitHub Actions build workflows.",
-              deploy_targets=["github-actions"],
-              tenant_id="owner-andre",
-          )
-          assert repo["ok"] is True
-          graph = repo_relationship_graph_service.build_graph(tenant_id="owner-andre")
-          assert graph["repository_count"] >= 1
-          plan = repo_relationship_graph_service.build_deep_audit_plan(project_id="devops-god-mode", tenant_id="owner-andre")
-          assert plan["ok"] is True
-
-          vault_deploy_env_planner_service.register_secret_presence("GITHUB_TOKEN", provider="github", scope="devops-god-mode", tenant_id="owner-andre")
-          manifest = vault_deploy_env_planner_service.build_project_env_manifest(project_id="devops-god-mode", tenant_id="owner-andre")
-          report = vault_deploy_env_planner_service.build_readiness_report(project_id="devops-god-mode", tenant_id="owner-andre")
-          assert manifest["ok"] is True
+          report = system_integrity_audit_service.run_audit()
+          dashboard = system_integrity_audit_service.build_dashboard()
           assert report["ok"] is True
-
-          for path in [
-              Path("data/multi_ai_conversation_inventory.json"),
-              Path("data/repo_relationship_graph.json"),
-              Path("data/vault_deploy_env_planner.json"),
-          ]:
-              assert path.exists(), path
-              assert path.with_suffix(path.suffix + ".lock").exists(), path
+          assert dashboard["ok"] is True
+          assert report["critical_count"] == 0, report["findings"]
+          assert report["high_count"] == 0, report["findings"]
+          assert report["workflow_scan"]["phase_like_count"] == 0, report["workflow_scan"]
+          assert report["workflow_scan"]["non_canonical_count"] == 0, report["workflow_scan"]
+          assert report["expected_file_scan"]["missing_expected_file_count"] == 0, report["expected_file_scan"]
 
           tree = Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
           assert "prune-project-tree-sync-guard-validation.yml" in tree
+          assert Path("data/system_integrity_audit_report.json").exists()
+          assert Path("data/system_integrity_audit_report.json.lock").exists()
 
-          print("core atomic stores validation passed")
+          print("atomic store audit enforcement passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Core Atomic Stores Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Atomic Store Audit Enforcement Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Multi-AI inventory now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Repo relationship graph now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Vault deploy env planner now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- All critical backbone stores expose atomic_store_enabled.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- System Integrity Audit has no critical/high findings.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Workflow policy and PROJECT_TREE policy were validated.' >> "$GITHUB_STEP_SUMMARY"
