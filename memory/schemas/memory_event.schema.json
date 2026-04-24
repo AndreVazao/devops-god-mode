@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AndreOS Memory Event",
+  "type": "object",
+  "required": ["event_id", "project", "type", "created_at", "summary"],
+  "properties": {
+    "event_id": {"type": "string"},
+    "project": {"type": "string"},
+    "type": {"enum": ["decision", "history", "backlog", "error", "last_session", "prompt", "architecture"]},
+    "created_at": {"type": "string"},
+    "summary": {"type": "string"},
+    "source": {"type": "string"},
+    "metadata": {"type": "object"}
+  }
+}
