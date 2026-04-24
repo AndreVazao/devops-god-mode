@@ -1,0 +1,107 @@
+name: Provider Onboarding Cockpit Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/provider-onboarding-cockpit-test.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/provider-onboarding-cockpit-test.yml'
+
+jobs:
+  provider-onboarding-cockpit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate provider onboarding cockpit routes and dashboard
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.provider_onboarding_cockpit_service import provider_onboarding_cockpit_service
+          from app.services.provider_onboarding_orchestrator_service import provider_onboarding_orchestrator_service
+          from app.services.tenant_partition_service import tenant_partition_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/provider-onboarding-orchestrator/status",
+              "/api/provider-onboarding-orchestrator/package",
+              "/api/provider-onboarding-orchestrator/build",
+              "/api/provider-onboarding-cockpit/status",
+              "/api/provider-onboarding-cockpit/package",
+              "/api/provider-onboarding-cockpit/dashboard",
+              "/app/provider-onboarding",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          tenant_partition_service.upsert_tenant(
+              tenant_id="owner-andre",
+              owner_type="self",
+              display_name="André",
+              repo_scope_mode="private_default",
+              provider_scope_mode="private_default",
+              vault_namespace="vault/owner-andre",
+              notes="provider onboarding validation tenant",
+          )
+
+          plan = provider_onboarding_orchestrator_service.build_first_run_plan(
+              project_name="baribudos-studio",
+              providers=["github", "vercel", "supabase", "render"],
+              multirepo_mode=True,
+          )
+          dashboard = provider_onboarding_cockpit_service.build_dashboard(
+              tenant_id="owner-andre",
+              project_name="baribudos-studio",
+              providers=["github", "vercel", "supabase", "render"],
+              multirepo_mode=True,
+          )
+
+          assert provider_onboarding_cockpit_service.get_status()["ok"] is True
+          assert plan["ok"] is True and plan["provider_count"] == 4
+          assert dashboard["ok"] is True
+          assert dashboard["provider_count"] == 4
+          assert dashboard["multirepo_mode"] is True
+          assert dashboard["repo_plan"]["frontend_repo"] == "baribudos-studio-frontend"
+          assert len(dashboard["providers"]) == 4
+          assert Path("backend/app/services/provider_onboarding_cockpit_service.py").exists()
+          assert Path("backend/app/routes/provider_onboarding_cockpit.py").exists()
+          assert Path("backend/app/routes/provider_onboarding_cockpit_frontend.py").exists()
+          assert Path("docs/frontend/provider-onboarding-cockpit.md").exists()
+          assert Path(plan["manifest_file"]).exists()
+
+          print("provider onboarding cockpit test passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Provider Onboarding Cockpit Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Provider onboarding orchestrator routes were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Provider onboarding cockpit dashboard aggregation was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Provider onboarding cockpit frontend route and documentation were validated.' >> "$GITHUB_STEP_SUMMARY"
