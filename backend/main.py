@@ -104,6 +104,8 @@ from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
 from app.routes.platform_control_hardening import router as platform_control_hardening_router
 from app.routes.platform_failure_triage import router as platform_failure_triage_router
 from app.routes.preview_packaging import router as preview_packaging_router
+from app.routes.project_bootstrap_cockpit import router as project_bootstrap_cockpit_router
+from app.routes.project_bootstrap_cockpit_frontend import router as project_bootstrap_cockpit_frontend_router
 from app.routes.project_initiation_bootstrap import router as project_initiation_bootstrap_router
 from app.routes.project_recovery import router as project_recovery_router
 from app.routes.project_recovery_execution import router as project_recovery_execution_router
@@ -183,6 +185,7 @@ for r in [
     local_asset_workspace_router, workspace_publish_bridge_router,
     multi_file_parsing_placement_router, platform_control_hardening_router,
     platform_failure_triage_router, preview_packaging_router,
+    project_bootstrap_cockpit_router, project_bootstrap_cockpit_frontend_router,
     project_initiation_bootstrap_router, conversation_provider_linkage_router,
     pc_first_core_extraction_router, pc_mobile_active_session_router,
     pc_mobile_runtime_topology_router, local_runtime_dominance_router,
