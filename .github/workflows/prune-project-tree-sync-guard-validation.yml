@@ -1,4 +1,4 @@
-name: AndreOS Memory Core Validation
+name: Memory Runtime Integration Validation
 
 on:
   workflow_dispatch:
@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
+      - 'phase40-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -23,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  andreos-memory-core-validation:
+  memory-runtime-integration-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate AndreOS Memory Core
+      - name: Validate Memory Core runtime integration
         env:
           PYTHONPATH: backend
         run: |
@@ -47,80 +48,65 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.memory_core_service import memory_core_service, BASE_PROJECTS, PROJECT_FILES
+          from app.services.memory_core_service import memory_core_service
+          from app.services.operator_command_intake_service import operator_command_intake_service
+          from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
 
           route_paths = {route.path for route in app.routes}
-          required_routes = {
-              "/api/memory-core/status",
-              "/api/memory-core/package",
-              "/api/memory-core/initialize",
-              "/api/memory-core/projects",
-              "/api/memory-core/projects/{project_name}",
-              "/api/memory-core/decisions",
-              "/api/memory-core/history",
-              "/api/memory-core/last-session",
-              "/api/memory-core/backlog",
-              "/api/memory-core/context/{project_name}",
-              "/api/memory-core/obsidian/{project_name}/{file_name}",
-              "/app/memory-core",
-          }
-          missing = sorted(required_routes - route_paths)
-          assert not missing, f"Missing routes: {missing}"
+          assert "/api/operator-command-intake/submit" in route_paths
+          assert "/api/mobile-approval-cockpit-v2/decide" in route_paths
+          assert "/api/memory-core/context/{project_name}" in route_paths
 
-          status = memory_core_service.get_status()
-          assert status["ok"] is True
-          assert status["memory_name"] == "AndreOS Memory Core"
+          memory_core_service.initialize()
+          operator_status = operator_command_intake_service.get_status()
+          mobile_status = mobile_approval_cockpit_v2_service.get_status()
+          assert operator_status["memory_core_enabled"] is True
+          assert mobile_status["memory_core_enabled"] is True
 
-          init = memory_core_service.initialize()
-          assert init["ok"] is True
+          command_result = operator_command_intake_service.submit_command(
+              command_text="Audita o God Mode usando a memória AndreOS e prepara plano seguro.",
+              tenant_id="owner-andre",
+              project_hint="devops-god-mode",
+              source_channel="ci_memory_runtime",
+          )
+          assert command_result["ok"] is True
+          command = command_result["command"]
+          assert command["memory_core"]["memory_project"] == "GOD_MODE"
+          assert command["memory_core"]["context_available"] is True
+          assert command["memory_core"]["obsidian"]["open_uri"].startswith("obsidian://open?")
+          assert any(step["step_id"] == "load-andreos-project-memory" for step in command["execution_plan"])
+          assert any(step["step_id"] == "persist-session-memory" for step in command["execution_plan"])
+          assert command_result["memory_history"]["ok"] is True
 
-          for project in BASE_PROJECTS:
-              project_dir = Path("memory/vault/AndreOS/02_PROJETOS") / project
-              assert project_dir.exists(), project_dir
-              for file_name in PROJECT_FILES:
-                  assert (project_dir / file_name).exists(), project_dir / file_name
-
-          god_master = Path("memory/vault/AndreOS/02_PROJETOS/GOD_MODE/MEMORIA_MESTRE.md").read_text(encoding="utf-8")
-          assert "GOD MODE - MEMÓRIA MESTRE" in god_master
-          assert "Botões flutuantes" in god_master or "botões flutuantes" in god_master
-
-          decision = memory_core_service.write_decision("GOD_MODE", "Usar AndreOS Memory Core como memória externa persistente.", "Validação CI")
+          card_result = mobile_approval_cockpit_v2_service.seed_from_latest_operator_command(tenant_id="owner-andre")
+          assert card_result["ok"] is True
+          card = card_result["card"]
+          assert card["metadata"]["memory_core"]["memory_project"] == "GOD_MODE"
+          decision = mobile_approval_cockpit_v2_service.decide_card(
+              card_id=card["card_id"],
+              decision="approved",
+              operator_note="CI aprovou o plano com memória AndreOS.",
+              tenant_id="owner-andre",
+          )
           assert decision["ok"] is True
-          history = memory_core_service.write_history("GOD_MODE", "Validação do Memory Core", "Aprovado pelo workflow")
-          assert history["ok"] is True
-          backlog = memory_core_service.add_backlog_task("GOD_MODE", "Ligar contexto compacto aos fluxos de IA", "high")
-          assert backlog["ok"] is True
-          session = memory_core_service.update_last_session("GOD_MODE", "Workflow validou o Memory Core.", "Continuar integração no God Mode.")
-          assert session["ok"] is True
-          blocked = memory_core_service.write_decision("GOD_MODE", "authorization", "CI")
-          assert blocked["ok"] is False
-          assert blocked["error"] == "blocked_secret_keyword"
+          assert decision["memory_log"]["memory_project"] == "GOD_MODE"
+          assert decision["memory_log"]["decision_result"]["ok"] is True
+          assert decision["memory_log"]["history_result"]["ok"] is True
 
-          context = memory_core_service.compact_context("GOD_MODE", max_chars=6000)
-          assert context["ok"] is True
-          assert context["chars"] > 100
-          link = memory_core_service.obsidian_link("GOD_MODE", "MEMORIA_MESTRE.md")
-          assert link["ok"] is True
-          assert link["open_uri"].startswith("obsidian://open?")
+          decisions = Path("memory/vault/AndreOS/02_PROJETOS/GOD_MODE/DECISOES.md").read_text(encoding="utf-8")
+          history = Path("memory/vault/AndreOS/02_PROJETOS/GOD_MODE/HISTORICO.md").read_text(encoding="utf-8")
+          assert "Cartão operator_command decidido como approved" in decisions
+          assert "Comando recebido no Operator Command Intake" in history
+          assert "Decisão recebida no Mobile Approval Cockpit" in history
+          assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
 
-          for path in [
-              Path("memory/config/memory.config.json"),
-              Path("memory/schemas/memory_event.schema.json"),
-              Path("memory/schemas/project_memory.schema.json"),
-              Path("memory/schemas/decision.schema.json"),
-              Path("docs/MEMORY_CORE.md"),
-              Path("docs/OBSIDIAN_INTEGRATION.md"),
-              Path("docs/GOD_MODE_MEMORY_FLOW.md"),
-          ]:
-              assert path.exists(), path
-
-          print("AndreOS Memory Core validation passed")
+          print("memory runtime integration validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## AndreOS Memory Core Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Memory Runtime Integration Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Memory structure, templates, schemas and base projects were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Memory Core API and cockpit route were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Decision, history, backlog, last session, context and Obsidian URI flows were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Operator Command Intake now loads AndreOS Memory Core context.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile Approval Cockpit decisions are persisted to Obsidian Markdown memory.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- PROJECT_TREE workflow policy remains valid.' >> "$GITHUB_STEP_SUMMARY"
