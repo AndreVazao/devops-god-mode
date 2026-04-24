@@ -1,0 +1,118 @@
+name: Learning Router Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase43-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'memory/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'memory/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+
+jobs:
+  learning-router-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Learning Router
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.learning_router_service import learning_router_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/learning-router/status",
+              "/api/learning-router/package",
+              "/api/learning-router/dashboard",
+              "/api/learning-router/route",
+              "/api/learning-router/learn",
+              "/api/learning-router/unknowns",
+              "/app/learning-router",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          status = learning_router_service.get_status()
+          assert status["ok"] is True
+          assert status["atomic_store_enabled"] is True
+
+          learned = learning_router_service.learn_pattern(
+              phrase="faz check aos builds",
+              intent="build_check",
+              project="GOD_MODE",
+          )
+          assert learned["ok"] is True
+
+          routed = learning_router_service.route_message(
+              message="faz check aos builds do God Mode",
+              project_hint="GOD_MODE",
+              tenant_id="owner-andre",
+              auto_execute_confident=True,
+          )
+          assert routed["ok"] is True
+          assert routed["route"]["intent"] == "build_check"
+          assert routed["route"]["status"] == "routed_to_mission_control"
+          assert routed["mission_control"]["ok"] is True
+
+          unknown = learning_router_service.route_message(
+              message="xpto sem sentido operacional agora",
+              project_hint="GOD_MODE",
+              tenant_id="owner-andre",
+              auto_execute_confident=True,
+          )
+          assert unknown["ok"] is True
+          assert unknown["route"]["status"] == "unknown_needs_ai_or_operator_review"
+
+          dashboard = learning_router_service.build_dashboard()
+          assert dashboard["ok"] is True
+          assert dashboard["pattern_count"] >= 1
+          assert dashboard["unknown_count"] >= 1
+
+          assert Path("backend/app/services/learning_router_service.py").exists()
+          assert Path("backend/app/routes/learning_router.py").exists()
+          assert Path("backend/app/routes/learning_router_frontend.py").exists()
+          assert Path("docs/frontend/learning-router.md").exists()
+          assert Path("data/learning_router.json").exists()
+          assert Path("data/learning_router.json.lock").exists()
+          assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+
+          print("learning router validation passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Learning Router Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Natural message routing was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Explainable learned patterns and unknown capture were validated.' >> "$GITHUB_STEP_SUMMARY"
