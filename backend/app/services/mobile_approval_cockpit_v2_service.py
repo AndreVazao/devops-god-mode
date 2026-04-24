@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 from uuid import uuid4
 
+from app.services.memory_core_service import memory_core_service
 from app.services.operator_command_intake_service import operator_command_intake_service
 from app.services.vault_deploy_env_planner_service import vault_deploy_env_planner_service
 from app.utils.atomic_json_store import AtomicJsonStore
@@ -22,6 +23,16 @@ SAFE_CARD_TYPES = {
     "pr_write_approval",
     "progress_update",
 }
+PROJECT_MEMORY_ALIASES = {
+    "devops-god-mode": "GOD_MODE",
+    "general-intake": "GOD_MODE",
+    "botfarm-headless": "BOT_LORDS_MOBILE",
+    "bot-lords-mobile": "BOT_LORDS_MOBILE",
+    "build-control-center": "BUILD_CONTROL_CENTER",
+    "ecu-repro": "ECU_REPRO",
+    "proventil": "PROVENTIL",
+    "verbaforge": "VERBAFORGE",
+}
 
 
 class MobileApprovalCockpitV2Service:
@@ -34,6 +45,7 @@ class MobileApprovalCockpitV2Service:
             "status": "mobile_approval_cockpit_v2_ready",
             "store_file": str(MOBILE_APPROVAL_FILE),
             "atomic_store_enabled": True,
+            "memory_core_enabled": True,
         }
 
     def _now(self) -> str:
@@ -45,6 +57,27 @@ class MobileApprovalCockpitV2Service:
         store.setdefault("cards", [])
         store.setdefault("threads", {})
         return store
+
+    def _memory_project_name(self, project_id: str) -> str:
+        return PROJECT_MEMORY_ALIASES.get(project_id, project_id.replace("-", "_").upper())
+
+    def _persist_decision_to_memory(self, card: Dict[str, Any]) -> Dict[str, Any]:
+        decision = card.get("decision") or {}
+        decision_value = decision.get("decision") or card.get("status")
+        project = self._memory_project_name(card.get("project_id", "general-intake"))
+        memory_core_service.initialize()
+        memory_core_service.create_project(project)
+        decision_result = memory_core_service.write_decision(
+            project,
+            decision=f"Cartão {card.get('card_type')} decidido como {decision_value}.",
+            reason=f"Card: {card.get('title')} | Note: {decision.get('operator_note', '') or 'Sem nota.'}",
+        )
+        history_result = memory_core_service.write_history(
+            project,
+            action="Decisão recebida no Mobile Approval Cockpit",
+            result=f"Card ID: {card.get('card_id')} | Status: {card.get('status')}",
+        )
+        return {"decision_result": decision_result, "history_result": history_result, "memory_project": project}
 
     def _load_store(self) -> Dict[str, Any]:
         return self._normalize_store(MOBILE_APPROVAL_STORE.load())
@@ -118,7 +151,8 @@ class MobileApprovalCockpitV2Service:
 
         MOBILE_APPROVAL_STORE.update(mutate)
         if found:
-            return {"ok": True, "mode": "mobile_approval_card_decision", "card": found}
+            memory_log = self._persist_decision_to_memory(found)
+            return {"ok": True, "mode": "mobile_approval_card_decision", "card": found, "memory_log": memory_log}
         return {"ok": False, "error": "card_not_found", "card_id": card_id}
 
     def list_cards(self, tenant_id: str = "owner-andre", project_id: str | None = None, status: str | None = None, limit: int = 100) -> Dict[str, Any]:
@@ -145,7 +179,7 @@ class MobileApprovalCockpitV2Service:
         ]
         return self.create_card(
             title=f"Plano pronto: {command.get('intent', 'comando')}",
-            body=f"Projeto: {project_id}. Passos planeados: {len(steps)}. Prioridade: {command.get('priority')}. Confirma se o PC pode avançar para a próxima fase segura.",
+            body=f"Projeto: {project_id}. Memória: {command.get('memory_core', {}).get('memory_project', 'unknown')}. Passos planeados: {len(steps)}. Prioridade: {command.get('priority')}. Confirma se o PC pode avançar para a próxima fase segura.",
             card_type="operator_command",
             project_id=project_id,
             tenant_id=tenant_id,
@@ -153,7 +187,7 @@ class MobileApprovalCockpitV2Service:
             requires_approval=True,
             actions=actions,
             source_ref={"type": "operator_command", "command_id": command.get("command_id")},
-            metadata={"execution_plan": steps},
+            metadata={"execution_plan": steps, "memory_core": command.get("memory_core", {})},
         )
 
     def seed_from_deploy_readiness(self, project_id: str, tenant_id: str = "owner-andre") -> Dict[str, Any]:
