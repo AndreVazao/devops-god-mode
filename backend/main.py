@@ -80,6 +80,7 @@ from app.routes.multi_ai_intake_and_script_repair import router as multi_ai_repa
 from app.routes.multi_file_parsing_placement import router as multi_file_parsing_placement_router
 from app.routes.offline_command_buffering import router as offline_command_buffering_router
 from app.routes.operation_queue import router as operation_queue_router
+from app.routes.operator_action_journal import router as operator_action_journal_router
 from app.routes.operator_approval_gate import router as operator_approval_gate_router
 from app.routes.operator_chat_frontend import router as operator_chat_frontend_router
 from app.routes.operator_chat_runtime_snapshot import router as operator_chat_runtime_snapshot_router
@@ -181,8 +182,9 @@ for r in [
     first_run_bundle_router, mobile_runtime_shell_router, mobile_cockpit_sync_router,
     mobile_visual_approval_router, desktop_installer_router, desktop_mobile_handoff_router,
     runtime_supervisor_router, local_pc_runtime_router, action_center_router,
-    operation_queue_router, chat_inventory_router, operator_approval_gate_router,
-    operator_chat_frontend_router, operator_chat_runtime_snapshot_router, operator_chat_sync_frontend_router, operator_conversation_thread_router, operator_input_request_router,
+    operation_queue_router, chat_inventory_router, operator_action_journal_router,
+    operator_approval_gate_router, operator_chat_frontend_router, operator_chat_runtime_snapshot_router,
+    operator_chat_sync_frontend_router, operator_conversation_thread_router, operator_input_request_router,
     operator_pending_attention_router, operator_popup_delivery_router,
     operator_response_guidance_router, operator_resumable_action_router,
     repo_env_harvest_router, script_reuse_router, adaptation_planner_router,
