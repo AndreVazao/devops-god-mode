@@ -6,12 +6,26 @@ from pathlib import Path
 from typing import Any, Dict, List
 from uuid import uuid4
 
+from app.services.memory_core_service import memory_core_service
 from app.services.project_bootstrap_cockpit_service import project_bootstrap_cockpit_service
 from app.utils.atomic_json_store import AtomicJsonStore
 
 DATA_DIR = Path("data")
 COMMAND_MEMORY_FILE = DATA_DIR / "operator_command_intake_memory.json"
 COMMAND_MEMORY_STORE = AtomicJsonStore(COMMAND_MEMORY_FILE, default_factory=lambda: {"projects": {}, "commands": []})
+
+PROJECT_MEMORY_ALIASES = {
+    "devops-god-mode": "GOD_MODE",
+    "godmode": "GOD_MODE",
+    "god-mode": "GOD_MODE",
+    "general-intake": "GOD_MODE",
+    "proventil": "PROVENTIL",
+    "verbaforge": "VERBAFORGE",
+    "botfarm-headless": "BOT_LORDS_MOBILE",
+    "bot-lords-mobile": "BOT_LORDS_MOBILE",
+    "ecu-repro": "ECU_REPRO",
+    "build-control-center": "BUILD_CONTROL_CENTER",
+}
 
 
 class OperatorCommandIntakeService:
@@ -24,6 +38,7 @@ class OperatorCommandIntakeService:
             "status": "operator_command_intake_ready",
             "memory_file": str(COMMAND_MEMORY_FILE),
             "atomic_store_enabled": True,
+            "memory_core_enabled": True,
         }
 
     def _now(self) -> str:
@@ -46,6 +61,32 @@ class OperatorCommandIntakeService:
         normalized = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
         return normalized or "godmode-project"
 
+    def _memory_project_name(self, project: Dict[str, Any]) -> str:
+        project_id = project.get("project_id", "general-intake")
+        project_name = project.get("project_name", project_id)
+        return PROJECT_MEMORY_ALIASES.get(project_id, PROJECT_MEMORY_ALIASES.get(self._slugify(project_name), project_id.replace("-", "_").upper()))
+
+    def _memory_snapshot(self, project: Dict[str, Any]) -> Dict[str, Any]:
+        memory_project = self._memory_project_name(project)
+        memory_core_service.initialize()
+        memory_core_service.create_project(memory_project)
+        context = memory_core_service.compact_context(memory_project, max_chars=6000)
+        return {
+            "memory_project": memory_project,
+            "context_available": context.get("ok") is True and context.get("chars", 0) > 0,
+            "context_chars": context.get("chars", 0),
+            "context_preview": context.get("context", "")[:1200],
+            "obsidian": memory_core_service.obsidian_link(memory_project, "MEMORIA_MESTRE.md"),
+        }
+
+    def _safe_memory_history(self, project: Dict[str, Any], command: Dict[str, Any]) -> Dict[str, Any]:
+        memory_project = self._memory_project_name(project)
+        return memory_core_service.write_history(
+            memory_project,
+            action="Comando recebido no Operator Command Intake",
+            result=f"Intent: {command.get('intent')} | Priority: {command.get('priority')} | Command ID: {command.get('command_id')}",
+        )
+
     def _has_any_term(self, lowered_text: str, terms: List[str]) -> bool:
         for term in terms:
             normalized = term.lower().strip()
@@ -63,11 +104,19 @@ class OperatorCommandIntakeService:
             lowered = command_text.lower()
             if "baribudos" in lowered or "bodybou" in lowered or "very good" in lowered:
                 name = "baribudos-studio"
+            elif "proventil" in lowered:
+                name = "proventil"
+            elif "verbaforge" in lowered or "verba forge" in lowered:
+                name = "verbaforge"
+            elif "ecu" in lowered or "repro" in lowered:
+                name = "ecu-repro"
+            elif "build control" in lowered or "build center" in lowered:
+                name = "build-control-center"
             elif "god mode" in lowered or "godmode" in lowered:
                 name = "devops-god-mode"
             elif "website" in lowered and "studio" in lowered:
                 name = "studio-website-suite"
-            elif "botfarm" in lowered or "bot farm" in lowered or "headless" in lowered:
+            elif "botfarm" in lowered or "bot farm" in lowered or "headless" in lowered or "lords mobile" in lowered:
                 name = "botfarm-headless"
             else:
                 name = "general-intake"
@@ -129,6 +178,7 @@ class OperatorCommandIntakeService:
     def _build_execution_plan(self, command: Dict[str, Any], project: Dict[str, Any], targets: Dict[str, Any]) -> List[Dict[str, Any]]:
         intent = command["intent"]
         steps: List[Dict[str, Any]] = [
+            {"step_id": "load-andreos-project-memory", "label": "Ler memória AndreOS do projeto antes de planear", "executor": "memory_core", "approval_required": False, "status": "planned"},
             {"step_id": "attach-command-to-project-memory", "label": "Associar pedido ao projeto certo", "executor": "pc_local_brain", "approval_required": False, "status": "planned"},
             {"step_id": "load-project-bootstrap-readiness", "label": "Ler readiness do Project Bootstrap Cockpit", "executor": "pc_local_brain", "approval_required": False, "status": "planned"},
         ]
@@ -145,12 +195,15 @@ class OperatorCommandIntakeService:
             ])
         if intent == "deploy_or_build_readiness" or targets.get("needs_vault"):
             steps.extend([
-                {"step_id": "resolve-vault-secrets-for-project", "label": "Resolver secrets/tokens do projeto no vault", "executor": "secret_vault", "approval_required": True, "status": "planned"},
+                {"step_id": "resolve-vault-secrets-for-project", "label": "Resolver secrets/tokens do projeto no vault sem escrever no Obsidian", "executor": "secret_vault", "approval_required": True, "status": "planned"},
                 {"step_id": "validate-build-and-deploy-targets", "label": "Validar GitHub Actions, artifacts, Vercel, Render e Supabase", "executor": "provider_bridge", "approval_required": False, "status": "planned"},
             ])
         if command.get("destructive"):
             steps.append({"step_id": "hard-stop-destructive-action", "label": "Bloquear ação destrutiva até aprovação explícita no cockpit mobile", "executor": "mobile_approval_cockpit", "approval_required": True, "status": "blocked_until_operator_approval"})
-        steps.append({"step_id": "report-back-to-mobile-cockpit", "label": "Enviar progresso, próximos passos e pedidos de aprovação ao telemóvel", "executor": "mobile_cockpit", "approval_required": False, "status": "planned"})
+        steps.extend([
+            {"step_id": "persist-session-memory", "label": "Atualizar histórico e última sessão no AndreOS Memory Core", "executor": "memory_core", "approval_required": False, "status": "planned"},
+            {"step_id": "report-back-to-mobile-cockpit", "label": "Enviar progresso, próximos passos e pedidos de aprovação ao telemóvel", "executor": "mobile_cockpit", "approval_required": False, "status": "planned"},
+        ])
         return steps
 
     def submit_command(self, command_text: str, tenant_id: str = "owner-andre", project_hint: str | None = None, source_channel: str = "mobile_chat") -> Dict[str, Any]:
@@ -158,6 +211,7 @@ class OperatorCommandIntakeService:
         if not text:
             return {"ok": False, "error": "command_text_empty"}
         project = self._guess_project(text, project_hint=project_hint)
+        memory_snapshot = self._memory_snapshot(project)
         command_class = self._classify_intent(text)
         targets = self._extract_targets(text)
         command_id = f"cmd-{uuid4().hex[:12]}"
@@ -171,6 +225,7 @@ class OperatorCommandIntakeService:
             "raw_text": text,
             **command_class,
             "project": project,
+            "memory_core": memory_snapshot,
             "targets": targets,
             "bootstrap_summary": {"launch_ready": bootstrap.get("launch_ready"), "readiness_score": bootstrap.get("readiness_score"), "blocker_count": bootstrap.get("blocker_count")},
         }
@@ -178,8 +233,9 @@ class OperatorCommandIntakeService:
 
         def mutate(memory: Dict[str, Any]) -> Dict[str, Any]:
             memory = self._normalize_memory(memory)
-            project_record = memory["projects"].setdefault(project["project_id"], {"project_id": project["project_id"], "project_name": project["project_name"], "created_at": created_at, "last_seen_at": created_at, "command_ids": [], "known_repo_roles": [], "known_providers": []})
+            project_record = memory["projects"].setdefault(project["project_id"], {"project_id": project["project_id"], "project_name": project["project_name"], "created_at": created_at, "last_seen_at": created_at, "command_ids": [], "known_repo_roles": [], "known_providers": [], "memory_project": memory_snapshot["memory_project"]})
             project_record["project_name"] = project["project_name"]
+            project_record["memory_project"] = memory_snapshot["memory_project"]
             project_record["last_seen_at"] = created_at
             project_record["command_ids"].append(command_id)
             project_record["known_repo_roles"] = sorted(set(project_record.get("known_repo_roles", [])) | set(targets.get("repo_roles", [])))
@@ -190,7 +246,8 @@ class OperatorCommandIntakeService:
 
         update_result = COMMAND_MEMORY_STORE.update(mutate)
         memory = self._normalize_memory(update_result["payload"])
-        return {"ok": True, "mode": "operator_command_intake_submit", "command": command, "project_memory": memory["projects"][project["project_id"]]}
+        memory_history = self._safe_memory_history(project, command)
+        return {"ok": True, "mode": "operator_command_intake_submit", "command": command, "project_memory": memory["projects"][project["project_id"]], "memory_history": memory_history}
 
     def list_commands(self, tenant_id: str = "owner-andre", project_id: str | None = None, limit: int = 50) -> Dict[str, Any]:
         memory = self._load_memory()
