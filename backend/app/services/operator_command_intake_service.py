@@ -54,6 +54,22 @@ class OperatorCommandIntakeService:
         normalized = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
         return normalized or "godmode-project"
 
+    def _has_any_term(self, lowered_text: str, terms: List[str]) -> bool:
+        """Match complete words/phrases instead of raw substrings.
+
+        This prevents Portuguese words like "prepara" from being interpreted as
+        the repair verb "repara", while still allowing short commands such as
+        "repara o site" or multi-word expressions like "apagar repo".
+        """
+        for term in terms:
+            normalized = term.lower().strip()
+            if not normalized:
+                continue
+            pattern = r"(?<![a-z0-9])" + re.escape(normalized) + r"(?![a-z0-9])"
+            if re.search(pattern, lowered_text):
+                return True
+        return False
+
     def _guess_project(self, command_text: str, project_hint: str | None = None) -> Dict[str, Any]:
         if project_hint and project_hint.strip():
             name = project_hint.strip()
@@ -78,19 +94,19 @@ class OperatorCommandIntakeService:
         destructive = False
         approval_required = True
 
-        if any(word in lowered for word in ["audita", "auditoria", "verifica", "check", "erros", "partido"]):
+        if self._has_any_term(lowered, ["audita", "auditoria", "verifica", "check", "erros", "partido"]):
             intent = "deep_project_audit"
             priority = "high"
-        if any(word in lowered for word in ["corrige", "corrigir", "repara", "arruma", "aplica"]):
+        if self._has_any_term(lowered, ["corrige", "corrigir", "repara", "arruma", "aplica"]):
             intent = "repair_plan"
             priority = "high"
-        if any(word in lowered for word in ["deploy", "vercel", "render", "supabase", "build", "artifact", "artefact"]):
+        if self._has_any_term(lowered, ["deploy", "vercel", "render", "supabase", "build", "artifact", "artefact"]):
             intent = "deploy_or_build_readiness"
             priority = "high"
-        if any(word in lowered for word in ["conversa", "chatgpt", "claude", "gemini", "grok", "deepseek"]):
+        if self._has_any_term(lowered, ["conversa", "chatgpt", "claude", "gemini", "grok", "deepseek"]):
             intent = "multi_ai_conversation_mapping"
             priority = "high"
-        if any(word in lowered for word in ["apaga", "delete", "remove repo", "apagar repo", "apagar branch"]):
+        if self._has_any_term(lowered, ["apaga", "delete", "remove repo", "apagar repo", "apagar branch"]):
             destructive = True
             priority = "critical"
 
@@ -105,21 +121,21 @@ class OperatorCommandIntakeService:
         lowered = command_text.lower()
         providers: List[str] = []
         for provider in ["chatgpt", "claude", "gemini", "grok", "deepseek", "github", "vercel", "render", "supabase"]:
-            if provider in lowered:
+            if self._has_any_term(lowered, [provider]):
                 providers.append(provider)
         repos: List[str] = []
-        if "studio" in lowered:
+        if self._has_any_term(lowered, ["studio"]):
             repos.append("studio")
-        if "website" in lowered or "site" in lowered:
+        if self._has_any_term(lowered, ["website", "site"]):
             repos.append("website")
-        if "backend" in lowered or "back end" in lowered:
+        if self._has_any_term(lowered, ["backend", "back end"]):
             repos.append("backend")
-        if "frontend" in lowered or "front end" in lowered:
+        if self._has_any_term(lowered, ["frontend", "front end"]):
             repos.append("frontend")
         return {
             "providers": providers,
             "repo_roles": repos,
-            "needs_vault": any(item in lowered for item in ["token", "secret", "key", "chave", "supabase", "vercel", "render"]),
+            "needs_vault": self._has_any_term(lowered, ["token", "secret", "key", "chave", "supabase", "vercel", "render"]),
             "needs_mobile_approval": True,
             "needs_pc_execution": True,
         }
