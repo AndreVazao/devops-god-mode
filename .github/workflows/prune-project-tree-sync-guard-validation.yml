@@ -1,0 +1,88 @@
+name: Project Tree Sync Guard Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase35-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+
+jobs:
+  project-tree-sync-guard-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate project tree sync guard
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.project_tree_sync_guard_service import project_tree_sync_guard_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/project-tree-sync-guard/status",
+              "/api/project-tree-sync-guard/package",
+              "/api/project-tree-sync-guard/dashboard",
+              "/api/project-tree-sync-guard/check",
+              "/app/project-tree-sync-guard",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          status = project_tree_sync_guard_service.get_status()
+          dashboard = project_tree_sync_guard_service.build_dashboard()
+          check = project_tree_sync_guard_service.check_sync()
+
+          assert status["ok"] is True
+          assert dashboard["ok"] is True
+          assert check["ok"] is True
+          assert Path("PROJECT_TREE.txt").exists()
+          assert Path("backend/app/services/project_tree_sync_guard_service.py").exists()
+          assert Path("backend/app/routes/project_tree_sync_guard.py").exists()
+          assert Path("backend/app/routes/project_tree_sync_guard_frontend.py").exists()
+          assert Path("docs/frontend/project-tree-sync-guard.md").exists()
+          assert "project_tree_sync_guard.py" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+          assert "project_tree_sync_guard_service.py" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+          assert "project-tree-sync-guard.md" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+          assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+
+          print("project tree sync guard validation passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Project Tree Sync Guard Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Project tree sync guard routes were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- PROJECT_TREE.txt presence and new entries were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Previous temporary workflow pruning rule was followed.' >> "$GITHUB_STEP_SUMMARY"

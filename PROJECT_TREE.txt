@@ -2,7 +2,7 @@ devops-god-mode/
 ├─ .github/
 │  └─ workflows/
 │     ├─ android-real-build-progressive.yml
-│     ├─ prune-atomic-json-store-validation.yml
+│     ├─ prune-project-tree-sync-guard-validation.yml
 │     ├─ prune-old-artifacts-all-repos.yml
 │     ├─ universal-total-test.yml
 │     └─ windows-exe-real-build.yml
@@ -142,6 +142,8 @@ devops-god-mode/
 │  │  │  ├─ project_recovery_write_run.py
 │  │  │  ├─ project_recovery_write_submit.py
 │  │  │  ├─ project_recovery.py
+│  │  │  ├─ project_tree_sync_guard_frontend.py
+│  │  │  ├─ project_tree_sync_guard.py
 │  │  │  ├─ provider_connector_registry.py
 │  │  │  ├─ provider_deploy_execution.py
 │  │  │  ├─ provider_live_capability.py
@@ -297,6 +299,7 @@ devops-god-mode/
 │  │  │  ├─ project_recovery_write_remote_command_service.py
 │  │  │  ├─ project_recovery_write_run_service.py
 │  │  │  ├─ project_recovery_write_submit_service.py
+│  │  │  ├─ project_tree_sync_guard_service.py
 │  │  │  ├─ provider_connector_registry_service.py
 │  │  │  ├─ provider_deploy_execution_service.py
 │  │  │  ├─ provider_live_capability_service.py
@@ -523,6 +526,7 @@ devops-god-mode/
 │  │  ├─ operator-resumable-offline-replay-ux.md
 │  │  ├─ operator-undelivered-popup-reissue-ux.md
 │  │  ├─ project-bootstrap-cockpit.md
+│  │  ├─ project-tree-sync-guard.md
 │  │  ├─ provider-onboarding-cockpit.md
 │  │  ├─ repo-relationship-graph.md
 │  │  ├─ system-integrity-audit.md
@@ -636,4 +640,5 @@ devops-god-mode/
 │     ├─ start-god-mode-local.ps1
 │     └─ start-mobile-shell-local.ps1
 ├─ .gitignore
+├─ PROJECT_TREE.txt
 └─ README.md
