@@ -124,6 +124,9 @@ from app.routes.project_recovery_write_submit import router as project_recovery_
 from app.routes.provider_connector_registry import router as provider_connector_registry_router
 from app.routes.provider_deploy_execution import router as provider_deploy_execution_router
 from app.routes.provider_live_capability import router as provider_live_capability_router
+from app.routes.provider_onboarding_cockpit import router as provider_onboarding_cockpit_router
+from app.routes.provider_onboarding_cockpit_frontend import router as provider_onboarding_cockpit_frontend_router
+from app.routes.provider_onboarding_orchestrator import router as provider_onboarding_orchestrator_router
 from app.routes.provider_real_execution_guard import router as provider_real_execution_guard_router
 from app.routes.provider_secret_sync import router as provider_secret_sync_router
 from app.routes.provider_session_partition import router as provider_session_partition_router
@@ -163,8 +166,10 @@ for r in [
     godmode_remediation_router, godmode_remediation_frontend_router,
     guarded_deploy_promotion_router, provider_connector_registry_router,
     provider_deploy_execution_router, provider_live_capability_router,
-    provider_real_execution_guard_router, provider_secret_sync_router,
-    provider_session_partition_router, remote_brain_linkage_router, remote_channel_stability_router,
+    provider_onboarding_cockpit_router, provider_onboarding_cockpit_frontend_router,
+    provider_onboarding_orchestrator_router, provider_real_execution_guard_router,
+    provider_secret_sync_router, provider_session_partition_router,
+    remote_brain_linkage_router, remote_channel_stability_router,
     remote_session_persistence_router, continuous_remote_execution_router,
     offline_command_buffering_router, external_asset_intake_router,
     external_asset_materialization_router, external_asset_publish_router,
