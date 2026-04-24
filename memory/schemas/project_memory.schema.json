@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AndreOS Project Memory",
+  "type": "object",
+  "required": ["project", "files"],
+  "properties": {
+    "project": {"type": "string"},
+    "files": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "last_session_at": {"type": "string"},
+    "obsidian_path": {"type": "string"}
+  }
+}
