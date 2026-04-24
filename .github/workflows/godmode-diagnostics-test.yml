@@ -1,0 +1,124 @@
+name: God Mode Diagnostics Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/godmode-diagnostics-test.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/godmode-diagnostics-test.yml'
+
+jobs:
+  godmode-diagnostics-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate diagnostics routes and dashboard aggregation
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.godmode_diagnostics_service import godmode_diagnostics_service
+          from app.services.operator_action_journal_service import operator_action_journal_service
+          from app.services.operator_conversation_thread_service import operator_conversation_thread_service
+          from app.services.secret_vault_service import secret_vault_service
+          from app.services.tenant_partition_service import tenant_partition_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/godmode-diagnostics/status",
+              "/api/godmode-diagnostics/package",
+              "/api/godmode-diagnostics/dashboard",
+              "/app/godmode-diagnostics",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          tenant_partition_service.upsert_tenant(
+              tenant_id="owner-andre",
+              owner_type="self",
+              display_name="André",
+              repo_scope_mode="private_default",
+              provider_scope_mode="private_default",
+              vault_namespace="vault/owner-andre",
+              notes="diagnostics validation tenant",
+          )
+          thread = operator_conversation_thread_service.open_thread(
+              tenant_id="owner-andre",
+              conversation_title="Diagnostics validation thread",
+              channel_mode="mobile_chat",
+          )
+          thread_id = thread["thread"]["thread_id"]
+          operator_action_journal_service.log_event(
+              tenant_id="owner-andre",
+              thread_id=thread_id,
+              event_type="offline_queue_enqueued",
+              summary="Mensagem ficou pendente em fila local.",
+              outcome="queued",
+              details={"queue_size": 1},
+          )
+          operator_action_journal_service.log_event(
+              tenant_id="owner-andre",
+              thread_id=thread_id,
+              event_type="provider_session_restarted",
+              summary="Sessão expirada obrigou restart do fluxo.",
+              outcome="restart_required",
+              details={"provider": "ctt"},
+          )
+          secret_vault_service.register_secret(
+              secret_name="OPENAI_API_KEY",
+              secret_value="diagnostics-test-key",
+              provider="openai",
+              usage_scope="deploy_runtime",
+              target_refs=["vault/owner-andre"],
+          )
+
+          dashboard = godmode_diagnostics_service.build_dashboard(tenant_id="owner-andre")
+          assert godmode_diagnostics_service.get_status()["ok"] is True
+          assert dashboard["ok"] is True
+          assert dashboard["provider_count"] >= 1
+          assert dashboard["secret_count"] >= 1
+          assert dashboard["tenant_count"] >= 1
+          assert dashboard["snapshot_summary"]["journal_entry_count"] >= 2
+          assert any(item["diagnostic_id"] == "recent-failures" for item in dashboard["diagnostics"])
+          assert len(dashboard["recent_failures"]) >= 1
+          assert Path("backend/app/services/godmode_diagnostics_service.py").exists()
+          assert Path("backend/app/routes/godmode_diagnostics.py").exists()
+          assert Path("backend/app/routes/godmode_diagnostics_frontend.py").exists()
+          assert Path("docs/frontend/godmode-diagnostics-cockpit.md").exists()
+
+          print("godmode diagnostics test passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## God Mode Diagnostics Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Diagnostics routes were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Dashboard aggregation and blocker visibility were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Diagnostics frontend route and documentation were validated.' >> "$GITHUB_STEP_SUMMARY"
