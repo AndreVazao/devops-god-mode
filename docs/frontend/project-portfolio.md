@@ -17,6 +17,7 @@ Give God Mode a portfolio-level brain: projects, goals, priorities, repositories
 ## Seeded projects
 
 - GOD_MODE
+- BOT_FACTORY
 - BARIBUDOS_STUDIO
 - BARIBUDOS_STUDIO_WEBSITE
 - PROVENTIL
@@ -24,6 +25,12 @@ Give God Mode a portfolio-level brain: projects, goals, priorities, repositories
 - BOT_LORDS_MOBILE
 - ECU_REPRO
 - BUILD_CONTROL_CENTER
+
+## Bot Factory
+
+Bot Factory is a critical project for building other bots through observation, assisted reverse-engineering, game-flow analysis and continuous learning while André plays on mobile.
+
+The current rule is: do not build the full project inside God Mode yet. First, the God Mode portfolio must track it, create AndreOS memory, and later audit whether a repo/app already exists or if a new repo should be created with explicit approval.
 
 ## Why it matters
 
