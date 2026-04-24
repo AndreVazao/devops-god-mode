@@ -55,6 +55,8 @@ from app.routes.github_actions_connector import router as github_actions_connect
 from app.routes.github_scan import router as github_scan_router
 from app.routes.godmode_diagnostics import router as godmode_diagnostics_router
 from app.routes.godmode_diagnostics_frontend import router as godmode_diagnostics_frontend_router
+from app.routes.godmode_remediation import router as godmode_remediation_router
+from app.routes.godmode_remediation_frontend import router as godmode_remediation_frontend_router
 from app.routes.guarded_deploy_promotion import router as guarded_deploy_promotion_router
 from app.routes.initial_inventory_project_graph import router as initial_inventory_project_graph_router
 from app.routes.intelligent_completion_planner import router as intelligent_completion_planner_router
@@ -157,7 +159,8 @@ for r in [
     delivery_history_router, deploy_execution_plan_router, deploy_target_execution_router,
     deployment_secret_binding_router, env_intake_router, env_vault_import_router,
     external_provider_bridge_router, final_summary_router, github_actions_connector_router,
-    github_scan_router, godmode_diagnostics_router, godmode_diagnostics_frontend_router,
+    godmode_diagnostics_router, godmode_diagnostics_frontend_router,
+    godmode_remediation_router, godmode_remediation_frontend_router,
     guarded_deploy_promotion_router, provider_connector_registry_router,
     provider_deploy_execution_router, provider_live_capability_router,
     provider_real_execution_guard_router, provider_secret_sync_router,
