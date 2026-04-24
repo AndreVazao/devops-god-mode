@@ -1,0 +1,110 @@
+name: Operator Command Intake Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase26-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/operator-command-intake-test.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/operator-command-intake-test.yml'
+
+jobs:
+  operator-command-intake-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate operator command intake routes and project memory
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.operator_command_intake_service import operator_command_intake_service
+          from app.services.tenant_partition_service import tenant_partition_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/operator-command-intake/status",
+              "/api/operator-command-intake/package",
+              "/api/operator-command-intake/submit",
+              "/api/operator-command-intake/commands",
+              "/api/operator-command-intake/projects",
+              "/app/operator-command-intake",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          tenant_partition_service.upsert_tenant(
+              tenant_id="owner-andre",
+              owner_type="self",
+              display_name="André",
+              repo_scope_mode="private_default",
+              provider_scope_mode="private_default",
+              vault_namespace="vault/owner-andre",
+              notes="operator command intake validation tenant",
+          )
+
+          result = operator_command_intake_service.submit_command(
+              tenant_id="owner-andre",
+              project_hint="baribudos-studio",
+              source_channel="mobile_chat",
+              command_text="Audita o Baribudos Studio e o Website, vê o que está partido e prepara PRs com aprovação no telemóvel.",
+          )
+
+          assert operator_command_intake_service.get_status()["ok"] is True
+          assert result["ok"] is True
+          command = result["command"]
+          assert command["intent"] == "deep_project_audit"
+          assert command["priority"] == "high"
+          assert command["project"]["project_id"] == "baribudos-studio"
+          assert "studio" in command["targets"]["repo_roles"]
+          assert "website" in command["targets"]["repo_roles"]
+          assert command["bootstrap_summary"]["readiness_score"] >= 0
+          assert len(command["execution_plan"]) >= 5
+          assert any(step["step_id"] == "prepare-approval-gated-fix-plan" for step in command["execution_plan"])
+
+          listed = operator_command_intake_service.list_commands(tenant_id="owner-andre", project_id="baribudos-studio")
+          projects = operator_command_intake_service.list_project_memory(tenant_id="owner-andre")
+          assert listed["command_count"] >= 1
+          assert projects["project_count"] >= 1
+          assert Path("data/operator_command_intake_memory.json").exists()
+          assert Path("backend/app/services/operator_command_intake_service.py").exists()
+          assert Path("backend/app/routes/operator_command_intake.py").exists()
+          assert Path("backend/app/routes/operator_command_intake_frontend.py").exists()
+          assert Path("docs/frontend/operator-command-intake.md").exists()
+
+          print("operator command intake test passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Operator Command Intake Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Natural command intake routes were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Command classification and project memory were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Bootstrap readiness and approval-aware plan generation were validated.' >> "$GITHUB_STEP_SUMMARY"
