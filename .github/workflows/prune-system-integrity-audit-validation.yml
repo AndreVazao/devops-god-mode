@@ -1,0 +1,88 @@
+name: Deep Consistency Audit Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase33-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/prune-system-integrity-audit-validation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/prune-system-integrity-audit-validation.yml'
+
+jobs:
+  deep-consistency-audit-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate deep consistency audit hardening
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.system_integrity_audit_service import system_integrity_audit_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/system-integrity-audit/status",
+              "/api/system-integrity-audit/package",
+              "/api/system-integrity-audit/run",
+              "/api/system-integrity-audit/dashboard",
+              "/app/system-integrity-audit",
+          }
+          missing_routes = sorted(required_routes - route_paths)
+          assert not missing_routes, f"Missing routes: {missing_routes}"
+
+          status = system_integrity_audit_service.get_status()
+          report = system_integrity_audit_service.run_audit()
+          dashboard = system_integrity_audit_service.build_dashboard()
+
+          assert status["ok"] is True
+          assert report["ok"] is True
+          assert dashboard["ok"] is True
+          assert report["critical_count"] == 0, report["findings"]
+          assert report["high_count"] == 0, report["findings"]
+          assert report["workflow_scan"]["non_canonical_count"] == 0, report["workflow_scan"]
+          assert report["workflow_scan"]["phase_like_count"] == 0, report["workflow_scan"]
+          assert report["expected_file_scan"]["missing_expected_file_count"] == 0, report["expected_file_scan"]
+          assert report["route_service_doc_scan"]["duplicate_route_path_count"] == 0, report["route_service_doc_scan"]["duplicate_route_paths"]
+          assert Path("data/system_integrity_audit_report.json").exists()
+          assert Path("backend/app/services/system_integrity_audit_service.py").exists()
+          assert Path("backend/app/routes/system_integrity_audit.py").exists()
+          assert Path("backend/app/routes/system_integrity_audit_frontend.py").exists()
+          assert Path("docs/frontend/system-integrity-audit.md").exists()
+
+          print("deep consistency audit validation passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Deep Consistency Audit Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- System integrity audit routes were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Critical/high findings are blocked by CI.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Workflow pruning policy and duplicate route detection were validated.' >> "$GITHUB_STEP_SUMMARY"
