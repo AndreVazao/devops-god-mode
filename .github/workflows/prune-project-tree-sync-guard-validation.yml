@@ -1,4 +1,4 @@
-name: AI Handoff Bridge Validation
+name: Project Portfolio Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase44-*'
+      - 'phase45-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  ai-handoff-bridge-validation:
+  project-portfolio-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate AI Handoff Bridge
+      - name: Validate Project Portfolio
         env:
           PYTHONPATH: backend
         run: |
@@ -48,72 +48,55 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.learning_router_service import learning_router_service
-          from app.services.ai_handoff_bridge_service import ai_handoff_bridge_service
+          from app.services.project_portfolio_service import project_portfolio_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/ai-handoff/status",
-              "/api/ai-handoff/package",
-              "/api/ai-handoff/dashboard",
-              "/api/ai-handoff/handoffs",
-              "/api/ai-handoff/handoffs/{handoff_id}",
-              "/api/ai-handoff/from-latest-unknown",
-              "/api/ai-handoff/from-unknown",
-              "/api/ai-handoff/resolve",
-              "/app/ai-handoff",
+              "/api/project-portfolio/status",
+              "/api/project-portfolio/package",
+              "/api/project-portfolio/dashboard",
+              "/api/project-portfolio/seed",
+              "/api/project-portfolio/projects",
+              "/api/project-portfolio/repositories/link",
+              "/app/project-portfolio",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          unknown = learning_router_service.route_message(
-              message="interpreta isto com IA externa porque não sei que comando é",
-              project_hint="GOD_MODE",
-              tenant_id="owner-andre",
-              auto_execute_confident=False,
+          seed = project_portfolio_service.seed_defaults()
+          assert seed["ok"] is True
+          assert "BARIBUDOS_STUDIO" in seed["projects"]
+          assert "AndreVazao/baribudos-studio" in seed["repositories"]
+          assert "AndreVazao/baribudos-studio-website" in seed["repositories"]
+
+          linked = project_portfolio_service.link_repository(
+              project_id="BARIBUDOS_STUDIO",
+              repository_full_name="AndreVazao/baribudos-admin",
+              role="backend",
           )
-          assert unknown["ok"] is True
-          assert unknown["route"]["status"] == "unknown_needs_ai_or_operator_review"
+          assert linked["ok"] is True
 
-          created = ai_handoff_bridge_service.create_handoff_from_latest_unknown(provider="chatgpt", tenant_id="owner-andre")
-          assert created["ok"] is True
-          handoff = created["handoff"]
-          assert handoff["provider"] == "chatgpt"
-          assert "Mensagem original" in handoff["external_prompt"]
-          assert created["approval_card"]["ok"] is True
-
-          fetched = ai_handoff_bridge_service.get_handoff(handoff["handoff_id"])
-          assert fetched["ok"] is True
-
-          resolved = ai_handoff_bridge_service.resolve_handoff(
-              handoff_id=handoff["handoff_id"],
-              provider_response='{"intent":"memory_review","confidence":0.8}',
-              learn_phrase="interpreta isto com IA externa",
-              intent="memory_review",
-              tenant_id="owner-andre",
-          )
-          assert resolved["ok"] is True
-          assert resolved["learn_result"]["ok"] is True
-          assert resolved["memory_history"]["ok"] is True
-
-          dashboard = ai_handoff_bridge_service.build_dashboard()
+          dashboard = project_portfolio_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["resolved_count"] >= 1
+          assert dashboard["summary"]["project_count"] >= 8
+          assert dashboard["summary"]["repository_count"] >= 3
+          assert any(item["project_id"] == "BARIBUDOS_STUDIO" for item in dashboard["projects"])
+          assert any(item["repository_full_name"] == "AndreVazao/baribudos-studio-website" for item in dashboard["repositories"])
 
-          assert Path("backend/app/services/ai_handoff_bridge_service.py").exists()
-          assert Path("backend/app/routes/ai_handoff_bridge.py").exists()
-          assert Path("backend/app/routes/ai_handoff_bridge_frontend.py").exists()
-          assert Path("docs/frontend/ai-handoff-bridge.md").exists()
-          assert Path("data/ai_handoff_bridge.json").exists()
-          assert Path("data/ai_handoff_bridge.json.lock").exists()
+          assert Path("backend/app/services/project_portfolio_service.py").exists()
+          assert Path("backend/app/routes/project_portfolio.py").exists()
+          assert Path("backend/app/routes/project_portfolio_frontend.py").exists()
+          assert Path("docs/frontend/project-portfolio.md").exists()
+          assert Path("data/project_portfolio.json").exists()
+          assert Path("data/project_portfolio.json.lock").exists()
           assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
 
-          print("ai handoff bridge validation passed")
+          print("project portfolio validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## AI Handoff Bridge Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Project Portfolio Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Unknown message to provider prompt flow was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Provider response resolution and learning feedback were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Project portfolio seeded with core and monetization projects.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Baribudos Studio and website repository links were validated.' >> "$GITHUB_STEP_SUMMARY"
