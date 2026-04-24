@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import ast
-import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
+from app.utils.atomic_json_store import AtomicJsonStore
+
 DATA_DIR = Path("data")
 REPORT_FILE = DATA_DIR / "system_integrity_audit_report.json"
+REPORT_STORE = AtomicJsonStore(REPORT_FILE, default_factory=dict)
 
 WORKFLOW_ALLOWED_EXACT = {
     "universal-total-test.yml",
@@ -42,6 +44,7 @@ class SystemIntegrityAuditService:
             "mode": "system_integrity_audit_status",
             "status": "system_integrity_audit_ready",
             "report_file": str(REPORT_FILE),
+            "atomic_store_enabled": True,
         }
 
     def _now(self) -> str:
@@ -235,7 +238,7 @@ class SystemIntegrityAuditService:
             text = self._safe_read(service)
             if "write_text" in text and "json" in text:
                 direct_json_writers.append(self._rel(service))
-                if ".tmp" not in text and "replace(" not in text:
+                if "AtomicJsonStore" not in text and ".tmp" not in text and "replace(" not in text:
                     missing_atomic_write.append(self._rel(service))
             if "DATA_DIR" in text or "data/" in text:
                 data_store_files.append(self._rel(service))
@@ -252,6 +255,8 @@ class SystemIntegrityAuditService:
     def _scan_expected_files(self) -> Dict[str, Any]:
         expected = [
             "backend/main.py",
+            "backend/app/utils/__init__.py",
+            "backend/app/utils/atomic_json_store.py",
             "backend/app/routes/system_integrity_audit.py",
             "backend/app/routes/system_integrity_audit_frontend.py",
             "backend/app/services/system_integrity_audit_service.py",
@@ -384,13 +389,12 @@ class SystemIntegrityAuditService:
             "expected_file_scan": expected_scan,
             "next_actions": [
                 "Manter apenas workflows canónicos/prune/build.",
-                "Extrair camada comum de JSON store atómico com lock e backup.",
+                "Migrar todos os stores JSON críticos para AtomicJsonStore.",
                 "Bloquear execução real se houver critical/high findings.",
                 "Promover este relatório para o cockpit mobile antes de ações destrutivas ou deploys.",
             ],
         }
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        REPORT_FILE.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        REPORT_STORE.save(report)
         return report
 
     def build_dashboard(self) -> Dict[str, Any]:
