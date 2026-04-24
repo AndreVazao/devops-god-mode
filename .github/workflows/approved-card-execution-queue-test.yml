@@ -1,0 +1,134 @@
+name: Approved Card Execution Queue Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase31-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/approved-card-execution-queue-test.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/approved-card-execution-queue-test.yml'
+
+jobs:
+  approved-card-execution-queue-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate approved card execution queue
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.approved_card_execution_queue_service import approved_card_execution_queue_service
+          from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
+          from app.services.tenant_partition_service import tenant_partition_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/approved-card-execution-queue/status",
+              "/api/approved-card-execution-queue/package",
+              "/api/approved-card-execution-queue/ingest-approved-cards",
+              "/api/approved-card-execution-queue/tasks",
+              "/api/approved-card-execution-queue/tasks/status",
+              "/api/approved-card-execution-queue/dashboard",
+              "/app/approved-card-execution-queue",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          tenant_partition_service.upsert_tenant(
+              tenant_id="owner-andre",
+              owner_type="self",
+              display_name="André",
+              repo_scope_mode="private_default",
+              provider_scope_mode="private_default",
+              vault_namespace="vault/owner-andre",
+              notes="approved card execution queue validation tenant",
+          )
+
+          card_result = mobile_approval_cockpit_v2_service.create_card(
+              title="Aprovar PR segura",
+              body="Pode preparar branch e PR para correção aprovada.",
+              card_type="pr_write_approval",
+              project_id="baribudos-studio",
+              tenant_id="owner-andre",
+              priority="high",
+              requires_approval=True,
+              actions=[{"action_id": "approve", "label": "Aprovar", "decision": "approved"}],
+          )
+          assert card_result["ok"] is True
+          approved = mobile_approval_cockpit_v2_service.decide_card(
+              card_id=card_result["card"]["card_id"],
+              decision="approved",
+              operator_note="Aprovado para preparar PR.",
+              tenant_id="owner-andre",
+          )
+          assert approved["ok"] is True
+
+          ingest = approved_card_execution_queue_service.ingest_approved_cards(tenant_id="owner-andre")
+          assert ingest["ok"] is True
+          assert ingest["created_task_count"] == 1
+          task = ingest["tasks"][0]
+          assert task["source_card_type"] == "pr_write_approval"
+          assert task["project_id"] == "baribudos-studio"
+          assert any(step["step_id"] == "open-pr" for step in task["steps"])
+          assert "do_not_expose_secret_values" in task["guardrails"]
+
+          duplicate_ingest = approved_card_execution_queue_service.ingest_approved_cards(tenant_id="owner-andre")
+          assert duplicate_ingest["created_task_count"] == 0
+
+          updated = approved_card_execution_queue_service.update_task_status(
+              task_id=task["task_id"],
+              status="running",
+              note="Executor local pegou na tarefa.",
+              tenant_id="owner-andre",
+          )
+          assert updated["ok"] is True
+          assert updated["task"]["status"] == "running"
+
+          tasks = approved_card_execution_queue_service.list_tasks(tenant_id="owner-andre", project_id="baribudos-studio")
+          dashboard = approved_card_execution_queue_service.build_dashboard(tenant_id="owner-andre")
+          assert tasks["task_count"] >= 1
+          assert dashboard["task_count"] >= 1
+          assert dashboard["risky_step_count"] >= 1
+          assert Path("data/approved_card_execution_queue.json").exists()
+          assert Path("backend/app/services/approved_card_execution_queue_service.py").exists()
+          assert Path("backend/app/routes/approved_card_execution_queue.py").exists()
+          assert Path("backend/app/routes/approved_card_execution_queue_frontend.py").exists()
+          assert Path("docs/frontend/approved-card-execution-queue.md").exists()
+
+          print("approved card execution queue test passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Approved Card Execution Queue Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Approved mobile cards were converted into queued tasks.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Duplicate ingestion protection was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Task status updates and dashboard were validated.' >> "$GITHUB_STEP_SUMMARY"
