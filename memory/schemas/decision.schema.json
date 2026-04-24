@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AndreOS Decision",
+  "type": "object",
+  "required": ["decision_id", "project", "decision", "created_at"],
+  "properties": {
+    "decision_id": {"type": "string"},
+    "project": {"type": "string"},
+    "decision": {"type": "string"},
+    "reason": {"type": "string"},
+    "impact": {"type": "string"},
+    "created_at": {"type": "string"}
+  }
+}
