@@ -1,0 +1,109 @@
+name: Guided Command Center Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase42-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'memory/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'memory/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+
+jobs:
+  guided-command-center-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Guided Command Center
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.guided_mobile_command_center_service import guided_mobile_command_center_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/guided-command-center/status",
+              "/api/guided-command-center/package",
+              "/api/guided-command-center/dashboard",
+              "/api/guided-command-center/actions",
+              "/api/guided-command-center/projects/{project}/brief",
+              "/api/guided-command-center/prompt",
+              "/api/guided-command-center/execute",
+              "/app/guided-command-center",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          status = guided_mobile_command_center_service.get_status()
+          assert status["ok"] is True
+          assert status["action_count"] >= 6
+
+          dashboard = guided_mobile_command_center_service.build_dashboard()
+          assert dashboard["ok"] is True
+          assert len(dashboard["projects"]) >= 6
+          assert len(dashboard["recommended_next_actions"]) >= 3
+
+          prompt = guided_mobile_command_center_service.build_prompt(
+              project="GOD_MODE",
+              action_id="continue-project",
+              extra_instruction="CI validation",
+          )
+          assert prompt["ok"] is True
+          assert "GOD_MODE" in prompt["command_text"]
+          assert prompt["project_brief"]["memory_score"] >= 0
+
+          executed = guided_mobile_command_center_service.execute_guided_action(
+              project="GOD_MODE",
+              action_id="memory-review",
+              extra_instruction="CI validation",
+              tenant_id="owner-andre",
+          )
+          assert executed["ok"] is True
+          assert executed["mission_control"]["ok"] is True
+          assert executed["memory_log"]["ok"] is True
+
+          assert Path("backend/app/services/guided_mobile_command_center_service.py").exists()
+          assert Path("backend/app/routes/guided_mobile_command_center.py").exists()
+          assert Path("backend/app/routes/guided_mobile_command_center_frontend.py").exists()
+          assert Path("docs/frontend/guided-command-center.md").exists()
+          assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+
+          print("guided command center validation passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Guided Command Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Guided action templates and project briefs were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Guided action -> Mission Control -> approval card flow was validated.' >> "$GITHUB_STEP_SUMMARY"
