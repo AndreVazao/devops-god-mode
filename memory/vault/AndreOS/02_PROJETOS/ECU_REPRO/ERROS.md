@@ -1,0 +1,3 @@
+# ECU_REPRO - ERROS
+
+Sem erros registados na criação inicial da memória.
