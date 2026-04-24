@@ -1,0 +1,137 @@
+name: Repo Relationship Graph Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase28-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/repo-relationship-graph-test.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/repo-relationship-graph-test.yml'
+
+jobs:
+  repo-relationship-graph-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate repo graph routes and deep audit planning
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.multi_ai_conversation_inventory_service import multi_ai_conversation_inventory_service
+          from app.services.repo_relationship_graph_service import repo_relationship_graph_service
+          from app.services.tenant_partition_service import tenant_partition_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/repo-relationship-graph/status",
+              "/api/repo-relationship-graph/package",
+              "/api/repo-relationship-graph/repositories",
+              "/api/repo-relationship-graph/seed-from-conversation-inventory",
+              "/api/repo-relationship-graph/seed-demo-baribudos",
+              "/api/repo-relationship-graph/graph",
+              "/api/repo-relationship-graph/dashboard",
+              "/api/repo-relationship-graph/audit-plan",
+              "/api/repo-relationship-graph/audit-plans",
+              "/app/repo-relationship-graph",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          tenant_partition_service.upsert_tenant(
+              tenant_id="owner-andre",
+              owner_type="self",
+              display_name="André",
+              repo_scope_mode="private_default",
+              provider_scope_mode="private_default",
+              vault_namespace="vault/owner-andre",
+              notes="repo relationship graph validation tenant",
+          )
+
+          staged = multi_ai_conversation_inventory_service.stage_conversation(
+              provider="chatgpt",
+              title="Baribudos Studio Website audit",
+              snippet="Studio cockpit, website, FastAPI backend, Next.js frontend, GitHub Actions, Vercel and Supabase vault secrets.",
+              project_hint="baribudos-studio",
+              tenant_id="owner-andre",
+          )
+          assert staged["ok"] is True
+
+          seeded_inventory = repo_relationship_graph_service.seed_from_conversation_inventory(tenant_id="owner-andre")
+          assert seeded_inventory["ok"] is True
+
+          seeded_repos = repo_relationship_graph_service.seed_demo_baribudos_graph(tenant_id="owner-andre")
+          assert seeded_repos["ok"] is True
+
+          graph = repo_relationship_graph_service.build_graph(tenant_id="owner-andre")
+          assert graph["ok"] is True
+          assert graph["repository_count"] >= 2
+          project = next(item for item in graph["projects"] if item["project_id"] == "baribudos-studio")
+          assert project["repository_count"] >= 2
+          assert project["conversation_count"] >= 1
+          assert "website" in project["roles"]
+          assert "studio" in project["roles"]
+
+          plan_result = repo_relationship_graph_service.build_deep_audit_plan(
+              project_id="baribudos-studio",
+              tenant_id="owner-andre",
+              include_repair_plan=True,
+          )
+          assert plan_result["ok"] is True
+          plan = plan_result["plan"]
+          assert plan["status"] == "ready_for_read_only_audit"
+          assert plan["repository_count"] >= 2
+          assert len(plan["repo_plans"]) >= 2
+          assert any(step["step_id"] == "prepare-safe-pr-sequence" for step in plan["global_steps"])
+          assert any(
+              step["step_id"] == "approval-gated-fix-pr-plan"
+              for repo_plan in plan["repo_plans"]
+              for step in repo_plan["steps"]
+          )
+
+          dashboard = repo_relationship_graph_service.build_dashboard(tenant_id="owner-andre")
+          plans = repo_relationship_graph_service.list_audit_plans(tenant_id="owner-andre", project_id="baribudos-studio")
+          assert dashboard["repository_count"] >= 2
+          assert plans["plan_count"] >= 1
+          assert Path("data/repo_relationship_graph.json").exists()
+          assert Path("backend/app/services/repo_relationship_graph_service.py").exists()
+          assert Path("backend/app/routes/repo_relationship_graph.py").exists()
+          assert Path("backend/app/routes/repo_relationship_graph_frontend.py").exists()
+          assert Path("docs/frontend/repo-relationship-graph.md").exists()
+
+          print("repo relationship graph test passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Repo Relationship Graph Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Repo graph routes were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Conversation inventory seeding and demo repo links were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Deep read-only audit plan generation was validated.' >> "$GITHUB_STEP_SUMMARY"
