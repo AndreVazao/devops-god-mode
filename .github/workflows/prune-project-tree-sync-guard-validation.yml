@@ -1,4 +1,4 @@
-name: Remaining Atomic Stores Validation
+name: Core Atomic Stores Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase37-*'
+      - 'phase38-*'
     paths:
       - 'backend/**'
       - 'PROJECT_TREE.txt'
@@ -20,7 +20,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  remaining-atomic-stores-validation:
+  core-atomic-stores-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,7 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate mobile approval and execution queue atomic migration
+      - name: Validate remaining core atomic stores
         env:
           PYTHONPATH: backend
         run: |
@@ -44,67 +44,74 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
-          from app.services.approved_card_execution_queue_service import approved_card_execution_queue_service
+          from app.services.multi_ai_conversation_inventory_service import multi_ai_conversation_inventory_service
+          from app.services.repo_relationship_graph_service import repo_relationship_graph_service
+          from app.services.vault_deploy_env_planner_service import vault_deploy_env_planner_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/mobile-approval-cockpit-v2/status",
-              "/api/mobile-approval-cockpit-v2/cards",
-              "/api/mobile-approval-cockpit-v2/decide",
-              "/api/approved-card-execution-queue/status",
-              "/api/approved-card-execution-queue/ingest-approved-cards",
-              "/api/approved-card-execution-queue/tasks",
+              "/api/multi-ai-conversation-inventory/status",
+              "/api/repo-relationship-graph/status",
+              "/api/vault-deploy-env-planner/status",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          mobile_status = mobile_approval_cockpit_v2_service.get_status()
-          queue_status = approved_card_execution_queue_service.get_status()
-          assert mobile_status["atomic_store_enabled"] is True
-          assert queue_status["atomic_store_enabled"] is True
+          for service in [multi_ai_conversation_inventory_service, repo_relationship_graph_service, vault_deploy_env_planner_service]:
+              status = service.get_status()
+              assert status["ok"] is True
+              assert status["atomic_store_enabled"] is True
 
-          card = mobile_approval_cockpit_v2_service.create_card(
-              title="Atomic migration validation card",
-              body="Validate mobile approval atomic store and queue ingestion.",
-              card_type="pr_write_approval",
-              project_id="devops-god-mode",
-              tenant_id="owner-andre",
-              priority="high",
-              requires_approval=True,
-              actions=[{"action_id":"approve","label":"Approve","decision":"approved"}],
-          )["card"]
-          decision = mobile_approval_cockpit_v2_service.decide_card(
-              card_id=card["card_id"],
-              decision="approved",
-              operator_note="CI approval",
+          staged = multi_ai_conversation_inventory_service.stage_conversation(
+              provider="chatgpt",
+              title="God Mode core atomic migration",
+              snippet="DevOps God Mode repo graph vault planner backend FastAPI GitHub Actions Supabase Vercel.",
+              project_hint="devops-god-mode",
               tenant_id="owner-andre",
           )
-          assert decision["ok"] is True
-          assert decision["card"]["status"] == "approved"
+          assert staged["ok"] is True
 
-          ingest = approved_card_execution_queue_service.ingest_approved_cards(tenant_id="owner-andre", project_id="devops-god-mode")
-          assert ingest["ok"] is True
-          assert ingest["created_task_count"] >= 1
-          task = ingest["tasks"][-1]
-          assert task["source_card_type"] == "pr_write_approval"
-          assert any(step["step_id"] == "open-pr" for step in task["steps"])
+          seeded = repo_relationship_graph_service.seed_from_conversation_inventory(tenant_id="owner-andre")
+          assert seeded["ok"] is True
+          repo = repo_relationship_graph_service.upsert_repository(
+              repository_full_name="AndreVazao/devops-god-mode",
+              project_id="devops-god-mode",
+              project_name="DevOps God Mode",
+              roles=["backend", "frontend", "workflow", "vault"],
+              description="FastAPI backend with local-first cockpit and GitHub Actions build workflows.",
+              deploy_targets=["github-actions"],
+              tenant_id="owner-andre",
+          )
+          assert repo["ok"] is True
+          graph = repo_relationship_graph_service.build_graph(tenant_id="owner-andre")
+          assert graph["repository_count"] >= 1
+          plan = repo_relationship_graph_service.build_deep_audit_plan(project_id="devops-god-mode", tenant_id="owner-andre")
+          assert plan["ok"] is True
 
-          mobile_path = Path("data/mobile_approval_cockpit_v2.json")
-          queue_path = Path("data/approved_card_execution_queue.json")
-          assert mobile_path.exists()
-          assert queue_path.exists()
-          assert mobile_path.with_suffix(mobile_path.suffix + ".lock").exists()
-          assert queue_path.with_suffix(queue_path.suffix + ".lock").exists()
-          assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+          vault_deploy_env_planner_service.register_secret_presence("GITHUB_TOKEN", provider="github", scope="devops-god-mode", tenant_id="owner-andre")
+          manifest = vault_deploy_env_planner_service.build_project_env_manifest(project_id="devops-god-mode", tenant_id="owner-andre")
+          report = vault_deploy_env_planner_service.build_readiness_report(project_id="devops-god-mode", tenant_id="owner-andre")
+          assert manifest["ok"] is True
+          assert report["ok"] is True
 
-          print("remaining atomic stores validation passed")
+          for path in [
+              Path("data/multi_ai_conversation_inventory.json"),
+              Path("data/repo_relationship_graph.json"),
+              Path("data/vault_deploy_env_planner.json"),
+          ]:
+              assert path.exists(), path
+              assert path.with_suffix(path.suffix + ".lock").exists(), path
+
+          tree = Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+          assert "prune-project-tree-sync-guard-validation.yml" in tree
+
+          print("core atomic stores validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Remaining Atomic Stores Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Core Atomic Stores Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Mobile approval cockpit now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Approved card execution queue now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Atomic persistence and task ingestion were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Multi-AI inventory now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Repo relationship graph now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Vault deploy env planner now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
