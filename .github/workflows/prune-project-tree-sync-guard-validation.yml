@@ -1,4 +1,4 @@
-name: Phase Atomic JSON Migration Validation
+name: Remaining Atomic Stores Validation
 
 on:
   workflow_dispatch:
@@ -6,10 +6,9 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase36-*'
+      - 'phase37-*'
     paths:
       - 'backend/**'
-      - 'docs/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
   pull_request:
@@ -17,12 +16,11 @@ on:
       - main
     paths:
       - 'backend/**'
-      - 'docs/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  atomic-json-migration-validation:
+  remaining-atomic-stores-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate operator command intake atomic migration
+      - name: Validate mobile approval and execution queue atomic migration
         env:
           PYTHONPATH: backend
         run: |
@@ -46,50 +44,67 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.operator_command_intake_service import operator_command_intake_service
-          from app.utils.atomic_json_store import AtomicJsonStore
+          from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
+          from app.services.approved_card_execution_queue_service import approved_card_execution_queue_service
 
           route_paths = {route.path for route in app.routes}
-          assert "/api/operator-command-intake/status" in route_paths
-          assert "/api/operator-command-intake/submit" in route_paths
-          assert "/app/operator-command-intake" in route_paths
+          required = {
+              "/api/mobile-approval-cockpit-v2/status",
+              "/api/mobile-approval-cockpit-v2/cards",
+              "/api/mobile-approval-cockpit-v2/decide",
+              "/api/approved-card-execution-queue/status",
+              "/api/approved-card-execution-queue/ingest-approved-cards",
+              "/api/approved-card-execution-queue/tasks",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing routes: {missing}"
 
-          status = operator_command_intake_service.get_status()
-          assert status["ok"] is True
-          assert status["atomic_store_enabled"] is True
+          mobile_status = mobile_approval_cockpit_v2_service.get_status()
+          queue_status = approved_card_execution_queue_service.get_status()
+          assert mobile_status["atomic_store_enabled"] is True
+          assert queue_status["atomic_store_enabled"] is True
 
-          result = operator_command_intake_service.submit_command(
-              command_text="Audita o God Mode e valida a migração AtomicJsonStore.",
+          card = mobile_approval_cockpit_v2_service.create_card(
+              title="Atomic migration validation card",
+              body="Validate mobile approval atomic store and queue ingestion.",
+              card_type="pr_write_approval",
+              project_id="devops-god-mode",
               tenant_id="owner-andre",
-              project_hint="devops-god-mode",
-              source_channel="ci_validation",
+              priority="high",
+              requires_approval=True,
+              actions=[{"action_id":"approve","label":"Approve","decision":"approved"}],
+          )["card"]
+          decision = mobile_approval_cockpit_v2_service.decide_card(
+              card_id=card["card_id"],
+              decision="approved",
+              operator_note="CI approval",
+              tenant_id="owner-andre",
           )
-          assert result["ok"] is True
-          assert result["command"]["project"]["project_id"] == "devops-god-mode"
+          assert decision["ok"] is True
+          assert decision["card"]["status"] == "approved"
 
-          listed = operator_command_intake_service.list_commands(tenant_id="owner-andre", project_id="devops-god-mode")
-          projects = operator_command_intake_service.list_project_memory(tenant_id="owner-andre")
-          assert listed["command_count"] >= 1
-          assert projects["project_count"] >= 1
+          ingest = approved_card_execution_queue_service.ingest_approved_cards(tenant_id="owner-andre", project_id="devops-god-mode")
+          assert ingest["ok"] is True
+          assert ingest["created_task_count"] >= 1
+          task = ingest["tasks"][-1]
+          assert task["source_card_type"] == "pr_write_approval"
+          assert any(step["step_id"] == "open-pr" for step in task["steps"])
 
-          memory_path = Path("data/operator_command_intake_memory.json")
-          assert memory_path.exists()
-          assert memory_path.with_suffix(memory_path.suffix + ".lock").exists()
-          assert Path("backend/app/utils/atomic_json_store.py").exists()
-          assert Path("PROJECT_TREE.txt").exists()
+          mobile_path = Path("data/mobile_approval_cockpit_v2.json")
+          queue_path = Path("data/approved_card_execution_queue.json")
+          assert mobile_path.exists()
+          assert queue_path.exists()
+          assert mobile_path.with_suffix(mobile_path.suffix + ".lock").exists()
+          assert queue_path.with_suffix(queue_path.suffix + ".lock").exists()
           assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
 
-          store = AtomicJsonStore(memory_path, default_factory=lambda: {"projects": {}, "commands": []})
-          loaded = store.load()
-          assert "projects" in loaded
-          assert "commands" in loaded
-
-          print("operator command intake atomic migration validation passed")
+          print("remaining atomic stores validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Atomic JSON Migration Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Remaining Atomic Stores Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Operator command memory now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Atomic persistence, route import and PROJECT_TREE presence were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile approval cockpit now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Approved card execution queue now uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Atomic persistence and task ingestion were validated.' >> "$GITHUB_STEP_SUMMARY"

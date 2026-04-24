@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
@@ -8,9 +7,11 @@ from uuid import uuid4
 
 from app.services.operator_command_intake_service import operator_command_intake_service
 from app.services.vault_deploy_env_planner_service import vault_deploy_env_planner_service
+from app.utils.atomic_json_store import AtomicJsonStore
 
 DATA_DIR = Path("data")
 MOBILE_APPROVAL_FILE = DATA_DIR / "mobile_approval_cockpit_v2.json"
+MOBILE_APPROVAL_STORE = AtomicJsonStore(MOBILE_APPROVAL_FILE, default_factory=lambda: {"cards": [], "threads": {}})
 
 SAFE_CARD_TYPES = {
     "operator_command",
@@ -24,12 +25,7 @@ SAFE_CARD_TYPES = {
 
 
 class MobileApprovalCockpitV2Service:
-    """Mobile-first approval cockpit for PC local brain operations.
-
-    This layer creates chat-style cards for the phone. The PC can keep working
-    locally and ask for approval, credentials, provider login or destructive
-    action confirmation without exposing secret values.
-    """
+    """Mobile-first approval cockpit for PC local brain operations."""
 
     def get_status(self) -> Dict[str, Any]:
         return {
@@ -37,27 +33,24 @@ class MobileApprovalCockpitV2Service:
             "mode": "mobile_approval_cockpit_v2_status",
             "status": "mobile_approval_cockpit_v2_ready",
             "store_file": str(MOBILE_APPROVAL_FILE),
+            "atomic_store_enabled": True,
         }
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
 
+    def _normalize_store(self, store: Dict[str, Any]) -> Dict[str, Any]:
+        if not isinstance(store, dict):
+            return {"cards": [], "threads": {}}
+        store.setdefault("cards", [])
+        store.setdefault("threads", {})
+        return store
+
     def _load_store(self) -> Dict[str, Any]:
-        if not MOBILE_APPROVAL_FILE.exists():
-            return {"cards": [], "threads": {}}
-        try:
-            loaded = json.loads(MOBILE_APPROVAL_FILE.read_text(encoding="utf-8"))
-            if not isinstance(loaded, dict):
-                return {"cards": [], "threads": {}}
-            loaded.setdefault("cards", [])
-            loaded.setdefault("threads", {})
-            return loaded
-        except json.JSONDecodeError:
-            return {"cards": [], "threads": {}}
+        return self._normalize_store(MOBILE_APPROVAL_STORE.load())
 
     def _save_store(self, store: Dict[str, Any]) -> None:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        MOBILE_APPROVAL_FILE.write_text(json.dumps(store, ensure_ascii=False, indent=2), encoding="utf-8")
+        MOBILE_APPROVAL_STORE.save(self._normalize_store(store))
 
     def create_card(
         self,
@@ -92,42 +85,43 @@ class MobileApprovalCockpitV2Service:
             "updated_at": created_at,
             "decision": None,
         }
-        store = self._load_store()
-        store["cards"].append(card)
-        thread = store["threads"].setdefault(project_id, {"project_id": project_id, "card_ids": [], "last_seen_at": created_at})
-        thread["card_ids"].append(card_id)
-        thread["last_seen_at"] = created_at
-        store["cards"] = store["cards"][-1000:]
-        self._save_store(store)
+
+        def mutate(store: Dict[str, Any]) -> Dict[str, Any]:
+            store = self._normalize_store(store)
+            store["cards"].append(card)
+            thread = store["threads"].setdefault(project_id, {"project_id": project_id, "card_ids": [], "last_seen_at": created_at})
+            thread["card_ids"].append(card_id)
+            thread["last_seen_at"] = created_at
+            store["cards"] = store["cards"][-1000:]
+            return store
+
+        MOBILE_APPROVAL_STORE.update(mutate)
         return {"ok": True, "mode": "mobile_approval_card_create", "card": card}
 
-    def decide_card(
-        self,
-        card_id: str,
-        decision: str,
-        operator_note: str = "",
-        tenant_id: str = "owner-andre",
-    ) -> Dict[str, Any]:
+    def decide_card(self, card_id: str, decision: str, operator_note: str = "", tenant_id: str = "owner-andre") -> Dict[str, Any]:
         normalized = decision.lower().strip()
         if normalized not in {"approved", "rejected", "needs_changes", "acknowledged"}:
             return {"ok": False, "error": "invalid_decision", "allowed": ["approved", "rejected", "needs_changes", "acknowledged"]}
-        store = self._load_store()
-        for card in store.get("cards", []):
-            if card.get("card_id") == card_id and card.get("tenant_id") == tenant_id:
-                card["status"] = normalized
-                card["decision"] = {"decision": normalized, "operator_note": operator_note, "decided_at": self._now()}
-                card["updated_at"] = self._now()
-                self._save_store(store)
-                return {"ok": True, "mode": "mobile_approval_card_decision", "card": card}
+        found: Dict[str, Any] | None = None
+
+        def mutate(store: Dict[str, Any]) -> Dict[str, Any]:
+            nonlocal found
+            store = self._normalize_store(store)
+            for card in store.get("cards", []):
+                if card.get("card_id") == card_id and card.get("tenant_id") == tenant_id:
+                    card["status"] = normalized
+                    card["decision"] = {"decision": normalized, "operator_note": operator_note, "decided_at": self._now()}
+                    card["updated_at"] = self._now()
+                    found = card
+                    break
+            return store
+
+        MOBILE_APPROVAL_STORE.update(mutate)
+        if found:
+            return {"ok": True, "mode": "mobile_approval_card_decision", "card": found}
         return {"ok": False, "error": "card_not_found", "card_id": card_id}
 
-    def list_cards(
-        self,
-        tenant_id: str = "owner-andre",
-        project_id: str | None = None,
-        status: str | None = None,
-        limit: int = 100,
-    ) -> Dict[str, Any]:
+    def list_cards(self, tenant_id: str = "owner-andre", project_id: str | None = None, status: str | None = None, limit: int = 100) -> Dict[str, Any]:
         store = self._load_store()
         cards = [item for item in store.get("cards", []) if item.get("tenant_id") == tenant_id]
         if project_id:
