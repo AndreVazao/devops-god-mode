@@ -1,236 +1,57 @@
+from __future__ import annotations
+
+import importlib
+import pkgutil
+from typing import Any, Dict, List
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from app import routes
 from app.config import settings
-from app.routes.action_center import router as action_center_router
-from app.routes.adaptation_planner import router as adaptation_planner_router
-from app.routes.android_progressive_runtime_binding import router as android_progressive_binding_router
-from app.routes.android_real_build_pipeline import router as android_real_build_router
-from app.routes.android_real_build_progressive import router as android_real_build_progressive_router
-from app.routes.android_real_pipeline_readiness import router as android_real_pipeline_router
-from app.routes.approval_broker import router as approval_broker_router
-from app.routes.approval_gated_execution import router as approval_gated_execution_router
-from app.routes.approved_asset_reapply import router as approved_asset_reapply_router
-from app.routes.asset_derivative import router as asset_derivative_router
-from app.routes.asset_workspace_sync import router as asset_workspace_sync_router
-from app.routes.automatic_project_classification import router as automatic_project_classification_router
-from app.routes.autonomous_project_continuation import router as autonomous_project_continuation_router
-from app.routes.browser_continuation_execution import router as browser_continuation_execution_router
-from app.routes.browser_control_real import router as browser_control_real_router
-from app.routes.browser_conversation_intake import router as browser_conversation_intake_router
-from app.routes.browser_response_reconciliation import router as browser_response_reconciliation_router
-from app.routes.build_artifact_harvest import router as build_artifact_harvest_router
-from app.routes.build_catalog import router as build_catalog_router
-from app.routes.bundle_publish_link import router as bundle_publish_link_router
-from app.routes.capability_reuse import router as capability_reuse_router
-from app.routes.chat_adapter_inventory import router as chat_inventory_router
-from app.routes.context_aware_orchestration import router as context_orchestration_router
-from app.routes.continuous_remote_execution import router as continuous_remote_execution_router
-from app.routes.conversation_bundle import router as conversation_bundle_router
-from app.routes.conversation_organization import router as conversation_organization_router
-from app.routes.conversation_provider_linkage import router as conversation_provider_linkage_router
-from app.routes.conversation_reconciliation import router as conversation_reconciliation_router
-from app.routes.conversation_repo_materialization import router as conversation_repo_materialization_router
-from app.routes.conversation_repo_reconstruction import router as conversation_repo_reconstruction_router
-from app.routes.conversation_rollover_handoff import router as conversation_rollover_handoff_router
-from app.routes.delivery_acknowledgment import router as delivery_acknowledgment_router
-from app.routes.delivery_history import router as delivery_history_router
-from app.routes.deploy_execution_plan import router as deploy_execution_plan_router
-from app.routes.deploy_target_execution import router as deploy_target_execution_router
-from app.routes.deployment_secret_binding import router as deployment_secret_binding_router
-from app.routes.desktop_bootstrap import router as desktop_bootstrap_router
-from app.routes.desktop_installer_onboarding import router as desktop_installer_router
-from app.routes.desktop_mobile_handoff import router as desktop_mobile_handoff_router
-from app.routes.driving_mode_voice_first import router as driving_mode_router
-from app.routes.env_intake import router as env_intake_router
-from app.routes.env_vault_import import router as env_vault_import_router
-from app.routes.external_asset_intake import router as external_asset_intake_router
-from app.routes.external_asset_materialization import router as external_asset_materialization_router
-from app.routes.external_asset_publish_execution import router as external_asset_publish_router
-from app.routes.external_fetch_runtime import router as external_fetch_runtime_router
-from app.routes.external_provider_bridge import router as external_provider_bridge_router
-from app.routes.final_delivery import router as final_delivery_router
-from app.routes.final_summary import router as final_summary_router
-from app.routes.first_run_bundle import router as first_run_bundle_router
-from app.routes.github_actions_connector import router as github_actions_connector_router
-from app.routes.github_scan import router as github_scan_router
-from app.routes.godmode_diagnostics import router as godmode_diagnostics_router
-from app.routes.godmode_diagnostics_frontend import router as godmode_diagnostics_frontend_router
-from app.routes.godmode_remediation import router as godmode_remediation_router
-from app.routes.godmode_remediation_frontend import router as godmode_remediation_frontend_router
-from app.routes.guarded_deploy_promotion import router as guarded_deploy_promotion_router
-from app.routes.initial_inventory_project_graph import router as initial_inventory_project_graph_router
-from app.routes.intelligent_completion_planner import router as intelligent_completion_planner_router
-from app.routes.intelligent_merge_guard import router as intelligent_merge_guard_router
-from app.routes.intelligent_patch_apply import router as intelligent_patch_apply_router
-from app.routes.intelligent_patch_synthesis import router as intelligent_patch_synthesis_router
-from app.routes.intelligent_repo_merge import router as intelligent_repo_merge_router
-from app.routes.intelligent_repo_state import router as intelligent_repo_state_router
-from app.routes.inter_provider_handoff_adaptation import router as inter_provider_handoff_adaptation_router
-from app.routes.live_session_control import router as live_session_control_router
-from app.routes.local_asset_transformation import router as local_asset_transformation_router
-from app.routes.local_asset_workspace import router as local_asset_workspace_router
-from app.routes.local_code_patch import router as local_code_patch_router
-from app.routes.local_file_apply_runtime import router as local_file_apply_runtime_router
-from app.routes.local_pc_runtime_orchestrator import router as local_pc_runtime_router
-from app.routes.local_project_application_execution import router as local_project_application_execution_router
-from app.routes.local_project_application_preparation import router as local_project_application_preparation_router
-from app.routes.local_real_validator import router as local_real_validator_router
-from app.routes.local_runtime_dominance import router as local_runtime_dominance_router
-from app.routes.mobile_cockpit_command_surface import router as mobile_cockpit_router
-from app.routes.mobile_cockpit_sync import router as mobile_cockpit_sync_router
-from app.routes.mobile_runtime_shell import router as mobile_runtime_shell_router
-from app.routes.mobile_visual_approval import router as mobile_visual_approval_router
-from app.routes.multi_ai_intake_and_script_repair import router as multi_ai_repair_router
-from app.routes.multi_file_parsing_placement import router as multi_file_parsing_placement_router
-from app.routes.offline_command_buffering import router as offline_command_buffering_router
-from app.routes.operation_queue import router as operation_queue_router
-from app.routes.operator_action_journal import router as operator_action_journal_router
-from app.routes.operator_approval_gate import router as operator_approval_gate_router
-from app.routes.operator_chat_frontend import router as operator_chat_frontend_router
-from app.routes.operator_chat_runtime_snapshot import router as operator_chat_runtime_snapshot_router
-from app.routes.operator_chat_sync_frontend import router as operator_chat_sync_frontend_router
-from app.routes.operator_conversation_thread import router as operator_conversation_thread_router
-from app.routes.operator_input_request import router as operator_input_request_router
-from app.routes.operator_pending_attention import router as operator_pending_attention_router
-from app.routes.operator_popup_delivery import router as operator_popup_delivery_router
-from app.routes.operator_response_guidance import router as operator_response_guidance_router
-from app.routes.operator_resumable_action import router as operator_resumable_action_router
-from app.routes.packaging_foundation import router as packaging_foundation_router
-from app.routes.patch_apply_preview import router as patch_apply_preview_router
-from app.routes.pc_first_core_extraction import router as pc_first_core_extraction_router
-from app.routes.pc_mobile_active_session import router as pc_mobile_active_session_router
-from app.routes.pc_mobile_runtime_topology import router as pc_mobile_runtime_topology_router
-from app.routes.pc_phone_bootstrap import router as pc_phone_bootstrap_router
-from app.routes.platform_control_hardening import router as platform_control_hardening_router
-from app.routes.platform_failure_triage import router as platform_failure_triage_router
-from app.routes.preview_packaging import router as preview_packaging_router
-from app.routes.project_initiation_bootstrap import router as project_initiation_bootstrap_router
-from app.routes.project_recovery import router as project_recovery_router
-from app.routes.project_recovery_execution import router as project_recovery_execution_router
-from app.routes.project_recovery_local_apply import router as project_recovery_local_apply_router
-from app.routes.project_recovery_real_write_link import router as project_recovery_real_write_router
-from app.routes.project_recovery_write_approval_cockpit import router as project_recovery_write_approval_cockpit_router
-from app.routes.project_recovery_write_candidate import router as project_recovery_write_candidate_router
-from app.routes.project_recovery_write_create import router as project_recovery_write_create_router
-from app.routes.project_recovery_write_dispatch import router as project_recovery_write_dispatch_router
-from app.routes.project_recovery_write_execution import router as project_recovery_write_execution_router
-from app.routes.project_recovery_write_guard import router as project_recovery_write_guard_router
-from app.routes.project_recovery_write_materialize import router as project_recovery_write_materialize_router
-from app.routes.project_recovery_write_mobile_action_execution import router as project_recovery_write_mobile_action_execution_router
-from app.routes.project_recovery_write_queue import router as project_recovery_write_queue_router
-from app.routes.project_recovery_write_remote_command import router as project_recovery_write_remote_command_router
-from app.routes.project_recovery_write_run import router as project_recovery_write_run_router
-from app.routes.project_recovery_write_submit import router as project_recovery_write_submit_router
-from app.routes.provider_connector_registry import router as provider_connector_registry_router
-from app.routes.provider_deploy_execution import router as provider_deploy_execution_router
-from app.routes.provider_live_capability import router as provider_live_capability_router
-from app.routes.provider_onboarding_cockpit import router as provider_onboarding_cockpit_router
-from app.routes.provider_onboarding_cockpit_frontend import router as provider_onboarding_cockpit_frontend_router
-from app.routes.provider_onboarding_orchestrator import router as provider_onboarding_orchestrator_router
-from app.routes.provider_real_execution_guard import router as provider_real_execution_guard_router
-from app.routes.provider_secret_sync import router as provider_secret_sync_router
-from app.routes.provider_session_partition import router as provider_session_partition_router
-from app.routes.real_local_write import router as real_local_write_router
-from app.routes.registry import router as registry_router
-from app.routes.remote_brain_linkage import router as remote_brain_linkage_router
-from app.routes.remote_channel_stability import router as remote_channel_stability_router
-from app.routes.remote_session_persistence import router as remote_session_persistence_router
-from app.routes.repo_env_harvest import router as repo_env_harvest_router
-from app.routes.runtime_supervisor_guidance import router as runtime_supervisor_router
-from app.routes.script_extraction_reuse import router as script_reuse_router
-from app.routes.secret_vault import router as secret_vault_router
-from app.routes.shared_secret_topology import router as shared_secret_topology_router
-from app.routes.tenant_browser_onboarding_executor import router as tenant_browser_onboarding_executor_router
-from app.routes.tenant_multirepo_linkage import router as tenant_multirepo_linkage_router
-from app.routes.tenant_partition import router as tenant_partition_router
-from app.routes.tenant_provider_onboarding import router as tenant_provider_onboarding_router
-from app.routes.tenant_scoped_vault_projection import router as tenant_scoped_vault_projection_router
-from app.routes.workspace_publish_bridge import router as workspace_publish_bridge_router
-from app.routes.write_verify_rollback import router as write_verify_rollback_router
 
 app = FastAPI(title='DevOps God Mode')
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=['*'], allow_headers=['*'])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
-for r in [
-    github_scan_router, registry_router, approval_broker_router, approval_gated_execution_router,
-    approved_asset_reapply_router, asset_derivative_router, asset_workspace_sync_router,
-    capability_reuse_router, conversation_bundle_router, conversation_reconciliation_router,
-    conversation_repo_materialization_router, conversation_repo_reconstruction_router,
-    browser_conversation_intake_router, browser_continuation_execution_router,
-    browser_response_reconciliation_router, build_artifact_harvest_router, build_catalog_router,
-    bundle_publish_link_router, final_delivery_router, delivery_acknowledgment_router,
-    delivery_history_router, deploy_execution_plan_router, deploy_target_execution_router,
-    deployment_secret_binding_router, env_intake_router, env_vault_import_router,
-    external_provider_bridge_router, final_summary_router, github_actions_connector_router,
-    godmode_diagnostics_router, godmode_diagnostics_frontend_router,
-    godmode_remediation_router, godmode_remediation_frontend_router,
-    guarded_deploy_promotion_router, provider_connector_registry_router,
-    provider_deploy_execution_router, provider_live_capability_router,
-    provider_onboarding_cockpit_router, provider_onboarding_cockpit_frontend_router,
-    provider_onboarding_orchestrator_router, provider_real_execution_guard_router,
-    provider_secret_sync_router, provider_session_partition_router,
-    remote_brain_linkage_router, remote_channel_stability_router,
-    remote_session_persistence_router, continuous_remote_execution_router,
-    offline_command_buffering_router, external_asset_intake_router,
-    external_asset_materialization_router, external_asset_publish_router,
-    external_fetch_runtime_router, initial_inventory_project_graph_router,
-    intelligent_completion_planner_router, intelligent_merge_guard_router,
-    intelligent_patch_apply_router, intelligent_patch_synthesis_router,
-    intelligent_repo_merge_router, intelligent_repo_state_router,
-    automatic_project_classification_router, autonomous_project_continuation_router,
-    inter_provider_handoff_adaptation_router, conversation_rollover_handoff_router,
-    live_session_control_router, local_asset_transformation_router,
-    local_asset_workspace_router, workspace_publish_bridge_router,
-    multi_file_parsing_placement_router, platform_control_hardening_router,
-    platform_failure_triage_router, preview_packaging_router,
-    project_initiation_bootstrap_router, conversation_provider_linkage_router,
-    pc_first_core_extraction_router, pc_mobile_active_session_router,
-    pc_mobile_runtime_topology_router, local_runtime_dominance_router,
-    local_code_patch_router, patch_apply_preview_router, local_file_apply_runtime_router,
-    local_project_application_preparation_router, local_project_application_execution_router,
-    real_local_write_router, write_verify_rollback_router, local_real_validator_router,
-    packaging_foundation_router, pc_phone_bootstrap_router, desktop_bootstrap_router,
-    first_run_bundle_router, mobile_runtime_shell_router, mobile_cockpit_sync_router,
-    mobile_visual_approval_router, desktop_installer_router, desktop_mobile_handoff_router,
-    runtime_supervisor_router, local_pc_runtime_router, action_center_router,
-    operation_queue_router, chat_inventory_router, operator_action_journal_router,
-    operator_approval_gate_router, operator_chat_frontend_router, operator_chat_runtime_snapshot_router,
-    operator_chat_sync_frontend_router, operator_conversation_thread_router, operator_input_request_router,
-    operator_pending_attention_router, operator_popup_delivery_router,
-    operator_response_guidance_router, operator_resumable_action_router,
-    repo_env_harvest_router, script_reuse_router, adaptation_planner_router,
-    conversation_organization_router, browser_control_real_router, mobile_cockpit_router,
-    driving_mode_router, context_orchestration_router, android_real_pipeline_router,
-    android_real_build_router, android_real_build_progressive_router,
-    android_progressive_binding_router, multi_ai_repair_router, project_recovery_router,
-    project_recovery_execution_router, project_recovery_local_apply_router,
-    project_recovery_real_write_router, project_recovery_write_candidate_router,
-    project_recovery_write_run_router, project_recovery_write_queue_router,
-    project_recovery_write_submit_router, project_recovery_write_create_router,
-    project_recovery_write_dispatch_router, project_recovery_write_guard_router,
-    project_recovery_write_materialize_router, project_recovery_write_execution_router,
-    project_recovery_write_approval_cockpit_router, project_recovery_write_remote_command_router,
-    project_recovery_write_mobile_action_execution_router, secret_vault_router,
-    shared_secret_topology_router, tenant_browser_onboarding_executor_router,
-    tenant_multirepo_linkage_router, tenant_partition_router, tenant_provider_onboarding_router,
-    tenant_scoped_vault_projection_router,
-]:
-    app.include_router(r)
+
+def _include_all_route_modules() -> List[str]:
+    loaded: List[str] = []
+    for module_info in sorted(pkgutil.iter_modules(routes.__path__), key=lambda item: item.name):
+        module_name = f'{routes.__name__}.{module_info.name}'
+        module = importlib.import_module(module_name)
+        router = getattr(module, 'router', None)
+        if router is not None:
+            app.include_router(router)
+            loaded.append(module_name)
+    return loaded
+
+
+LOADED_ROUTE_MODULES = _include_all_route_modules()
+
 
 @app.get('/')
-def root():
+def root() -> Dict[str, str]:
     return {'status': 'DevOps God Mode backend alive'}
 
+
 @app.get('/health')
-def health():
+def health() -> Dict[str, str]:
     return {'status': 'ok'}
 
+
 @app.get('/api/system/config')
-def config_status():
+def config_status() -> Dict[str, Any]:
     return {
         'runtime_mode': 'pc_mobile_local_first',
         'local_brain': 'pc',
         'remote_cockpit': 'mobile',
         'github': bool(settings.GITHUB_TOKEN),
         'openai': bool(settings.OPENAI_KEY),
+        'loaded_route_modules': len(LOADED_ROUTE_MODULES),
     }
