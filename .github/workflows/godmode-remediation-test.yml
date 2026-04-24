@@ -1,0 +1,112 @@
+name: God Mode Remediation Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/godmode-remediation-test.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - '.github/workflows/godmode-remediation-test.yml'
+
+jobs:
+  godmode-remediation-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate remediation routes and action plan
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.godmode_remediation_service import godmode_remediation_service
+          from app.services.operator_action_journal_service import operator_action_journal_service
+          from app.services.operator_conversation_thread_service import operator_conversation_thread_service
+          from app.services.secret_vault_service import secret_vault_service
+          from app.services.tenant_partition_service import tenant_partition_service
+
+          route_paths = {route.path for route in app.routes}
+          required_routes = {
+              "/api/godmode-remediation/status",
+              "/api/godmode-remediation/package",
+              "/api/godmode-remediation/plan",
+              "/app/godmode-remediation",
+          }
+          missing = sorted(required_routes - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          tenant_partition_service.upsert_tenant(
+              tenant_id="owner-andre",
+              owner_type="self",
+              display_name="André",
+              repo_scope_mode="private_default",
+              provider_scope_mode="private_default",
+              vault_namespace="vault/owner-andre",
+              notes="remediation validation tenant",
+          )
+          thread = operator_conversation_thread_service.open_thread(
+              tenant_id="owner-andre",
+              conversation_title="Remediation validation thread",
+              channel_mode="mobile_chat",
+          )
+          thread_id = thread["thread"]["thread_id"]
+          operator_action_journal_service.log_event(
+              tenant_id="owner-andre",
+              thread_id=thread_id,
+              event_type="provider_session_restarted",
+              summary="Sessão expirada obrigou restart do fluxo.",
+              outcome="restart_required",
+              details={"provider": "ctt"},
+          )
+          secret_vault_service.register_secret(
+              secret_name="OPENAI_API_KEY",
+              secret_value="remediation-test-key",
+              provider="openai",
+              usage_scope="deploy_runtime",
+              target_refs=["vault/owner-andre"],
+          )
+
+          plan = godmode_remediation_service.build_plan(tenant_id="owner-andre")
+          assert godmode_remediation_service.get_status()["ok"] is True
+          assert plan["ok"] is True
+          assert plan["action_count"] >= 1
+          assert any(item["action_id"] in {"triage-recent-failures", "clear-pending-threads", "expand-project-throughput", "connect-providers", "seed-vault"} for item in plan["actions"])
+          assert Path("backend/app/services/godmode_remediation_service.py").exists()
+          assert Path("backend/app/routes/godmode_remediation.py").exists()
+          assert Path("backend/app/routes/godmode_remediation_frontend.py").exists()
+          assert Path("docs/frontend/godmode-remediation-cockpit.md").exists()
+
+          print("godmode remediation test passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## God Mode Remediation Test Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Remediation routes were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Action planning from diagnostics and journal signals was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Remediation frontend route and documentation were validated.' >> "$GITHUB_STEP_SUMMARY"
