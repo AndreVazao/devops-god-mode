@@ -1,0 +1,105 @@
+name: Monetization Readiness Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase48-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'memory/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'memory/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+
+jobs:
+  monetization-readiness-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Monetization Readiness Matrix
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.monetization_readiness_service import monetization_readiness_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/monetization-readiness/status",
+              "/api/monetization-readiness/package",
+              "/api/monetization-readiness/dashboard",
+              "/api/monetization-readiness/matrix",
+              "/api/monetization-readiness/reports",
+              "/app/monetization-readiness",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          status = monetization_readiness_service.get_status()
+          assert status["ok"] is True
+          assert status["atomic_store_enabled"] is True
+
+          matrix = monetization_readiness_service.build_matrix()
+          assert matrix["ok"] is True
+          report = matrix["report"]
+          assert report["project_count"] >= 8
+          assert any(row["project_id"] == "BOT_FACTORY" for row in report["rows"])
+          bot_factory = next(row for row in report["rows"] if row["project_id"] == "BOT_FACTORY")
+          assert "observação" in bot_factory["mvp"].lower() or "observacao" in bot_factory["mvp"].lower()
+          assert bot_factory["first_sellable_feature"]
+          assert bot_factory["revenue_path"]
+          assert bot_factory["next_action"]
+
+          dashboard = monetization_readiness_service.build_dashboard()
+          assert dashboard["ok"] is True
+          assert dashboard["summary"]["project_count"] >= 8
+          assert len(dashboard["top_recommendations"]) >= 1
+
+          reports = monetization_readiness_service.list_reports()
+          assert reports["ok"] is True
+          assert reports["report_count"] >= 1
+
+          assert Path("backend/app/services/monetization_readiness_service.py").exists()
+          assert Path("backend/app/routes/monetization_readiness.py").exists()
+          assert Path("backend/app/routes/monetization_readiness_frontend.py").exists()
+          assert Path("docs/frontend/monetization-readiness.md").exists()
+          assert Path("data/monetization_readiness.json").exists()
+          assert Path("data/monetization_readiness.json.lock").exists()
+          assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+
+          print("monetization readiness validation passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Monetization Readiness Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Monetization matrix, MVPs and revenue paths were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Bot Factory money-path readiness row was validated.' >> "$GITHUB_STEP_SUMMARY"
