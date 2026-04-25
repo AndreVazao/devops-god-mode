@@ -26,6 +26,16 @@ SEED_PROJECTS: List[Dict[str, Any]] = [
         "repositories": ["AndreVazao/devops-god-mode"],
     },
     {
+        "project_id": "BOT_FACTORY",
+        "name": "Bot Factory",
+        "category": "bot_generation_platform",
+        "goal": "Programa para criar outros bots por observação, engenharia reversa assistida, avaliação contínua de jogos e aprendizagem a partir do telemóvel enquanto André joga.",
+        "priority": "critical",
+        "repositories": [],
+        "monetization_path": "Gerar bots reutilizáveis/licenciáveis para jogos e automações, começando por análise read-only, captura de padrões e geração de projetos por fases.",
+        "notes": "Não desenvolver o bot aqui agora; o God Mode deve primeiro mapear, auditar e depois criar/reconstruir o projeto certo quando houver repo ou decisão de novo repo.",
+    },
+    {
         "project_id": "BARIBUDOS_STUDIO",
         "name": "Baribudos Studio",
         "category": "content_business",
@@ -235,6 +245,7 @@ class ProjectPortfolioService:
             "repositories": repos,
             "next_recommended_actions": [
                 "Ligar Baribudos Studio e Website ao Build Control Center.",
+                "Auditar Bot Factory e decidir se já existe repo ou se deve criar repo novo.",
                 "Auditar ProVentil para definir repo, deploy e MVP monetizável.",
                 "Criar matriz de produto/preço para projetos com prioridade high.",
                 "Adicionar estado de deploy por repo e último artifact disponível.",
