@@ -1,4 +1,4 @@
-name: Monetization Readiness Validation
+name: Revenue Sprint Planner Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase48-*'
+      - 'phase49-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  monetization-readiness-validation:
+  revenue-sprint-planner-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Monetization Readiness Matrix
+      - name: Validate Revenue Sprint Planner
         env:
           PYTHONPATH: backend
         run: |
@@ -48,58 +48,60 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.monetization_readiness_service import monetization_readiness_service
+          from app.services.revenue_sprint_planner_service import revenue_sprint_planner_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/monetization-readiness/status",
-              "/api/monetization-readiness/package",
-              "/api/monetization-readiness/dashboard",
-              "/api/monetization-readiness/matrix",
-              "/api/monetization-readiness/reports",
-              "/app/monetization-readiness",
+              "/api/revenue-sprint/status",
+              "/api/revenue-sprint/package",
+              "/api/revenue-sprint/dashboard",
+              "/api/revenue-sprint/create",
+              "/api/revenue-sprint/approval-card",
+              "/api/revenue-sprint/sprints",
+              "/app/revenue-sprint",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = monetization_readiness_service.get_status()
+          status = revenue_sprint_planner_service.get_status()
           assert status["ok"] is True
           assert status["atomic_store_enabled"] is True
 
-          matrix = monetization_readiness_service.build_matrix()
-          assert matrix["ok"] is True
-          report = matrix["report"]
-          assert report["project_count"] >= 8
-          assert any(row["project_id"] == "BOT_FACTORY" for row in report["rows"])
-          bot_factory = next(row for row in report["rows"] if row["project_id"] == "BOT_FACTORY")
-          assert "observação" in bot_factory["mvp"].lower() or "observacao" in bot_factory["mvp"].lower()
-          assert bot_factory["first_sellable_feature"]
-          assert bot_factory["revenue_path"]
-          assert bot_factory["next_action"]
+          created = revenue_sprint_planner_service.create_sprint(max_projects=3, tenant_id="owner-andre")
+          assert created["ok"] is True
+          assert len(created["sprint"]["project_ids"]) >= 1
+          assert len(created["tasks"]) >= 3
+          assert any(task["kind"] == "mvp" for task in created["tasks"])
+          assert any(task["kind"] == "offer" for task in created["tasks"])
 
-          dashboard = monetization_readiness_service.build_dashboard()
+          card = revenue_sprint_planner_service.create_approval_card_for_latest_sprint(tenant_id="owner-andre")
+          assert card["ok"] is True
+          assert card["approval_card"]["ok"] is True
+          assert card["approval_card"]["card"]["requires_approval"] is True
+
+          dashboard = revenue_sprint_planner_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["summary"]["project_count"] >= 8
-          assert len(dashboard["top_recommendations"]) >= 1
+          assert dashboard["sprint_count"] >= 1
+          assert dashboard["task_count"] >= 3
 
-          reports = monetization_readiness_service.list_reports()
-          assert reports["ok"] is True
-          assert reports["report_count"] >= 1
+          sprints = revenue_sprint_planner_service.list_sprints()
+          assert sprints["ok"] is True
+          assert sprints["sprint_count"] >= 1
 
-          assert Path("backend/app/services/monetization_readiness_service.py").exists()
-          assert Path("backend/app/routes/monetization_readiness.py").exists()
-          assert Path("backend/app/routes/monetization_readiness_frontend.py").exists()
-          assert Path("docs/frontend/monetization-readiness.md").exists()
-          assert Path("data/monetization_readiness.json").exists()
-          assert Path("data/monetization_readiness.json.lock").exists()
+          assert Path("backend/app/services/revenue_sprint_planner_service.py").exists()
+          assert Path("backend/app/routes/revenue_sprint_planner.py").exists()
+          assert Path("backend/app/routes/revenue_sprint_planner_frontend.py").exists()
+          assert Path("docs/frontend/revenue-sprint-planner.md").exists()
+          assert Path("data/revenue_sprint_planner.json").exists()
+          assert Path("data/revenue_sprint_planner.json.lock").exists()
           assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
 
-          print("monetization readiness validation passed")
+          print("revenue sprint planner validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Monetization Readiness Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Revenue Sprint Planner Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Monetization matrix, MVPs and revenue paths were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Bot Factory money-path readiness row was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Revenue sprint generation was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile approval card for revenue sprint was validated.' >> "$GITHUB_STEP_SUMMARY"
