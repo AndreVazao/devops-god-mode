@@ -1,4 +1,4 @@
-name: Bot Factory Portfolio Validation
+name: Repository Discovery Scout Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase46-*'
+      - 'phase47-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  bot-factory-portfolio-validation:
+  repository-discovery-scout-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Bot Factory portfolio memory
+      - name: Validate Repository Discovery Scout
         env:
           PYTHONPATH: backend
         run: |
@@ -48,55 +48,68 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.project_portfolio_service import project_portfolio_service
-          from app.services.memory_core_service import memory_core_service
+          from app.services.repository_discovery_scout_service import repository_discovery_scout_service
 
           route_paths = {route.path for route in app.routes}
-          assert "/api/project-portfolio/dashboard" in route_paths
-          assert "/app/project-portfolio" in route_paths
+          required = {
+              "/api/repository-discovery/status",
+              "/api/repository-discovery/package",
+              "/api/repository-discovery/dashboard",
+              "/api/repository-discovery/plan/{project_id}",
+              "/api/repository-discovery/candidates",
+              "/api/repository-discovery/candidates/confirm",
+              "/api/repository-discovery/proposal",
+              "/api/repository-discovery/audit/{project_id}",
+              "/app/repository-discovery",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing routes: {missing}"
 
-          seed = project_portfolio_service.seed_defaults()
-          assert seed["ok"] is True
-          assert "BOT_FACTORY" in seed["projects"]
+          status = repository_discovery_scout_service.get_status()
+          assert status["ok"] is True
+          assert status["atomic_store_enabled"] is True
 
-          dashboard = project_portfolio_service.build_dashboard()
+          plan = repository_discovery_scout_service.build_search_plan("BOT_FACTORY")
+          assert plan["ok"] is True
+          assert "bot-factory" in plan["plan"]["search_terms"]
+          assert plan["plan"]["decision_needed"] in {"find_or_create_repo", "link_existing_repo"}
+
+          candidate = repository_discovery_scout_service.add_candidate(
+              project_id="BOT_FACTORY",
+              repository_full_name="AndreVazao/bot-factory",
+              confidence=0.9,
+              source="ci",
+              note="candidate for validation",
+          )
+          assert candidate["ok"] is True
+          assert candidate["candidate"]["project_id"] == "BOT_FACTORY"
+
+          confirmed = repository_discovery_scout_service.confirm_candidate(candidate["candidate"]["candidate_id"], role="backend")
+          assert confirmed["ok"] is True
+          assert confirmed["portfolio_link"]["ok"] is True
+
+          audit = repository_discovery_scout_service.audit_project_repository_state("BOT_FACTORY")
+          assert audit["ok"] is True
+          assert audit["audit"]["candidate_count"] >= 1
+
+          dashboard = repository_discovery_scout_service.build_dashboard()
           assert dashboard["ok"] is True
-          bot_factory = next((item for item in dashboard["projects"] if item["project_id"] == "BOT_FACTORY"), None)
-          assert bot_factory is not None
-          assert bot_factory["priority"] == "critical"
-          assert "outros bots" in bot_factory["goal"]
+          assert dashboard["project_count"] >= 1
 
-          memory = memory_core_service.read_project("BOT_FACTORY")
-          assert memory["ok"] is True
-          assert "MEMORIA_MESTRE.md" in memory["memory"]
-          assert "Observação assistida de jogos" in memory["memory"]["MEMORIA_MESTRE.md"]
-          assert "Verificar se já existe repositório/app" in memory["memory"]["BACKLOG.md"]
-          assert "Separar observação, análise, planeamento e execução" in memory["memory"]["PROMPTS.md"]
-
-          required_files = [
-              "MEMORIA_MESTRE.md",
-              "DECISOES.md",
-              "BACKLOG.md",
-              "ROADMAP.md",
-              "ARQUITETURA.md",
-              "HISTORICO.md",
-              "PROMPTS.md",
-              "ERROS.md",
-              "ULTIMA_SESSAO.md",
-          ]
-          for file_name in required_files:
-              assert Path("memory/vault/AndreOS/02_PROJETOS/BOT_FACTORY", file_name).exists()
-
-          assert Path("data/project_portfolio.json").exists()
-          assert Path("data/project_portfolio.json.lock").exists()
+          assert Path("backend/app/services/repository_discovery_scout_service.py").exists()
+          assert Path("backend/app/routes/repository_discovery_scout.py").exists()
+          assert Path("backend/app/routes/repository_discovery_scout_frontend.py").exists()
+          assert Path("docs/frontend/repository-discovery-scout.md").exists()
+          assert Path("data/repository_discovery_scout.json").exists()
+          assert Path("data/repository_discovery_scout.json.lock").exists()
           assert "prune-project-tree-sync-guard-validation.yml" in Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
 
-          print("bot factory portfolio validation passed")
+          print("repository discovery scout validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Bot Factory Portfolio Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Repository Discovery Scout Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Bot Factory was added as a critical portfolio project.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Bot Factory AndreOS memory files were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Repository discovery search plan was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Candidate repository confirmation and portfolio linking were validated.' >> "$GITHUB_STEP_SUMMARY"
