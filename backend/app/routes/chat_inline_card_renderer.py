@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from app.services.chat_inline_card_renderer_service import chat_inline_card_renderer_service
+from app.services.request_orchestrator_service import request_orchestrator_service
 
 router = APIRouter(prefix="/api/chat-inline-card-renderer", tags=["chat-inline-card-renderer"])
 
@@ -16,6 +17,14 @@ class SendMessageRequest(BaseModel):
     thread_id: str | None = None
     tenant_id: str = "owner-andre"
     project_id: str = "GOD_MODE"
+
+
+class OrchestratedSendRequest(BaseModel):
+    message: str
+    thread_id: str | None = None
+    tenant_id: str = "owner-andre"
+    project_id: str = "GOD_MODE"
+    auto_run: bool = True
 
 
 @router.get('/status')
@@ -50,4 +59,15 @@ async def send(payload: SendMessageRequest):
         thread_id=payload.thread_id,
         tenant_id=payload.tenant_id,
         project_id=payload.project_id,
+    )
+
+
+@router.post('/send-orchestrated')
+async def send_orchestrated(payload: OrchestratedSendRequest):
+    return request_orchestrator_service.submit_request(
+        request=payload.message,
+        tenant_id=payload.tenant_id,
+        project_id=payload.project_id,
+        thread_id=payload.thread_id,
+        auto_run=payload.auto_run,
     )
