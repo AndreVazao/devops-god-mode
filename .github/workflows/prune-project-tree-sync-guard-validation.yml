@@ -1,4 +1,4 @@
-name: Chat Action Cards Validation
+name: Chat Inline Card Renderer Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase54-*'
+      - 'phase55-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  chat-action-cards-validation:
+  chat-inline-card-renderer-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Chat Action Cards
+      - name: Validate Chat Inline Card Renderer
         env:
           PYTHONPATH: backend
         run: |
@@ -48,103 +48,76 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.chat_action_cards_service import chat_action_cards_service
-          from app.services.operator_conversation_thread_service import operator_conversation_thread_service
+          from app.services.chat_inline_card_renderer_service import chat_inline_card_renderer_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/chat-action-cards/status",
-              "/api/chat-action-cards/package",
-              "/api/chat-action-cards/dashboard",
-              "/api/chat-action-cards/cards",
-              "/api/chat-action-cards/create",
-              "/api/chat-action-cards/from-home-chat",
-              "/api/chat-action-cards/execute",
-              "/api/chat-action-cards/dismiss",
-              "/app/chat-action-cards",
+              "/api/chat-inline-card-renderer/status",
+              "/api/chat-inline-card-renderer/package",
+              "/api/chat-inline-card-renderer/dashboard",
+              "/api/chat-inline-card-renderer/manifest",
+              "/api/chat-inline-card-renderer/open-session",
+              "/api/chat-inline-card-renderer/send",
+              "/app/operator-chat-sync-cards",
+              "/app/chat-inline-cards",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = chat_action_cards_service.get_status()
+          status = chat_inline_card_renderer_service.get_status()
           assert status["ok"] is True
-          assert status["atomic_store_enabled"] is True
-          assert "one_tap_money" in status["safe_actions"]
+          assert status["inline_cards_enabled"] is True
+          assert status["apk_chat_first"] is True
 
-          opened = operator_conversation_thread_service.open_thread(
-              tenant_id="owner-andre",
-              conversation_title="Chat Action Cards Validation",
-              channel_mode="apk_continuous_chat",
-          )
+          manifest = chat_inline_card_renderer_service.build_manifest()
+          assert manifest["ok"] is True
+          assert manifest["manifest"]["frontend_routes"]["primary"] == "/app/operator-chat-sync-cards"
+          assert manifest["manifest"]["render_contract"]["render_inline"] is True
+          assert manifest["manifest"]["render_contract"]["message_mode"] == "continuous_chat_like_chatgpt"
+
+          opened = chat_inline_card_renderer_service.open_session(title="Renderer validation")
           assert opened["ok"] is True
-          thread_id = opened["thread"]["thread_id"]
+          thread_id = opened["session"]["thread_id"]
 
-          card = chat_action_cards_service.create_card(
-              thread_id=thread_id,
-              title="Validar cartão",
-              body="Cartão seguro para validação.",
-              actions=[{"label": "Ok", "action_type": "acknowledge"}],
-          )
-          assert card["ok"] is True
-          assert card["card"]["status"] == "open"
-          assert card["chat_append"]["ok"] is True
-
-          listed = chat_action_cards_service.list_cards(thread_id=thread_id)
-          assert listed["ok"] is True
-          assert listed["card_count"] >= 1
-
-          execute = chat_action_cards_service.execute_card_action(
-              card_id=card["card"]["card_id"],
-              action_id=card["card"]["actions"][0]["action_id"],
-          )
-          assert execute["ok"] is True
-          assert execute["execution"]["ok"] is True
-
-          generated = chat_action_cards_service.create_cards_from_home_chat(
+          sent = chat_inline_card_renderer_service.send_message(
               message="quero ganhar dinheiro",
+              thread_id=thread_id,
               tenant_id="owner-andre",
           )
-          assert generated["ok"] is True
-          assert generated["cards"], "home chat should generate inline action cards"
+          assert sent["ok"] is True
+          assert sent["thread_id"] == thread_id
+          assert sent["open_cards"], "inline renderer should return open cards for UI rendering"
+          assert sent["event"]["card_count"] >= 1
 
-          dashboard = chat_action_cards_service.build_dashboard()
+          dashboard = chat_inline_card_renderer_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["apk_contract"]["render_inline"] is True
-          assert dashboard["apk_contract"]["card_marker_prefix"] == "[ACTION_CARD:"
-
-          invalid = chat_action_cards_service.create_card(
-              thread_id=thread_id,
-              title="Comando inválido",
-              body="Não deve aceitar shell.",
-              actions=[{"label": "Shell", "action_type": "run_shell"}],
-          )
-          assert invalid["ok"] is False
+          assert dashboard["manifest"]["frontend_routes"]["alias"] == "/app/chat-inline-cards"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "chat_action_cards_frontend.py",
-              "chat_action_cards.py",
-              "chat_action_cards_service.py",
-              "chat-action-cards.md",
+              "chat_inline_card_renderer_frontend.py",
+              "chat_inline_card_renderer.py",
+              "chat_inline_card_renderer_service.py",
+              "chat-inline-card-renderer.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/chat_action_cards_service.py").exists()
-          assert Path("backend/app/routes/chat_action_cards.py").exists()
-          assert Path("backend/app/routes/chat_action_cards_frontend.py").exists()
-          assert Path("docs/frontend/chat-action-cards.md").exists()
-          assert Path("data/chat_action_cards.json").exists()
-          assert Path("data/chat_action_cards.json.lock").exists()
+          assert Path("backend/app/services/chat_inline_card_renderer_service.py").exists()
+          assert Path("backend/app/routes/chat_inline_card_renderer.py").exists()
+          assert Path("backend/app/routes/chat_inline_card_renderer_frontend.py").exists()
+          assert Path("docs/frontend/chat-inline-card-renderer.md").exists()
+          assert Path("data/chat_inline_card_renderer.json").exists()
+          assert Path("data/chat_inline_card_renderer.json.lock").exists()
 
-          print("chat action cards validation passed")
+          print("chat inline card renderer validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Chat Action Cards Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Chat Inline Card Renderer Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Chat action cards API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK inline card contract was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Unsafe arbitrary action types were blocked.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Chat inline card renderer API and frontend were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK chat-first inline render contract was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Renderer send flow returns open cards ready for mobile UI.' >> "$GITHUB_STEP_SUMMARY"
