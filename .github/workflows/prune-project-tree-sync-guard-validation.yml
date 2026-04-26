@@ -1,4 +1,4 @@
-name: First Release Artifact Center Validation
+name: Real APK WebView Shell Validation
 
 on:
   workflow_dispatch:
@@ -6,23 +6,27 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase67-*'
+      - 'phase68-*'
     paths:
+      - 'android-app/**'
       - 'backend/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
+      - '.github/workflows/android-real-build-progressive.yml'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
   pull_request:
     branches:
       - main
     paths:
+      - 'android-app/**'
       - 'backend/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
+      - '.github/workflows/android-real-build-progressive.yml'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  first-release-artifact-center-validation:
+  real-apk-webview-shell-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +42,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate First Release Artifact Center
+      - name: Validate Real APK WebView Shell
         env:
           PYTHONPATH: backend
         run: |
@@ -49,83 +53,70 @@ jobs:
           from app.services.first_release_artifact_center_service import first_release_artifact_center_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
+          required_android_files = [
+              "android-app/settings.gradle",
+              "android-app/build.gradle",
+              "android-app/app/build.gradle",
+              "android-app/app/src/main/AndroidManifest.xml",
+              "android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java",
+              "android-app/app/src/main/res/values/styles.xml",
+          ]
+          for path in required_android_files:
+              assert Path(path).exists(), f"Missing Android project file: {path}"
+
+          manifest = Path("android-app/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+          main_activity = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java").read_text(encoding="utf-8")
+          workflow = Path(".github/workflows/android-real-build-progressive.yml").read_text(encoding="utf-8")
+
+          assert "android.permission.INTERNET" in manifest
+          assert "android:usesCleartextTraffic=\"true\"" in manifest
+          assert "WebView" in main_activity
+          assert "/app/apk-start" in main_activity
+          assert "http://127.0.0.1:8000" in main_activity
+          assert "GodModeMobile-debug.apk" in workflow
+          assert "real_webview_shell_apk" in workflow
+          assert "artifact_kind\": \"placeholder\"" not in workflow
+          assert "not_a_real_apk_yet" not in workflow
+          assert "placeholder_only" not in workflow
+
           route_paths = {route.path for route in app.routes}
-          required = {
+          required_routes = {
               "/api/first-release-artifacts/status",
-              "/api/first-release-artifacts/package",
               "/api/first-release-artifacts/report",
-              "/api/first-release-artifacts/dashboard",
               "/app/first-release-artifacts",
               "/app/release-artifacts",
           }
-          missing = sorted(required - route_paths)
-          assert not missing, f"Missing routes: {missing}"
-
-          status = first_release_artifact_center_service.get_status()
-          assert status["ok"] is True
-          assert status["status"] in {"green", "yellow", "red"}
-          assert "release_truth" in status
+          missing_routes = sorted(required_routes - route_paths)
+          assert not missing_routes, f"Missing routes: {missing_routes}"
 
           report = first_release_artifact_center_service.build_artifact_report()
           assert report["ok"] is True
-          assert report["repo_url"].endswith("AndreVazao/devops-god-mode")
-          assert report["actions_url"].endswith("/actions")
-          assert report["artifacts"], "artifact report should include artifacts"
-
-          windows = next(item for item in report["artifacts"] if item["artifact_id"] == "windows_exe")
           android = next(item for item in report["artifacts"] if item["artifact_id"] == "android_apk")
-          universal = next(item for item in report["artifacts"] if item["artifact_id"] == "universal_test")
-
-          assert windows["workflow_present"] is True
-          assert windows["artifact_name"] == "godmode-windows-exe"
-          assert windows["installable_now"] is True
-          assert windows["placeholder"] is False
-
+          assert android["artifact_name"] == "godmode-android-webview-apk"
           assert android["workflow_present"] is True
-          assert android["artifact_name"] == "godmode-android-apk-placeholder"
-          assert android["placeholder"] is True
-          assert android["installable_now"] is False
-          assert any(blocker["id"] == "android_apk:placeholder" for blocker in report["blockers"])
-
-          assert universal["workflow_present"] is True
-          assert universal["artifact_name"] == "test_report"
-
-          assert report["download_steps"], "artifact center should expose download steps"
-          assert report["next_actions"], "artifact center should expose next actions"
-          assert any("APK real" in action["label"] or "APK real" in action.get("detail", "") for action in report["next_actions"])
-
-          dashboard = first_release_artifact_center_service.build_dashboard()
-          assert dashboard["ok"] is True
-          assert dashboard["buttons"], "artifact dashboard should expose buttons"
-          assert any(button.get("url", "").endswith("/actions") for button in dashboard["buttons"])
-
-          package = first_release_artifact_center_service.get_package()
-          assert package["ok"] is True
-          assert package["package"]["status"]["ok"] is True
-          assert package["package"]["dashboard"]["ok"] is True
+          assert android["placeholder"] is False
+          assert android["installable_now"] is True
+          assert android["truth"] == "real_webview_shell_debug_apk"
+          assert not any(blocker["id"] == "android_apk:placeholder" for blocker in report["blockers"])
+          assert "GodModeMobile-debug.apk" in str(report["download_steps"])
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "first_release_artifact_center_frontend.py",
-              "first_release_artifact_center.py",
-              "first_release_artifact_center_service.py",
+              "android-app",
+              "MainActivity.java",
+              "android-webview-shell.md",
               "first-release-artifacts.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/first_release_artifact_center_service.py").exists()
-          assert Path("backend/app/routes/first_release_artifact_center.py").exists()
-          assert Path("backend/app/routes/first_release_artifact_center_frontend.py").exists()
-          assert Path("docs/frontend/first-release-artifacts.md").exists()
-
-          print("first release artifact center validation passed")
+          print("real APK WebView shell validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## First Release Artifact Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Real APK WebView Shell Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Artifact center API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Windows EXE real path and Android placeholder truth were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Project Tree Autorefresh was validated for new files.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Android project structure was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Android workflow now targets a real debug WebView APK artifact.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Artifact Center now recognizes Android as real WebView shell, not placeholder.' >> "$GITHUB_STEP_SUMMARY"
