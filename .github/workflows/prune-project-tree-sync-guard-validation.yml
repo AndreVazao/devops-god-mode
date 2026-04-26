@@ -1,4 +1,4 @@
-name: Real APK WebView Shell Validation
+name: APK Connection Diagnostics Validation
 
 on:
   workflow_dispatch:
@@ -6,27 +6,23 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase68-*'
+      - 'phase69-*'
     paths:
       - 'android-app/**'
-      - 'backend/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
-      - '.github/workflows/android-real-build-progressive.yml'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'android-app/**'
-      - 'backend/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
-      - '.github/workflows/android-real-build-progressive.yml'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  real-apk-webview-shell-validation:
+  apk-connection-diagnostics-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -42,81 +38,67 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Real APK WebView Shell
+      - name: Validate APK Connection Diagnostics
         env:
           PYTHONPATH: backend
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          from main import app
-          from app.services.first_release_artifact_center_service import first_release_artifact_center_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
-          required_android_files = [
-              "android-app/settings.gradle",
-              "android-app/build.gradle",
-              "android-app/app/build.gradle",
-              "android-app/app/src/main/AndroidManifest.xml",
-              "android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java",
-              "android-app/app/src/main/res/values/styles.xml",
+          main_activity_path = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java")
+          docs_path = Path("docs/frontend/android-webview-shell.md")
+          assert main_activity_path.exists()
+          assert docs_path.exists()
+
+          main_activity = main_activity_path.read_text(encoding="utf-8")
+          docs = docs_path.read_text(encoding="utf-8")
+
+          required_activity_markers = [
+              "SharedPreferences",
+              "PREF_BASE_URL",
+              "testHealth",
+              "/health",
+              "loadRoute(ENTRY_ROUTE)",
+              "/app/first-use",
+              "/app/operator-chat-sync-cards",
+              "/app/install-readiness",
+              "/app/e2e-operational-drill",
+              "HttpURLConnection",
+              "setConnectTimeout(3500)",
+              "preferences.edit().putString",
           ]
-          for path in required_android_files:
-              assert Path(path).exists(), f"Missing Android project file: {path}"
+          missing_activity = [marker for marker in required_activity_markers if marker not in main_activity]
+          assert not missing_activity, f"MainActivity missing markers: {missing_activity}"
 
-          manifest = Path("android-app/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
-          main_activity = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java").read_text(encoding="utf-8")
-          workflow = Path(".github/workflows/android-real-build-progressive.yml").read_text(encoding="utf-8")
-
-          assert "android.permission.INTERNET" in manifest
-          assert "android:usesCleartextTraffic=\"true\"" in manifest
-          assert "WebView" in main_activity
-          assert "/app/apk-start" in main_activity
-          assert "http://127.0.0.1:8000" in main_activity
-          assert "GodModeMobile-debug.apk" in workflow
-          assert "real_webview_shell_apk" in workflow
-          assert "artifact_kind\": \"placeholder\"" not in workflow
-          assert "not_a_real_apk_yet" not in workflow
-          assert "placeholder_only" not in workflow
-
-          route_paths = {route.path for route in app.routes}
-          required_routes = {
-              "/api/first-release-artifacts/status",
-              "/api/first-release-artifacts/report",
-              "/app/first-release-artifacts",
-              "/app/release-artifacts",
-          }
-          missing_routes = sorted(required_routes - route_paths)
-          assert not missing_routes, f"Missing routes: {missing_routes}"
-
-          report = first_release_artifact_center_service.build_artifact_report()
-          assert report["ok"] is True
-          android = next(item for item in report["artifacts"] if item["artifact_id"] == "android_apk")
-          assert android["artifact_name"] == "godmode-android-webview-apk"
-          assert android["workflow_present"] is True
-          assert android["placeholder"] is False
-          assert android["installable_now"] is True
-          assert android["truth"] == "real_webview_shell_debug_apk"
-          assert not any(blocker["id"] == "android_apk:placeholder" for blocker in report["blockers"])
-          assert "GodModeMobile-debug.apk" in str(report["download_steps"])
+          required_doc_markers = [
+              "botão “Teste”",
+              "base_url + /health",
+              "último URL base",
+              "IP do PC",
+              "porta 8000",
+              "preferências Android",
+          ]
+          missing_docs = [marker for marker in required_doc_markers if marker not in docs]
+          assert not missing_docs, f"Android WebView docs missing markers: {missing_docs}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
               "android-app",
               "MainActivity.java",
               "android-webview-shell.md",
-              "first-release-artifacts.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          print("real APK WebView shell validation passed")
+          print("APK connection diagnostics validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Real APK WebView Shell Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## APK Connection Diagnostics Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Android project structure was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Android workflow now targets a real debug WebView APK artifact.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Artifact Center now recognizes Android as real WebView shell, not placeholder.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK stores the PC backend URL locally.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK exposes /health diagnostics and quick routes.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Android WebView documentation was validated.' >> "$GITHUB_STEP_SUMMARY"
