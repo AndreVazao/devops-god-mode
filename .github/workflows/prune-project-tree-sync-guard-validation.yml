@@ -1,4 +1,4 @@
-name: Self Update Preserve Memory Validation
+name: Unified Money Command Center Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase51-*'
+      - 'phase52-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  self-update-preserve-memory-validation:
+  unified-money-command-center-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Self Update Preserve Memory
+      - name: Validate Unified Money Command Center
         env:
           PYTHONPATH: backend
         run: |
@@ -48,61 +48,89 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.self_update_service import self_update_service, DEFAULT_PRESERVE_PATHS
+          from app.services.money_command_center_service import money_command_center_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/self-update/status",
-              "/api/self-update/package",
-              "/api/self-update/dashboard",
-              "/api/self-update/git-state",
-              "/api/self-update/plan",
-              "/api/self-update/backup-manifest",
-              "/api/self-update/execute",
-              "/app/self-update",
+              "/api/money-command-center/status",
+              "/api/money-command-center/package",
+              "/api/money-command-center/dashboard",
+              "/api/money-command-center/matrix",
+              "/api/money-command-center/top-project",
+              "/api/money-command-center/blockers",
+              "/api/money-command-center/sellable-offers",
+              "/api/money-command-center/revenue-sprint",
+              "/api/money-command-center/approval-card",
+              "/api/money-command-center/prepare-mvp-delivery",
+              "/app/money-command-center",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = self_update_service.get_status()
+          status = money_command_center_service.get_status()
           assert status["ok"] is True
           assert status["atomic_store_enabled"] is True
 
-          plan = self_update_service.create_update_plan(channel="main")
-          assert plan["ok"] is True
-          assert "memory" in plan["plan"]["preserve_paths"]
-          assert "data" in plan["plan"]["preserve_paths"]
-          assert ".env" in plan["plan"]["preserve_paths"]
-          assert any("Nunca apagar data/" in rule for rule in plan["plan"]["rules"])
+          matrix = money_command_center_service.build_money_matrix()
+          assert matrix["ok"] is True
+          assert matrix["report"]["rows"], "money matrix should include portfolio rows"
+          assert matrix["report"]["top_project"], "top money project should exist"
+          assert matrix["report"]["offers"], "sellable offers should exist"
 
-          backup = self_update_service.create_backup_manifest()
-          assert backup["ok"] is True
-          assert backup["backup"]["status"] == "manifest_only"
+          top = money_command_center_service.top_project()
+          assert top["ok"] is True
+          assert top["top_project"]["first_sellable_feature"]
 
-          dry = self_update_service.execute_safe_git_update(channel="main", dry_run=True)
-          assert dry["ok"] is True
-          assert dry["run"]["dry_run"] is True
-          assert dry["run"]["status"] in {"dry_run_ready", "blocked_dirty_worktree", "blocked_git_unavailable"}
+          sprint = money_command_center_service.create_revenue_sprint(max_projects=2)
+          assert sprint["ok"] is True
+          assert sprint["sprint"]["status"] == "needs_operator_approval"
+          assert sprint["tasks"], "sprint should create actionable tasks"
 
-          dashboard = self_update_service.build_dashboard()
+          card = money_command_center_service.create_approval_card(max_projects=2)
+          assert card["ok"] is True
+          assert card["approval_card"]["card"]["status"] == "pending_approval"
+
+          delivery = money_command_center_service.prepare_mvp_delivery()
+          assert delivery["ok"] is True
+          assert delivery["delivery"]["checklist"], "delivery checklist should exist"
+
+          dashboard = money_command_center_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert "data" in dashboard["preserve_paths"]
-          assert "memory" in dashboard["preserve_paths"]
-          assert DEFAULT_PRESERVE_PATHS == dashboard["preserve_paths"]
+          assert dashboard["summary"]["portfolio_projects"] >= 1
+          assert dashboard["quick_buttons"], "mobile buttons should exist"
+          assert dashboard["operator_answer"], "operator answer should exist"
 
-          assert Path("backend/app/services/self_update_service.py").exists()
-          assert Path("backend/app/routes/self_update.py").exists()
-          assert Path("backend/app/routes/self_update_frontend.py").exists()
-          assert Path("docs/frontend/self-update.md").exists()
-          assert Path("data/self_update_state.json").exists()
-          assert Path("data/self_update_state.json.lock").exists()
+          blockers = money_command_center_service.get_blockers()
+          assert blockers["ok"] is True
 
-          print("self update preserve memory validation passed")
+          offers = money_command_center_service.get_sellable_offers()
+          assert offers["ok"] is True
+          assert offers["offers"], "offers endpoint should return project offers"
+
+          tree = Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+          required_tree_entries = [
+              "money_command_center_frontend.py",
+              "money_command_center.py",
+              "money_command_center_service.py",
+              "money-command-center.md",
+          ]
+          missing_tree = [entry for entry in required_tree_entries if entry not in tree]
+          assert not missing_tree, f"PROJECT_TREE missing entries: {missing_tree}"
+
+          assert Path("backend/app/services/money_command_center_service.py").exists()
+          assert Path("backend/app/routes/money_command_center.py").exists()
+          assert Path("backend/app/routes/money_command_center_frontend.py").exists()
+          assert Path("docs/frontend/money-command-center.md").exists()
+          assert Path("data/money_command_center.json").exists()
+          assert Path("data/money_command_center.json.lock").exists()
+
+          print("unified money command center validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Self Update Preserve Memory Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Unified Money Command Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Self update API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Preserve paths for data, memory and env files were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Money Command Center API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Monetization readiness, revenue sprint, approval card and MVP delivery flow were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- PROJECT_TREE entries for this phase were validated.' >> "$GITHUB_STEP_SUMMARY"
