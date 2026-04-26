@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict
 from uuid import uuid4
 
+from app.services.chat_autopilot_supervisor_service import chat_autopilot_supervisor_service
 from app.services.operator_conversation_thread_service import operator_conversation_thread_service
 from app.services.real_work_command_pipeline_service import real_work_command_pipeline_service
 from app.utils.atomic_json_store import AtomicJsonStore
@@ -46,6 +47,7 @@ class OperatorChatRealWorkBridgeService:
             "status": "chat_to_real_work_ready",
             "primary_chat_route": "/app/operator-chat-sync-cards",
             "real_work_endpoint": "/api/real-work/submit",
+            "autopilot_endpoint": "/api/chat-autopilot/run",
             "submission_count": len(state["submissions"]),
             "report_count": len(state["reports"]),
             "money_priority_enabled": False,
@@ -82,9 +84,19 @@ class OperatorChatRealWorkBridgeService:
             command_text=clean_message,
             tenant_id=tenant_id,
             requested_project=requested_project,
-            auto_run=auto_run,
+            auto_run=False,
         )
-        report = self._build_chat_report(bridge_id, tenant_id, thread_id, clean_message, requested_project, pipeline)
+        job_id = pipeline.get("report", {}).get("job_id")
+        autopilot = None
+        if auto_run:
+            autopilot = chat_autopilot_supervisor_service.run_until_blocked_or_idle(
+                tenant_id=tenant_id,
+                job_id=job_id,
+                reason="chat_real_work_bridge",
+                max_rounds=6,
+                max_jobs_per_round=4,
+            )
+        report = self._build_chat_report(bridge_id, tenant_id, thread_id, clean_message, requested_project, pipeline, autopilot)
         operator_conversation_thread_service.append_message(
             thread_id=thread_id,
             role="assistant",
@@ -108,6 +120,7 @@ class OperatorChatRealWorkBridgeService:
             "thread_id": thread_id,
             "opened_thread": opened_thread,
             "pipeline": pipeline,
+            "autopilot": autopilot,
             "report": report,
         }
 
@@ -119,10 +132,12 @@ class OperatorChatRealWorkBridgeService:
         message: str,
         requested_project: str | None,
         pipeline: Dict[str, Any],
+        autopilot: Dict[str, Any] | None,
     ) -> Dict[str, Any]:
         package = pipeline.get("package", {})
         work_report = pipeline.get("report", {})
         project = package.get("project", {})
+        autopilot_report = autopilot.get("report", {}) if isinstance(autopilot, dict) else {}
         return {
             "report_id": f"chat-work-report-{uuid4().hex[:12]}",
             "bridge_id": bridge_id,
@@ -135,12 +150,18 @@ class OperatorChatRealWorkBridgeService:
             "intent": package.get("intent"),
             "job_id": work_report.get("job_id"),
             "job_status": work_report.get("job_status"),
-            "worker_tick_ran": work_report.get("worker_tick_ran"),
+            "worker_tick_ran": bool(autopilot_report.get("round_count")),
+            "autopilot_run_id": autopilot_report.get("run_id"),
+            "autopilot_stop_reason": autopilot_report.get("stop_reason"),
+            "autopilot_round_count": autopilot_report.get("round_count", 0),
+            "autopilot_processed_total": autopilot_report.get("processed_total", 0),
+            "needs_operator": bool(autopilot_report.get("needs_operator", False)),
             "operator_priority_obeyed": work_report.get("operator_priority_obeyed") is True,
             "money_priority_enabled": False,
             "next_actions": [
                 {"label": "Abrir aprovações", "route": "/app/mobile-approval-cockpit-v2"},
                 {"label": "Ver worker", "route": "/app/request-worker"},
+                {"label": "Ver autopilot", "route": "/api/chat-autopilot/latest"},
                 {"label": "Ver prioridades", "route": "/app/operator-priority"},
             ],
         }
@@ -151,7 +172,8 @@ class OperatorChatRealWorkBridgeService:
             f"Projeto: {report.get('resolved_project_id')}\n"
             f"Intent: {report.get('intent')}\n"
             f"Job: {report.get('job_id')} · {report.get('job_status')}\n"
-            f"Worker tick: {'sim' if report.get('worker_tick_ran') else 'não'}\n"
+            f"Autopilot: {report.get('autopilot_round_count')} rondas · {report.get('autopilot_stop_reason')}\n"
+            f"Processado: {report.get('autopilot_processed_total')}\n"
             "Prioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n"
             "Se bloquear, vai aparecer nas aprovações/input."
         )
