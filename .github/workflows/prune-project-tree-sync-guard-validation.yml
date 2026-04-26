@@ -1,4 +1,4 @@
-name: Private Tunnel Center Validation
+name: Tunnel QR Street Setup Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase72-*'
+      - 'phase73-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  private-tunnel-center-validation:
+  tunnel-qr-street-setup-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Private Tunnel Center
+      - name: Validate Tunnel QR Street Setup
         env:
           PYTHONPATH: backend
         run: |
@@ -54,6 +54,7 @@ jobs:
               "/api/private-tunnel/status",
               "/api/private-tunnel/package",
               "/api/private-tunnel/report",
+              "/api/private-tunnel/pairing-payload",
               "/api/private-tunnel/dashboard",
               "/app/private-tunnel",
               "/app/street-mode",
@@ -63,37 +64,44 @@ jobs:
 
           status = private_tunnel_center_service.get_status()
           assert status["ok"] is True
-          assert status["status"] in {"green", "yellow", "red"}
           assert status["recommended_provider"] == "tailscale"
           assert status["stores_secrets"] is False
+          assert status["pairing_payload_available"] is True
+
+          pairing = private_tunnel_center_service.build_pairing_payload()
+          assert pairing["ok"] is True
+          assert pairing["payload"]["type"] == "god_mode_mobile_pairing"
+          assert pairing["payload"]["contains_secret"] is False
+          assert pairing["payload"]["base_url"].startswith("http")
+          assert pairing["payload"]["health_url"].endswith("/health")
+          assert pairing["payload"]["entry_url"].endswith("/app/apk-start")
+          assert pairing["deep_link"].startswith("godmode://pair?payload=")
+          assert pairing["qr_ready_text"] == pairing["deep_link"]
+          assert pairing["security"]["contains_secret"] is False
+          assert pairing["security"]["safe_to_show_on_screen"] is True
+          assert pairing["is_scannable_qr_generated"] is False
 
           report = private_tunnel_center_service.build_tunnel_report()
           assert report["ok"] is True
-          assert report["recommended_provider"] == "tailscale"
-          assert report["security"]["stores_tokens"] is False
-          assert report["security"]["stores_passwords"] is False
-          assert report["security"]["stores_cookies"] is False
-          assert report["security"]["manual_login_required"] is True
-          assert report["providers"], "tunnel report should expose providers"
-          assert any(item["provider_id"] == "tailscale" and item["recommended"] is True for item in report["providers"])
-          assert any(item["provider_id"] == "cloudflare_tunnel" for item in report["providers"])
-          assert any(item["provider_id"] == "ngrok" for item in report["providers"])
-          assert report["street_mode_steps"], "street mode steps must be present"
-          assert report["apk_instruction"], "APK tunnel instruction must be present"
+          assert report["pairing_payload"]["payload"]["contains_secret"] is False
+          assert any(item["step"] == 6 for item in report["street_mode_steps"])
+          assert any("payload" in item["label"].lower() or "payload" in item["detail"].lower() for item in report["next_actions"])
 
           dashboard = private_tunnel_center_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["buttons"], "tunnel dashboard should expose buttons"
-          assert any(button["route"] == "/app/pairing" for button in dashboard["buttons"])
+          assert dashboard["report"]["pairing_payload"]["deep_link"].startswith("godmode://pair")
 
           package = private_tunnel_center_service.get_package()
           assert package["ok"] is True
-          assert package["package"]["status"]["ok"] is True
-          assert package["package"]["dashboard"]["ok"] is True
+          assert package["package"]["pairing"]["payload"]["contains_secret"] is False
 
           docs = Path("docs/frontend/private-tunnel-center.md").read_text(encoding="utf-8")
-          for marker in ["Tailscale", "não guarda", "tokens", "APK", "rua", "Cloudflare", "ngrok"]:
+          for marker in ["pairing-payload", "payload não secreto", "deep_link", "qr_ready_text", "QR scannable real"]:
               assert marker in docs, f"Missing doc marker: {marker}"
+
+          frontend = Path("backend/app/routes/private_tunnel_center_frontend.py").read_text(encoding="utf-8")
+          for marker in ["Copiar URL", "Copiar payload", "qr_status", "payload_json"]:
+              assert marker in frontend, f"Missing frontend marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
@@ -105,18 +113,13 @@ jobs:
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/private_tunnel_center_service.py").exists()
-          assert Path("backend/app/routes/private_tunnel_center.py").exists()
-          assert Path("backend/app/routes/private_tunnel_center_frontend.py").exists()
-          assert Path("docs/frontend/private-tunnel-center.md").exists()
-
-          print("private tunnel center validation passed")
+          print("tunnel QR street setup validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Private Tunnel Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Tunnel QR Street Setup Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Private tunnel API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Tailscale is the recommended private provider.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- No secret storage is used.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Non-secret pairing payload was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Deep link and QR-ready text were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Scannable QR remains explicitly future work.' >> "$GITHUB_STEP_SUMMARY"
