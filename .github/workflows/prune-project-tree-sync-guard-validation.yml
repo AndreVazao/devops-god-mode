@@ -1,4 +1,4 @@
-name: Chat Real Work Bridge Validation
+name: Chat Autopilot Supervisor Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase77-*'
+      - 'phase78-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  chat-real-work-bridge-validation:
+  chat-autopilot-supervisor-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Chat Real Work Bridge
+      - name: Validate Chat Autopilot Supervisor
         env:
           PYTHONPATH: backend
         run: |
@@ -48,6 +48,7 @@ jobs:
           from main import app
           from app.services.operator_priority_service import operator_priority_service
           from app.services.operator_chat_real_work_bridge_service import operator_chat_real_work_bridge_service
+          from app.services.chat_autopilot_supervisor_service import chat_autopilot_supervisor_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
@@ -56,6 +57,10 @@ jobs:
               "/api/operator-chat-real-work/package",
               "/api/operator-chat-real-work/latest",
               "/api/operator-chat-real-work/submit",
+              "/api/chat-autopilot/status",
+              "/api/chat-autopilot/package",
+              "/api/chat-autopilot/latest",
+              "/api/chat-autopilot/run",
               "/app/operator-chat-sync-cards",
               "/app/chat",
           }
@@ -65,14 +70,32 @@ jobs:
           operator_priority_service.set_order(
               ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
               active_project="GOD_MODE",
-              note="chat bridge validation order",
+              note="chat autopilot validation order",
           )
+
+          autopilot_status = chat_autopilot_supervisor_service.get_status()
+          assert autopilot_status["ok"] is True
+          assert autopilot_status["status"] == "ready"
+          assert autopilot_status["policy"] == "continue_until_idle_blocked_or_budget"
+          assert autopilot_status["approval_bypass"] is False
+          assert autopilot_status["max_rounds_default"] == 6
+
+          run = chat_autopilot_supervisor_service.run_until_blocked_or_idle(
+              tenant_id="owner-andre",
+              job_id="validation-job",
+              reason="validation",
+              max_rounds=2,
+              max_jobs_per_round=2,
+          )
+          assert run["ok"] is True
+          assert run["report"]["round_count"] >= 1
+          assert run["report"]["stop_reason"] in {"idle_no_jobs_processed", "blocked_waiting_operator", "failed_needs_review", "budget_exhausted"}
+          assert run["report"]["approval_bypass"] is False
 
           status = operator_chat_real_work_bridge_service.get_status()
           assert status["ok"] is True
           assert status["status"] == "chat_to_real_work_ready"
-          assert status["primary_chat_route"] == "/app/operator-chat-sync-cards"
-          assert status["real_work_endpoint"] == "/api/real-work/submit"
+          assert status["autopilot_endpoint"] == "/api/chat-autopilot/run"
           assert status["money_priority_enabled"] is False
 
           result = operator_chat_real_work_bridge_service.submit_chat_command(
@@ -83,49 +106,48 @@ jobs:
           )
           assert result["ok"] is True
           assert result["thread_id"], "chat bridge should create or use a thread"
+          assert result["autopilot"] is not None
           report = result["report"]
           assert report["resolved_project_id"] == "GOD_MODE"
           assert report["intent"] == "continue_project"
           assert report["job_id"], "chat bridge should create a durable orchestrator job"
+          assert report["autopilot_run_id"], "chat bridge should run autopilot supervisor"
+          assert report["autopilot_round_count"] >= 1
+          assert report["autopilot_stop_reason"] in {"idle_no_jobs_processed", "blocked_waiting_operator", "failed_needs_review", "budget_exhausted"}
           assert report["operator_priority_obeyed"] is True
           assert report["money_priority_enabled"] is False
           assert any(item["route"] == "/app/mobile-approval-cockpit-v2" for item in report["next_actions"])
 
-          latest = operator_chat_real_work_bridge_service.latest()
+          latest = chat_autopilot_supervisor_service.latest()
           assert latest["ok"] is True
-          assert latest["report"]["bridge_id"] == report["bridge_id"]
+          assert latest["report"]["run_id"] == report["autopilot_run_id"]
 
-          package = operator_chat_real_work_bridge_service.get_package()
-          assert package["ok"] is True
-          assert package["package"]["status"]["ok"] is True
-          assert package["package"]["latest"]["report"]["bridge_id"] == report["bridge_id"]
-
-          frontend = Path("backend/app/routes/operator_chat_sync_cards_frontend.py").read_text(encoding="utf-8")
-          for marker in ["/api/operator-chat-real-work/submit", "Enviar e executar", "Prioridades", "Aprovações"]:
-              assert marker in frontend, f"Missing frontend marker: {marker}"
-
-          docs = Path("docs/frontend/operator-chat-real-work-bridge.md").read_text(encoding="utf-8")
-          for marker in ["/app/operator-chat-sync-cards", "/api/operator-chat-real-work/submit", "Request Orchestrator", "ordem do operador"]:
+          docs = Path("docs/frontend/chat-autopilot-supervisor.md").read_text(encoding="utf-8")
+          for marker in ["continue_until_idle_blocked_or_budget", "/api/chat-autopilot/run", "max_rounds_default=6", "não contorna aprovações"]:
               assert marker in docs, f"Missing doc marker: {marker}"
+
+          bridge_source = Path("backend/app/services/operator_chat_real_work_bridge_service.py").read_text(encoding="utf-8")
+          for marker in ["chat_autopilot_supervisor_service", "run_until_blocked_or_idle", "autopilot_stop_reason", "autopilot_round_count"]:
+              assert marker in bridge_source, f"Missing bridge marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "operator_chat_real_work_bridge.py",
+              "chat_autopilot_supervisor.py",
+              "chat_autopilot_supervisor_service.py",
               "operator_chat_real_work_bridge_service.py",
-              "operator_chat_sync_cards_frontend.py",
-              "operator-chat-real-work-bridge.md",
+              "chat-autopilot-supervisor.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          assert Path("data/operator_chat_real_work_bridge.json").exists()
-          print("chat real work bridge validation passed")
+          assert Path("data/chat_autopilot_supervisor.json").exists()
+          print("chat autopilot supervisor validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Chat Real Work Bridge Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Chat Autopilot Supervisor Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Main mobile chat now submits to real work pipeline.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Operator priority policy is preserved.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Chat command creates durable orchestrator job.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Chat commands now run controlled autopilot rounds.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Autopilot stops on idle, blocked, failure or budget.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Approval bypass is explicitly disabled.' >> "$GITHUB_STEP_SUMMARY"
