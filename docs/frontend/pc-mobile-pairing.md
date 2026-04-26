@@ -38,6 +38,8 @@ O APK deve tentar descobrir o PC automaticamente. Se a rede/firewall impedir a d
 
 ## Segurança
 
+Não introduzir tokens, passwords, cookies ou API keys no pairing, no chat ou em qualquer campo do God Mode.
+
 Este pairing não guarda credenciais, tokens, cookies ou API keys.
 
 Ele só mostra URLs locais do backend para facilitar a ligação do APK ao PC.
