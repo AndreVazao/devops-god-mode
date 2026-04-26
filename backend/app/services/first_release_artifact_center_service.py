@@ -27,9 +27,20 @@ class FirstReleaseArtifactCenterService:
             return ""
         return target.read_text(encoding="utf-8", errors="ignore")
 
+    def _is_placeholder_workflow(self, content: str) -> bool:
+        lowered = content.lower()
+        placeholder_markers = [
+            '"artifact_kind": "placeholder"',
+            "'artifact_kind': 'placeholder'",
+            "not_a_real_apk_yet",
+            "placeholder_only",
+            "placeholder_pipeline_progressive",
+        ]
+        return any(marker in lowered for marker in placeholder_markers)
+
     def _workflow(self, artifact_id: str, label: str, path: str, artifact_name: str, installable: bool, truth: str) -> Dict[str, Any]:
         content = self._read(path)
-        placeholder = "placeholder" in content.lower() or "not_a_real_apk_yet" in content.lower()
+        placeholder = self._is_placeholder_workflow(content)
         return {
             "artifact_id": artifact_id,
             "label": label,
@@ -48,8 +59,10 @@ class FirstReleaseArtifactCenterService:
     def _instruction(self, artifact_id: str, placeholder: bool, installable: bool) -> str:
         if artifact_id == "windows_exe" and installable and not placeholder:
             return "Correr o workflow Windows EXE Build, abrir o run mais recente e descarregar o artifact godmode-windows-exe."
+        if artifact_id == "android_apk" and installable and not placeholder:
+            return "Correr o workflow Android APK Build, abrir o run mais recente e descarregar o artifact godmode-android-webview-apk."
         if artifact_id == "android_apk" and placeholder:
-            return "Não instalar como APK real. Este workflow ainda gera placeholder; próxima fase deve criar APK real/WebView shell."
+            return "Não instalar como APK real. Este workflow ainda gera placeholder; criar APK real/WebView shell."
         return "Correr workflow correspondente e verificar artifact no run mais recente."
 
     def build_artifact_report(self) -> Dict[str, Any]:
@@ -66,9 +79,9 @@ class FirstReleaseArtifactCenterService:
                 artifact_id="android_apk",
                 label="Android APK Build",
                 path=".github/workflows/android-real-build-progressive.yml",
-                artifact_name="godmode-android-apk-placeholder",
-                installable=False,
-                truth="android_pipeline_placeholder",
+                artifact_name="godmode-android-webview-apk",
+                installable=True,
+                truth="real_webview_shell_debug_apk",
             ),
             self._workflow(
                 artifact_id="universal_test",
@@ -89,8 +102,8 @@ class FirstReleaseArtifactCenterService:
         if android["placeholder"]:
             blockers.append({"id": "android_apk:placeholder", "label": "APK ainda é placeholder", "detail": "Criar APK real/WebView shell antes de dizer que há APK instalável."})
         windows = next(item for item in artifacts if item["artifact_id"] == "windows_exe")
-        status = "green" if windows["installable_now"] and not blockers else "yellow"
-        if not windows["workflow_present"]:
+        status = "green" if windows["installable_now"] and android["installable_now"] and not blockers else "yellow"
+        if not windows["workflow_present"] or not android["workflow_present"]:
             status = "red"
         return {
             "ok": True,
@@ -112,7 +125,7 @@ class FirstReleaseArtifactCenterService:
         if android_placeholder:
             return "PC EXE path is usable, but Android APK is still placeholder. First usable release is PC-first with mobile web/APK shell pending real build."
         if status == "green":
-            return "EXE and APK artifact paths are ready for first controlled release."
+            return "EXE and Android WebView debug APK artifact paths are ready for first controlled release."
         return "Release artifacts need blockers resolved before install/use."
 
     def _download_steps(self, artifacts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -130,12 +143,18 @@ class FirstReleaseArtifactCenterService:
             },
             {
                 "step": 3,
-                "title": "Não tratar APK placeholder como produto real",
-                "detail": "O Android APK Build atual ainda é placeholder. Usar mobile via browser/WebView local até existir APK real.",
+                "title": "Descarregar APK Android WebView",
+                "detail": "Abrir workflow Android APK Build → último run verde → Artifacts → godmode-android-webview-apk → instalar GodModeMobile-debug.apk.",
                 "artifact_id": "android_apk",
             },
             {
                 "step": 4,
+                "title": "Configurar URL do PC no APK",
+                "detail": "No APK, trocar o URL base para o IP do PC, por exemplo http://192.168.1.50:8000, e abrir /app/apk-start.",
+                "artifact_id": "android_apk",
+            },
+            {
+                "step": 5,
                 "title": "Validar no God Mode",
                 "detail": "Abrir /app/first-use, /app/install-readiness e /app/e2e-operational-drill.",
             },
@@ -143,10 +162,10 @@ class FirstReleaseArtifactCenterService:
 
     def _next_actions(self, blockers: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         actions = [
-            {"priority": "critical", "label": "Criar APK real/WebView shell", "detail": "Substituir workflow placeholder por APK instalável."},
+            {"priority": "critical", "label": "Executar Android APK Build", "detail": "Descarregar godmode-android-webview-apk do run verde."},
             {"priority": "high", "label": "Executar Windows EXE Build", "detail": "Descarregar godmode-windows-exe do run verde."},
+            {"priority": "high", "label": "Instalar APK debug em teste controlado", "detail": "Configurar URL do PC no campo do APK."},
             {"priority": "high", "label": "Correr E2E Drill depois de instalar", "detail": "/app/e2e-operational-drill"},
-            {"priority": "medium", "label": "Atualizar First Usable Release com estado real de artifacts", "detail": "/app/first-use"},
         ]
         if blockers:
             actions.insert(0, {"priority": "critical", "label": "Resolver blockers de artifacts", "detail": f"{len(blockers)} blocker(s)"})
