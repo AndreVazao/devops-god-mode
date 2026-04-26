@@ -1,0 +1,108 @@
+name: Self Update Preserve Memory Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'phase51-*'
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'memory/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/**'
+      - 'memory/**'
+      - 'PROJECT_TREE.txt'
+      - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
+
+jobs:
+  self-update-preserve-memory-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Self Update Preserve Memory
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.self_update_service import self_update_service, DEFAULT_PRESERVE_PATHS
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/self-update/status",
+              "/api/self-update/package",
+              "/api/self-update/dashboard",
+              "/api/self-update/git-state",
+              "/api/self-update/plan",
+              "/api/self-update/backup-manifest",
+              "/api/self-update/execute",
+              "/app/self-update",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing routes: {missing}"
+
+          status = self_update_service.get_status()
+          assert status["ok"] is True
+          assert status["atomic_store_enabled"] is True
+
+          plan = self_update_service.create_update_plan(channel="main")
+          assert plan["ok"] is True
+          assert "memory" in plan["plan"]["preserve_paths"]
+          assert "data" in plan["plan"]["preserve_paths"]
+          assert ".env" in plan["plan"]["preserve_paths"]
+          assert any("Nunca apagar data/" in rule for rule in plan["plan"]["rules"])
+
+          backup = self_update_service.create_backup_manifest()
+          assert backup["ok"] is True
+          assert backup["backup"]["status"] == "manifest_only"
+
+          dry = self_update_service.execute_safe_git_update(channel="main", dry_run=True)
+          assert dry["ok"] is True
+          assert dry["run"]["dry_run"] is True
+          assert dry["run"]["status"] in {"dry_run_ready", "blocked_dirty_worktree", "blocked_git_unavailable"}
+
+          dashboard = self_update_service.build_dashboard()
+          assert dashboard["ok"] is True
+          assert "data" in dashboard["preserve_paths"]
+          assert "memory" in dashboard["preserve_paths"]
+          assert DEFAULT_PRESERVE_PATHS == dashboard["preserve_paths"]
+
+          assert Path("backend/app/services/self_update_service.py").exists()
+          assert Path("backend/app/routes/self_update.py").exists()
+          assert Path("backend/app/routes/self_update_frontend.py").exists()
+          assert Path("docs/frontend/self-update.md").exists()
+          assert Path("data/self_update_state.json").exists()
+          assert Path("data/self_update_state.json.lock").exists()
+
+          print("self update preserve memory validation passed")
+          PY
+
+      - name: Build summary
+        run: |
+          echo '## Self Update Preserve Memory Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Self update API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Preserve paths for data, memory and env files were validated.' >> "$GITHUB_STEP_SUMMARY"
