@@ -206,11 +206,11 @@ class MoneyCommandCenterService:
             return {"ok": False, "error": "project_not_found"}
         checklist = [
             {"label": "Confirmar repo/app", "done": bool(selected.get("repositories")), "owner": "God Mode"},
-            {"label": "Confirmar primeira oferta vendável", "done": bool(selected.get("first_sellable_feature")), "owner": "Oner"},
+            {"label": "Confirmar primeira oferta vendável", "done": bool(selected.get("first_sellable_feature")), "owner": "Owner"},
             {"label": "Fechar MVP mínimo", "done": bool(selected.get("mvp")), "owner": "God Mode"},
             {"label": "Preparar demo/proposta/página", "done": False, "owner": "God Mode"},
             {"label": "Preparar build/deploy ou PDF de entrega", "done": False, "owner": "God Mode"},
-            {"label": "Criar checklist comercial final", "done": False, "owner": "Oner"},
+            {"label": "Criar checklist comercial final", "done": False, "owner": "Owner"},
         ]
         delivery = {
             "delivery_id": f"money-delivery-{uuid4().hex[:12]}",
