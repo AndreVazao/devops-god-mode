@@ -1,4 +1,4 @@
-name: PC Mobile Pairing Center Validation
+name: Private Tunnel Center Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase71-*'
+      - 'phase72-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  pc-mobile-pairing-center-validation:
+  private-tunnel-center-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate PC Mobile Pairing Center
+      - name: Validate Private Tunnel Center
         env:
           PYTHONPATH: backend
         run: |
@@ -46,72 +46,77 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.pc_mobile_pairing_service import pc_mobile_pairing_service
+          from app.services.private_tunnel_center_service import private_tunnel_center_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/pc-mobile-pairing/status",
-              "/api/pc-mobile-pairing/package",
-              "/api/pc-mobile-pairing/pairing",
-              "/api/pc-mobile-pairing/dashboard",
-              "/app/pc-mobile-pairing",
-              "/app/pairing",
+              "/api/private-tunnel/status",
+              "/api/private-tunnel/package",
+              "/api/private-tunnel/report",
+              "/api/private-tunnel/dashboard",
+              "/app/private-tunnel",
+              "/app/street-mode",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = pc_mobile_pairing_service.get_status()
+          status = private_tunnel_center_service.get_status()
           assert status["ok"] is True
-          assert status["status"] == "pairing_ready"
-          assert status["secret_storage"] is False
-          assert status["requires_credentials"] is False
-          assert status["candidate_count"] >= 1
+          assert status["status"] in {"green", "yellow", "red"}
+          assert status["recommended_provider"] == "tailscale"
+          assert status["stores_secrets"] is False
 
-          pairing = pc_mobile_pairing_service.build_pairing_package()
-          assert pairing["ok"] is True
-          assert pairing["urls"], "pairing package should expose URLs"
-          assert pairing["manual_fallback"] is True
-          assert "Não introduzir tokens" in pairing["security_note"]
-          assert any(item["health_url"].endswith("/health") for item in pairing["urls"])
-          assert any(item["apk_start_url"].endswith("/app/apk-start") for item in pairing["urls"])
+          report = private_tunnel_center_service.build_tunnel_report()
+          assert report["ok"] is True
+          assert report["recommended_provider"] == "tailscale"
+          assert report["security"]["stores_tokens"] is False
+          assert report["security"]["stores_passwords"] is False
+          assert report["security"]["stores_cookies"] is False
+          assert report["security"]["manual_login_required"] is True
+          assert report["providers"], "tunnel report should expose providers"
+          assert any(item["provider_id"] == "tailscale" and item["recommended"] is True for item in report["providers"])
+          assert any(item["provider_id"] == "cloudflare_tunnel" for item in report["providers"])
+          assert any(item["provider_id"] == "ngrok" for item in report["providers"])
+          assert report["street_mode_steps"], "street mode steps must be present"
+          assert report["apk_instruction"], "APK tunnel instruction must be present"
 
-          dashboard = pc_mobile_pairing_service.build_dashboard()
+          dashboard = private_tunnel_center_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["buttons"], "pairing dashboard should expose buttons"
-          assert any(button["route"] == "/app/apk-start" for button in dashboard["buttons"])
+          assert dashboard["buttons"], "tunnel dashboard should expose buttons"
+          assert any(button["route"] == "/app/pairing" for button in dashboard["buttons"])
 
-          package = pc_mobile_pairing_service.get_package()
+          package = private_tunnel_center_service.get_package()
           assert package["ok"] is True
           assert package["package"]["status"]["ok"] is True
           assert package["package"]["dashboard"]["ok"] is True
 
-          docs = Path("docs/frontend/pc-mobile-pairing.md").read_text(encoding="utf-8")
-          for marker in ["APK", "Auto", "URL recomendado", "Não introduzir tokens", "firewall"]:
+          docs = Path("docs/frontend/private-tunnel-center.md").read_text(encoding="utf-8")
+          for marker in ["Tailscale", "não guarda", "tokens", "APK", "rua", "Cloudflare", "ngrok"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "pc_mobile_pairing_frontend.py",
-              "pc_mobile_pairing.py",
-              "pc_mobile_pairing_service.py",
-              "pc-mobile-pairing.md",
+              "private_tunnel_center_frontend.py",
+              "private_tunnel_center.py",
+              "private_tunnel_center_service.py",
+              "private-tunnel-center.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/pc_mobile_pairing_service.py").exists()
-          assert Path("backend/app/routes/pc_mobile_pairing.py").exists()
-          assert Path("backend/app/routes/pc_mobile_pairing_frontend.py").exists()
-          assert Path("docs/frontend/pc-mobile-pairing.md").exists()
+          assert Path("backend/app/services/private_tunnel_center_service.py").exists()
+          assert Path("backend/app/routes/private_tunnel_center.py").exists()
+          assert Path("backend/app/routes/private_tunnel_center_frontend.py").exists()
+          assert Path("docs/frontend/private-tunnel-center.md").exists()
 
-          print("PC mobile pairing center validation passed")
+          print("private tunnel center validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## PC Mobile Pairing Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Private Tunnel Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- PC-side pairing API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Candidate URLs, health URLs and APK start URLs were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- No secret storage is used for pairing.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Private tunnel API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Tailscale is the recommended private provider.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- No secret storage is used.' >> "$GITHUB_STEP_SUMMARY"
