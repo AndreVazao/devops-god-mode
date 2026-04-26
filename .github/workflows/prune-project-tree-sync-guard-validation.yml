@@ -1,4 +1,4 @@
-name: Offline Buffer Orchestrator Bridge Validation
+name: Install Run Readiness Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase63-*'
+      - 'phase64-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  offline-buffer-orchestrator-bridge-validation:
+  install-run-readiness-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Offline Buffer Orchestrator Bridge
+      - name: Validate Install Run Readiness
         env:
           PYTHONPATH: backend
         run: |
@@ -46,107 +46,74 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.offline_command_buffering_service import offline_command_buffering_service
+          from app.services.install_run_readiness_service import install_run_readiness_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/offline-command-buffering/status",
-              "/api/offline-command-buffering/connectivity",
-              "/api/offline-command-buffering/buffers",
-              "/api/offline-command-buffering/commands",
-              "/api/offline-command-buffering/sync",
-              "/api/offline-command-buffering/replay",
-              "/api/offline-command-buffering/sync-and-replay",
-              "/api/offline-command-buffering/replays",
-              "/api/offline-command-buffering/actions",
-              "/api/offline-command-buffering/package",
-              "/api/offline-command-buffering/next-buffer-action",
-              "/app/offline-command-buffering",
-              "/app/offline-buffer",
+              "/api/install-run-readiness/status",
+              "/api/install-run-readiness/package",
+              "/api/install-run-readiness/report",
+              "/api/install-run-readiness/checklist",
+              "/api/install-run-readiness/dashboard",
+              "/app/install-run-readiness",
+              "/app/install-readiness",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = offline_command_buffering_service.get_buffer_package()
+          status = install_run_readiness_service.get_status()
           assert status["ok"] is True
-          package = status["package"]
-          assert package["atomic_store_enabled"] is True
-          assert package["request_orchestrator_bridge"] is True
+          assert status["status"] in {"green", "yellow", "red"}
+          assert 0 <= status["score"] <= 100
 
-          offline_command_buffering_service.set_connectivity(pc_online=False, phone_online=True)
-          queued = offline_command_buffering_service.queue_command(
-              source_side="phone",
-              command_text="quero continuar o God Mode até precisares do meu OK",
-              project_hint="GOD_MODE",
-          )
-          assert queued["ok"] is True
-          assert queued["command"]["sync_status"] == "buffered_on_phone_until_pc_returns"
+          report = install_run_readiness_service.build_report()
+          assert report["ok"] is True
+          assert report["checks_count"] >= 20
+          assert report["critical_count"] > 0
+          assert report["install_decision"] in {"ready_for_local_install_and_mobile_use", "usable_with_warnings", "not_ready"}
+          assert report["install_paths"]["mobile_apk"]["entry_route"] == "/app/apk-start"
+          assert report["install_paths"]["mobile_apk"]["preferred_chat"] == "/app/operator-chat-sync-cards"
+          assert any(item.get("endpoint") == "/api/chat-inline-card-renderer/send-orchestrated" for item in report["end_to_end_path"])
+          assert any(item.get("route") == "/app/offline-buffer" for item in report["end_to_end_path"])
 
-          try:
-              offline_command_buffering_service.queue_command(
-                  source_side="phone",
-                  command_text="token abc123",
-                  project_hint="GOD_MODE",
-              )
-              raise AssertionError("sensitive-like command should be blocked")
-          except ValueError as exc:
-              assert str(exc) == "sensitive_like_command_blocked"
+          checklist = install_run_readiness_service.build_checklist()
+          assert checklist["ok"] is True
+          assert checklist["items"], "readiness checklist should expose next actions"
+          assert checklist["install_paths"]["pc_local"]["launcher"] == "desktop/godmode_desktop_launcher.py"
 
-          offline_command_buffering_service.set_connectivity(pc_online=True, phone_online=True)
-          sync = offline_command_buffering_service.sync_buffered_commands_to_pc()
-          assert sync["ok"] is True
-          assert sync["synced_count"] >= 1
+          dashboard = install_run_readiness_service.build_dashboard()
+          assert dashboard["ok"] is True
+          assert dashboard["buttons"], "readiness dashboard should expose mobile buttons"
+          assert any(button["route"] == "/app/mobile-first-run" for button in dashboard["buttons"])
 
-          replay = offline_command_buffering_service.replay_ready_commands_to_orchestrator(
-              tenant_id="owner-andre",
-              auto_run=True,
-              max_commands=5,
-          )
-          assert replay["ok"] is True
-          assert replay["replay"]["processed_count"] >= 1
-          assert replay["replay"]["success_count"] >= 1
-
-          commands = offline_command_buffering_service.get_commands()["commands"]
-          replayed = [item for item in commands if item.get("orchestrator_job_id")]
-          assert replayed, "replayed command should link to orchestrator job"
-
-          sync_replay = offline_command_buffering_service.sync_and_replay_to_pc(
-              tenant_id="owner-andre",
-              auto_run=True,
-              max_commands=5,
-          )
-          assert sync_replay["ok"] is True
-          assert sync_replay["worker_tick"] is not None
-
-          replays = offline_command_buffering_service.get_replays()
-          assert replays["ok"] is True
-          assert replays["count"] >= 1
+          package = install_run_readiness_service.get_package()
+          assert package["ok"] is True
+          assert package["package"]["status"]["ok"] is True
+          assert package["package"]["dashboard"]["ok"] is True
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "offline_command_buffering_frontend.py",
-              "offline_command_buffering.py",
-              "offline_command_buffering_service.py",
-              "offline-buffer-orchestrator-bridge.md",
+              "install_run_readiness_frontend.py",
+              "install_run_readiness.py",
+              "install_run_readiness_service.py",
+              "install-run-readiness.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/offline_command_buffering_service.py").exists()
-          assert Path("backend/app/routes/offline_command_buffering.py").exists()
-          assert Path("backend/app/routes/offline_command_buffering_frontend.py").exists()
-          assert Path("docs/frontend/offline-buffer-orchestrator-bridge.md").exists()
-          assert Path("data/offline_command_buffers.json").exists()
-          assert Path("data/offline_command_buffers.json.lock").exists()
+          assert Path("backend/app/services/install_run_readiness_service.py").exists()
+          assert Path("backend/app/routes/install_run_readiness.py").exists()
+          assert Path("backend/app/routes/install_run_readiness_frontend.py").exists()
+          assert Path("docs/frontend/install-run-readiness.md").exists()
 
-          print("offline buffer orchestrator bridge validation passed")
+          print("install run readiness validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Offline Buffer Orchestrator Bridge Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Install Run Readiness Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Offline buffer uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Phone offline command buffering and PC replay were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Replay creates durable Request Orchestrator jobs and worker tick continues them.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Install/readiness cockpit and API were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- PC/APK/build paths and end-to-end flow were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Project Tree Autorefresh was validated for new files.' >> "$GITHUB_STEP_SUMMARY"
