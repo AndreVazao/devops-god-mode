@@ -1,4 +1,4 @@
-name: God Mode Home Chat First Validation
+name: Chat Action Cards Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase53-*'
+      - 'phase54-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  god-mode-home-chat-first-validation:
+  chat-action-cards-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate God Mode Home Chat First
+      - name: Validate Chat Action Cards
         env:
           PYTHONPATH: backend
         run: |
@@ -48,80 +48,103 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.god_mode_home_service import god_mode_home_service
+          from app.services.chat_action_cards_service import chat_action_cards_service
+          from app.services.operator_conversation_thread_service import operator_conversation_thread_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/god-mode-home/status",
-              "/api/god-mode-home/package",
-              "/api/god-mode-home/dashboard",
-              "/api/god-mode-home/driving-mode",
-              "/api/god-mode-home/one-tap",
-              "/api/god-mode-home/chat",
-              "/app/god-mode-home",
-              "/app/home",
+              "/api/chat-action-cards/status",
+              "/api/chat-action-cards/package",
+              "/api/chat-action-cards/dashboard",
+              "/api/chat-action-cards/cards",
+              "/api/chat-action-cards/create",
+              "/api/chat-action-cards/from-home-chat",
+              "/api/chat-action-cards/execute",
+              "/api/chat-action-cards/dismiss",
+              "/app/chat-action-cards",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = god_mode_home_service.get_status()
+          status = chat_action_cards_service.get_status()
           assert status["ok"] is True
-          assert status["chat_first"] is True
-          assert status["apk_ready_surface"] is True
+          assert status["atomic_store_enabled"] is True
+          assert "one_tap_money" in status["safe_actions"]
 
-          dashboard = god_mode_home_service.build_dashboard()
+          opened = operator_conversation_thread_service.open_thread(
+              tenant_id="owner-andre",
+              conversation_title="Chat Action Cards Validation",
+              channel_mode="apk_continuous_chat",
+          )
+          assert opened["ok"] is True
+          thread_id = opened["thread"]["thread_id"]
+
+          card = chat_action_cards_service.create_card(
+              thread_id=thread_id,
+              title="Validar cartão",
+              body="Cartão seguro para validação.",
+              actions=[{"label": "Ok", "action_type": "acknowledge"}],
+          )
+          assert card["ok"] is True
+          assert card["card"]["status"] == "open"
+          assert card["chat_append"]["ok"] is True
+
+          listed = chat_action_cards_service.list_cards(thread_id=thread_id)
+          assert listed["ok"] is True
+          assert listed["card_count"] >= 1
+
+          execute = chat_action_cards_service.execute_card_action(
+              card_id=card["card"]["card_id"],
+              action_id=card["card"]["actions"][0]["action_id"],
+          )
+          assert execute["ok"] is True
+          assert execute["execution"]["ok"] is True
+
+          generated = chat_action_cards_service.create_cards_from_home_chat(
+              message="quero ganhar dinheiro",
+              tenant_id="owner-andre",
+          )
+          assert generated["ok"] is True
+          assert generated["cards"], "home chat should generate inline action cards"
+
+          dashboard = chat_action_cards_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["next_action"], "home should choose one next action"
-          assert dashboard["open_buttons"], "home should expose large open buttons"
-          assert dashboard["one_tap_buttons"], "home should expose one-tap actions"
-          assert dashboard["chat_contract"]["primary_apk_mode"] == "continuous_chat_like_chatgpt"
-          assert dashboard["chat_contract"]["preferred_url"] == "/app/operator-chat-sync"
+          assert dashboard["apk_contract"]["render_inline"] is True
+          assert dashboard["apk_contract"]["card_marker_prefix"] == "[ACTION_CARD:"
 
-          chat = god_mode_home_service.chat(message="quero ganhar dinheiro", tenant_id="owner-andre")
-          assert chat["ok"] is True
-          assert chat["thread_id"]
-          assert chat["reply"]
-          assert chat["suggested_next_steps"], "chat should return suggested actions"
-
-          blocked = god_mode_home_service.chat(message="token abc123", tenant_id="owner-andre")
-          assert blocked["ok"] is True
-          assert blocked["event"]["blocked"] is True
-          assert "Bloqueei" in blocked["reply"]
-
-          one_tap = god_mode_home_service.run_one_tap(action_id="one-tap-continue-god-mode", tenant_id="owner-andre")
-          assert one_tap["ok"] is True
-          assert one_tap["event"]["action_id"] == "one-tap-continue-god-mode"
-
-          driving = god_mode_home_service.driving_mode()
-          assert driving["ok"] is True
-          assert driving["speakable"], "driving mode should provide speakable lines"
-          assert driving["safe_buttons"], "driving mode should provide safe buttons"
+          invalid = chat_action_cards_service.create_card(
+              thread_id=thread_id,
+              title="Comando inválido",
+              body="Não deve aceitar shell.",
+              actions=[{"label": "Shell", "action_type": "run_shell"}],
+          )
+          assert invalid["ok"] is False
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "god_mode_home_frontend.py",
-              "god_mode_home.py",
-              "god_mode_home_service.py",
-              "god-mode-home.md",
+              "chat_action_cards_frontend.py",
+              "chat_action_cards.py",
+              "chat_action_cards_service.py",
+              "chat-action-cards.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/god_mode_home_service.py").exists()
-          assert Path("backend/app/routes/god_mode_home.py").exists()
-          assert Path("backend/app/routes/god_mode_home_frontend.py").exists()
-          assert Path("docs/frontend/god-mode-home.md").exists()
-          assert Path("data/god_mode_home.json").exists()
-          assert Path("data/god_mode_home.json.lock").exists()
+          assert Path("backend/app/services/chat_action_cards_service.py").exists()
+          assert Path("backend/app/routes/chat_action_cards.py").exists()
+          assert Path("backend/app/routes/chat_action_cards_frontend.py").exists()
+          assert Path("docs/frontend/chat-action-cards.md").exists()
+          assert Path("data/chat_action_cards.json").exists()
+          assert Path("data/chat_action_cards.json.lock").exists()
 
-          print("god mode home chat first validation passed")
+          print("chat action cards validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## God Mode Home Chat First Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Chat Action Cards Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- God Mode Home API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK chat-first continuous conversation contract was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- One-tap, driving mode and secret-like chat blocking were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Chat action cards API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK inline card contract was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Unsafe arbitrary action types were blocked.' >> "$GITHUB_STEP_SUMMARY"
