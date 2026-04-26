@@ -10,6 +10,7 @@
 - `GET /api/private-tunnel/status`
 - `GET /api/private-tunnel/package`
 - `GET /api/private-tunnel/report`
+- `GET /api/private-tunnel/pairing-payload`
 - `GET /api/private-tunnel/dashboard`
 
 ## Objetivo
@@ -52,6 +53,30 @@ Fluxo:
 6. O APK usa `http://TAILSCALE_IP:8000`.
 7. O APK testa `/health` e abre `/app/apk-start`.
 
+## Pairing payload não secreto
+
+A Phase 73 adiciona um payload copiável para facilitar configuração fora de casa.
+
+O payload inclui:
+
+- `base_url`;
+- `health_url`;
+- `entry_url`;
+- provider recomendado;
+- data de criação;
+- `contains_secret=false`.
+
+Também gera:
+
+- `payload_json`;
+- `payload_base64url`;
+- `deep_link` em formato `godmode://pair?payload=...`;
+- `qr_ready_text`.
+
+Este payload é seguro para mostrar no ecrã e copiar porque não contém passwords, tokens, cookies ou API keys.
+
+Nota: esta fase prepara o texto para QR, mas ainda não gera QR scannable real. O QR real fica para fase própria com gerador local aprovado.
+
 ## Alternativas
 
 ### Cloudflare Tunnel
@@ -74,7 +99,7 @@ Na rua:
 - usar Tailscale no PC e no telemóvel;
 - abrir APK;
 - usar Auto se possível;
-- se falhar, colar o URL Tailscale recomendado.
+- se falhar, colar o URL Tailscale recomendado ou o payload não secreto.
 
 ## Limites
 

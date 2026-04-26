@@ -20,6 +20,11 @@ async def report():
     return private_tunnel_center_service.build_tunnel_report()
 
 
+@router.get('/pairing-payload')
+async def pairing_payload():
+    return private_tunnel_center_service.build_pairing_payload()
+
+
 @router.get('/dashboard')
 async def dashboard():
     return private_tunnel_center_service.build_dashboard()
