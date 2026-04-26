@@ -21,6 +21,7 @@ Ficheiros principais:
 - `android-app/app/build.gradle`
 - `android-app/app/src/main/AndroidManifest.xml`
 - `android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java`
+- `android-app/app/src/main/res/values/styles.xml`
 
 ## Workflow
 
@@ -40,7 +41,9 @@ O APK mostra:
 
 - campo para URL base do PC;
 - botão “Abrir”;
-- WebView que carrega `base_url + /app/apk-start`.
+- botão “Teste” para testar `/health`;
+- botões rápidos para Start, First Use, Chat, Readiness e Drill;
+- WebView que carrega `base_url + rota`.
 
 Valor por defeito:
 
@@ -49,6 +52,29 @@ Valor por defeito:
 Num telemóvel físico, deve ser alterado para o IP do PC, por exemplo:
 
 - `http://192.168.1.50:8000`
+
+## Diagnóstico de ligação
+
+O botão “Teste” faz um pedido HTTP a:
+
+- `base_url + /health`
+
+Se o backend responder, o APK abre automaticamente:
+
+- `/app/apk-start`
+
+Se falhar, mostra uma mensagem para verificar:
+
+- IP do PC;
+- firewall;
+- porta 8000;
+- se o backend está aberto.
+
+## Persistência local
+
+O último URL base introduzido é guardado nas preferências Android.
+
+Assim, o operador não precisa de escrever o IP do PC sempre que abrir o APK.
 
 ## Segurança
 
@@ -59,8 +85,7 @@ Num telemóvel físico, deve ser alterado para o IP do PC, por exemplo:
 ## Próximos passos futuros
 
 - QR pairing para descobrir o PC automaticamente;
-- guardar último URL usado;
-- diagnóstico de ligação ao PC;
+- diagnóstico de ligação mais profundo;
 - assinatura release;
 - pipeline release APK/AAB;
 - ícone e branding final;
