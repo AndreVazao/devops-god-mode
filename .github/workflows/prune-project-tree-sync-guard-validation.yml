@@ -1,4 +1,4 @@
-name: Chat Boot Briefing Validation
+name: Persistent Request Orchestrator Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase60-*'
+      - 'phase61-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  chat-boot-briefing-validation:
+  persistent-request-orchestrator-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Chat Boot Briefing
+      - name: Validate Persistent Request Orchestrator
         env:
           PYTHONPATH: backend
         run: |
@@ -46,71 +46,108 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.chat_boot_briefing_service import chat_boot_briefing_service
+          from app.services.request_orchestrator_service import request_orchestrator_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/chat-boot-briefing/status",
-              "/api/chat-boot-briefing/package",
-              "/api/chat-boot-briefing/briefing",
-              "/api/chat-boot-briefing/boot",
-              "/api/chat-boot-briefing/dashboard",
-              "/app/chat-boot-briefing",
+              "/api/request-orchestrator/status",
+              "/api/request-orchestrator/package",
+              "/api/request-orchestrator/dashboard",
+              "/api/request-orchestrator/jobs",
+              "/api/request-orchestrator/job/{job_id}",
+              "/api/request-orchestrator/submit",
+              "/api/request-orchestrator/resume",
+              "/api/request-orchestrator/run/{job_id}",
+              "/api/chat-inline-card-renderer/send-orchestrated",
+              "/app/request-orchestrator",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = chat_boot_briefing_service.get_status()
+          status = request_orchestrator_service.get_status()
           assert status["ok"] is True
-          assert status["atomic_store_enabled"] is True
+          assert status["durable_jobs"] is True
+          assert status["apk_disconnect_safe"] is True
+          assert status["run_until_blocked"] is True
 
-          briefing_result = chat_boot_briefing_service.build_briefing(tenant_id="owner-andre", device_id="validation-apk")
-          assert briefing_result["ok"] is True
-          briefing = briefing_result["briefing"]
-          assert briefing["status"] in {"green", "yellow", "red"}
-          assert briefing["message"]
-          assert briefing["recommended_route"]
-          assert briefing["fallback_route"] == "/app/operator-chat-sync"
-          assert "Aprovações pendentes" in briefing["message"]
+          money = request_orchestrator_service.submit_request(
+              request="quero começar a ganhar dinheiro com o projeto mais rápido",
+              tenant_id="owner-andre",
+              project_id="GOD_MODE",
+              auto_run=True,
+          )
+          assert money["ok"] is True
+          assert money["job"]["intent"] == "money_flow"
+          assert money["job"]["status"] == "blocked_approval"
+          assert money["job"]["blocking_reason"]
 
-          boot = chat_boot_briefing_service.boot_chat(tenant_id="owner-andre", device_id="validation-apk")
-          assert boot["ok"] is True
-          assert boot["boot"]["thread_id"]
-          assert boot["boot"]["card_count"] >= 3
-          assert boot["cards"], "boot should create inline action cards"
-          assert boot["append"]["ok"] is True
+          provider = request_orchestrator_service.submit_request(
+              request="preciso usar Gemini provider, prepara login manual",
+              tenant_id="owner-andre",
+              project_id="GOD_MODE",
+              auto_run=True,
+          )
+          assert provider["ok"] is True
+          assert provider["job"]["intent"] == "provider_handoff"
+          assert provider["job"]["status"] == "blocked_credentials"
+          assert provider["job"]["blocking_reason"]
 
-          dashboard = chat_boot_briefing_service.build_dashboard(tenant_id="owner-andre", device_id="validation-apk")
+          blocked_secret = request_orchestrator_service.submit_request(
+              request="token abc123",
+              tenant_id="owner-andre",
+              project_id="GOD_MODE",
+              auto_run=True,
+          )
+          assert blocked_secret["ok"] is False
+          assert blocked_secret["error"] == "secret_like_text_blocked"
+
+          jobs = request_orchestrator_service.list_jobs(tenant_id="owner-andre")
+          assert jobs["ok"] is True
+          assert jobs["job_count"] >= 2
+
+          first_job_id = jobs["jobs"][-1]["job_id"]
+          detail = request_orchestrator_service.get_job(job_id=first_job_id, tenant_id="owner-andre")
+          assert detail["ok"] is True
+          assert detail["job"]["job_id"] == first_job_id
+
+          resumed = request_orchestrator_service.resume_job(
+              job_id=money["job"]["job_id"],
+              tenant_id="owner-andre",
+              operator_note="validation resume",
+          )
+          assert resumed["ok"] is True
+          assert resumed["job"]["status"] in {"completed", "blocked_approval", "blocked_manual_input", "blocked_credentials", "running", "queued"}
+
+          dashboard = request_orchestrator_service.build_dashboard(tenant_id="owner-andre")
           assert dashboard["ok"] is True
-          assert dashboard["briefing"]["message"]
-          assert dashboard["buttons"], "dashboard should expose mobile buttons"
-          assert any(button["id"] == "boot" for button in dashboard["buttons"])
+          assert dashboard["summary"]["jobs"] >= 2
+          assert dashboard["recent_jobs"]
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "chat_boot_briefing_frontend.py",
-              "chat_boot_briefing.py",
-              "chat_boot_briefing_service.py",
-              "chat-boot-briefing.md",
+              "request_orchestrator_frontend.py",
+              "request_orchestrator.py",
+              "request_orchestrator_service.py",
+              "request-orchestrator.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/chat_boot_briefing_service.py").exists()
-          assert Path("backend/app/routes/chat_boot_briefing.py").exists()
-          assert Path("backend/app/routes/chat_boot_briefing_frontend.py").exists()
-          assert Path("docs/frontend/chat-boot-briefing.md").exists()
-          assert Path("data/chat_boot_briefing.json").exists()
-          assert Path("data/chat_boot_briefing.json.lock").exists()
+          assert Path("backend/app/services/request_orchestrator_service.py").exists()
+          assert Path("backend/app/routes/request_orchestrator.py").exists()
+          assert Path("backend/app/routes/request_orchestrator_frontend.py").exists()
+          assert Path("docs/frontend/request-orchestrator.md").exists()
+          assert Path("data/request_orchestrator.json").exists()
+          assert Path("data/request_orchestrator.json.lock").exists()
 
-          print("chat boot briefing validation passed")
+          print("persistent request orchestrator validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Chat Boot Briefing Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Persistent Request Orchestrator Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Chat boot briefing API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Boot flow writes an initial chat message and creates action cards.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Mobile dashboard buttons and Project Tree Autorefresh were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Durable request jobs were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Run-until-blocked behavior was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Approval, manual-login blocking and sensitive-value protection were validated.' >> "$GITHUB_STEP_SUMMARY"
