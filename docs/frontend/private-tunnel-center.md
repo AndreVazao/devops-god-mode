@@ -55,7 +55,7 @@ Fluxo:
 
 ## Pairing payload não secreto
 
-A Phase 73 adiciona um payload copiável para facilitar configuração fora de casa.
+O payload copiável facilita configuração fora de casa.
 
 O payload inclui:
 
@@ -75,7 +75,21 @@ Também gera:
 
 Este payload é seguro para mostrar no ecrã e copiar porque não contém passwords, tokens, cookies ou API keys.
 
-Nota: esta fase prepara o texto para QR, mas ainda não gera QR scannable real. O QR real fica para fase própria com gerador local aprovado.
+## QR scannable local
+
+A Phase 74 adiciona QR scannable real gerado localmente no backend.
+
+O QR:
+
+- é SVG;
+- é gerado com a biblioteca Python `qrcode`;
+- fica embutido no JSON como `qr.svg`, `qr.svg_base64` e `qr.data_uri`;
+- usa o conteúdo de `deep_link`;
+- não chama serviços externos;
+- não contém segredos;
+- pode ser mostrado no cockpit `/app/private-tunnel`.
+
+O APK ainda precisa de uma fase futura para receber `godmode://pair` diretamente por intent/deep-link. Até lá, o QR já serve como base segura para leitura/cópia e para futura integração mobile.
 
 ## Alternativas
 
@@ -99,7 +113,7 @@ Na rua:
 - usar Tailscale no PC e no telemóvel;
 - abrir APK;
 - usar Auto se possível;
-- se falhar, colar o URL Tailscale recomendado ou o payload não secreto.
+- se falhar, colar o URL Tailscale recomendado, ler o QR ou copiar o payload não secreto.
 
 ## Limites
 
@@ -109,4 +123,5 @@ Pode falhar se:
 - backend não estiver a correr;
 - firewall bloquear porta 8000;
 - Tailscale não estiver ligado;
-- telemóvel e PC não estiverem na mesma rede privada Tailscale.
+- telemóvel e PC não estiverem na mesma rede privada Tailscale;
+- APK ainda não tiver deep-link receiver para `godmode://pair`.
