@@ -1,4 +1,4 @@
-name: First Usable Release Validation
+name: First Release Artifact Center Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase66-*'
+      - 'phase67-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  first-usable-release-validation:
+  first-release-artifact-center-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate First Usable Release
+      - name: Validate First Release Artifact Center
         env:
           PYTHONPATH: backend
         run: |
@@ -46,81 +46,86 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.first_usable_release_service import first_usable_release_service
+          from app.services.first_release_artifact_center_service import first_release_artifact_center_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/first-usable-release/status",
-              "/api/first-usable-release/package",
-              "/api/first-usable-release/plan",
-              "/api/first-usable-release/guide",
-              "/api/first-usable-release/dashboard",
-              "/app/first-usable-release",
-              "/app/first-use",
+              "/api/first-release-artifacts/status",
+              "/api/first-release-artifacts/package",
+              "/api/first-release-artifacts/report",
+              "/api/first-release-artifacts/dashboard",
+              "/app/first-release-artifacts",
+              "/app/release-artifacts",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = first_usable_release_service.get_status()
+          status = first_release_artifact_center_service.get_status()
           assert status["ok"] is True
           assert status["status"] in {"green", "yellow", "red"}
-          assert status["release_name"] == "God Mode First Usable Release"
+          assert "release_truth" in status
 
-          plan = first_usable_release_service.build_release_plan()
-          assert plan["ok"] is True
-          assert plan["release_name"] == "God Mode First Usable Release"
-          assert plan["install_urls"]["apk_start"] == "/app/apk-start"
-          assert plan["install_urls"]["chat"] == "/app/operator-chat-sync-cards"
-          assert plan["install_urls"]["drill"] == "/app/e2e-operational-drill"
-          assert plan["artifacts"], "release plan should include expected artifacts"
-          assert any(item["id"] == "windows_exe" for item in plan["artifacts"])
-          assert any(item["id"] == "android_apk" for item in plan["artifacts"])
-          assert plan["pc_steps"], "release plan should include PC steps"
-          assert plan["mobile_steps"], "release plan should include mobile steps"
-          assert plan["first_commands"], "release plan should include first commands"
-          assert any("ganhar dinheiro" in item["text"] for item in plan["first_commands"])
+          report = first_release_artifact_center_service.build_artifact_report()
+          assert report["ok"] is True
+          assert report["repo_url"].endswith("AndreVazao/devops-god-mode")
+          assert report["actions_url"].endswith("/actions")
+          assert report["artifacts"], "artifact report should include artifacts"
 
-          guide = first_usable_release_service.build_operator_guide()
-          assert guide["ok"] is True
-          assert guide["guide"]["title"] == "God Mode — primeira utilização"
-          assert guide["guide"]["short_answer"]
-          assert guide["guide"]["when_blocked"]
+          windows = next(item for item in report["artifacts"] if item["artifact_id"] == "windows_exe")
+          android = next(item for item in report["artifacts"] if item["artifact_id"] == "android_apk")
+          universal = next(item for item in report["artifacts"] if item["artifact_id"] == "universal_test")
 
-          dashboard = first_usable_release_service.build_dashboard()
+          assert windows["workflow_present"] is True
+          assert windows["artifact_name"] == "godmode-windows-exe"
+          assert windows["installable_now"] is True
+          assert windows["placeholder"] is False
+
+          assert android["workflow_present"] is True
+          assert android["artifact_name"] == "godmode-android-apk-placeholder"
+          assert android["placeholder"] is True
+          assert android["installable_now"] is False
+          assert any(blocker["id"] == "android_apk:placeholder" for blocker in report["blockers"])
+
+          assert universal["workflow_present"] is True
+          assert universal["artifact_name"] == "test_report"
+
+          assert report["download_steps"], "artifact center should expose download steps"
+          assert report["next_actions"], "artifact center should expose next actions"
+          assert any("APK real" in action["label"] or "APK real" in action.get("detail", "") for action in report["next_actions"])
+
+          dashboard = first_release_artifact_center_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["buttons"], "first usable release dashboard should expose mobile buttons"
-          assert any(button["route"] == "/app/install-readiness" for button in dashboard["buttons"])
-          assert any(button["route"] == "/app/e2e-operational-drill" for button in dashboard["buttons"])
+          assert dashboard["buttons"], "artifact dashboard should expose buttons"
+          assert any(button.get("url", "").endswith("/actions") for button in dashboard["buttons"])
 
-          package = first_usable_release_service.get_package()
+          package = first_release_artifact_center_service.get_package()
           assert package["ok"] is True
           assert package["package"]["status"]["ok"] is True
           assert package["package"]["dashboard"]["ok"] is True
-          assert package["package"]["guide"]["ok"] is True
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "first_usable_release_frontend.py",
-              "first_usable_release.py",
-              "first_usable_release_service.py",
-              "first-usable-release.md",
+              "first_release_artifact_center_frontend.py",
+              "first_release_artifact_center.py",
+              "first_release_artifact_center_service.py",
+              "first-release-artifacts.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/first_usable_release_service.py").exists()
-          assert Path("backend/app/routes/first_usable_release.py").exists()
-          assert Path("backend/app/routes/first_usable_release_frontend.py").exists()
-          assert Path("docs/frontend/first-usable-release.md").exists()
+          assert Path("backend/app/services/first_release_artifact_center_service.py").exists()
+          assert Path("backend/app/routes/first_release_artifact_center.py").exists()
+          assert Path("backend/app/routes/first_release_artifact_center_frontend.py").exists()
+          assert Path("docs/frontend/first-release-artifacts.md").exists()
 
-          print("first usable release validation passed")
+          print("first release artifact center validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## First Usable Release Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## First Release Artifact Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- First usable release API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- PC/mobile guide, expected artifacts and first commands were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Artifact center API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Windows EXE real path and Android placeholder truth were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Project Tree Autorefresh was validated for new files.' >> "$GITHUB_STEP_SUMMARY"
