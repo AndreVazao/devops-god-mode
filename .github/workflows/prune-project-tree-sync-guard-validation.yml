@@ -1,4 +1,4 @@
-name: Scannable Pairing QR Validation
+name: APK Pair Deeplink Validation
 
 on:
   workflow_dispatch:
@@ -6,9 +6,9 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase74-*'
+      - 'phase75-*'
     paths:
-      - 'backend/**'
+      - 'android-app/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
@@ -16,13 +16,13 @@ on:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - 'android-app/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  scannable-pairing-qr-validation:
+  apk-pair-deeplink-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,104 +38,84 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Scannable Pairing QR
+      - name: Validate APK Pair Deeplink
         env:
           PYTHONPATH: backend
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          import qrcode
-
-          from main import app
-          from app.services.private_tunnel_center_service import private_tunnel_center_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
-          assert qrcode is not None
-          requirements = Path("backend/requirements.txt").read_text(encoding="utf-8")
-          assert "qrcode" in requirements
+          manifest = Path("android-app/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+          main_activity = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java").read_text(encoding="utf-8")
+          docs = Path("docs/frontend/android-webview-shell.md").read_text(encoding="utf-8")
 
-          route_paths = {route.path for route in app.routes}
-          required = {
-              "/api/private-tunnel/status",
-              "/api/private-tunnel/package",
-              "/api/private-tunnel/report",
-              "/api/private-tunnel/pairing-payload",
-              "/api/private-tunnel/dashboard",
-              "/app/private-tunnel",
-              "/app/street-mode",
-          }
-          missing = sorted(required - route_paths)
-          assert not missing, f"Missing routes: {missing}"
+          required_manifest = [
+              "android:launchMode=\"singleTask\"",
+              "android.intent.action.VIEW",
+              "android.intent.category.BROWSABLE",
+              "android:scheme=\"godmode\"",
+              "android:host=\"pair\"",
+          ]
+          missing_manifest = [marker for marker in required_manifest if marker not in manifest]
+          assert not missing_manifest, f"Manifest missing markers: {missing_manifest}"
 
-          status = private_tunnel_center_service.get_status()
-          assert status["ok"] is True
-          assert status["recommended_provider"] == "tailscale"
-          assert status["stores_secrets"] is False
-          assert status["pairing_payload_available"] is True
-          assert status["scannable_qr_available"] is True
+          required_activity = [
+              "handlePairingIntent",
+              "onNewIntent",
+              "Uri uri = intent.getData()",
+              "godmode",
+              "pair",
+              "getQueryParameter(\"payload\")",
+              "Base64.URL_SAFE",
+              "Base64.NO_WRAP",
+              "JSONObject payload",
+              "contains_secret",
+              "god_mode_mobile_pairing",
+              "isSafePairingBaseUrl",
+              "token=",
+              "password=",
+              "cookie=",
+              "api_key=",
+              "authorization=",
+              "bearer",
+              "preferences.edit().putString(PREF_BASE_URL, baseUrl).apply()",
+              "testHealth()",
+          ]
+          missing_activity = [marker for marker in required_activity if marker not in main_activity]
+          assert not missing_activity, f"MainActivity missing markers: {missing_activity}"
 
-          pairing = private_tunnel_center_service.build_pairing_payload()
-          assert pairing["ok"] is True
-          assert pairing["payload"]["type"] == "god_mode_mobile_pairing"
-          assert pairing["payload"]["contains_secret"] is False
-          assert pairing["payload"]["base_url"].startswith("http")
-          assert pairing["payload"]["health_url"].endswith("/health")
-          assert pairing["payload"]["entry_url"].endswith("/app/apk-start")
-          assert pairing["deep_link"].startswith("godmode://pair?payload=")
-          assert pairing["qr_ready_text"] == pairing["deep_link"]
-          assert pairing["security"]["contains_secret"] is False
-          assert pairing["security"]["safe_to_show_on_screen"] is True
-          assert pairing["security"]["generated_locally"] is True
-          assert pairing["is_scannable_qr_generated"] is True
-          assert pairing["qr_status"] == "scannable_qr_generated_locally"
-          assert pairing["qr"]["ok"] is True
-          assert pairing["qr"]["format"] == "svg"
-          assert pairing["qr"]["mime_type"] == "image/svg+xml"
-          assert pairing["qr"]["data_uri"].startswith("data:image/svg+xml;base64,")
-          assert "<svg" in pairing["qr"]["svg"]
-          assert pairing["qr"]["contains_secret"] is False
-
-          report = private_tunnel_center_service.build_tunnel_report()
-          assert report["ok"] is True
-          assert report["pairing_payload"]["is_scannable_qr_generated"] is True
-          assert report["pairing_payload"]["qr"]["svg_base64"]
-          assert any(item["step"] == 6 for item in report["street_mode_steps"])
-          assert any("QR" in item["label"] or "QR" in item["detail"] for item in report["next_actions"])
-
-          dashboard = private_tunnel_center_service.build_dashboard()
-          assert dashboard["ok"] is True
-          assert dashboard["report"]["pairing_payload"]["qr"]["data_uri"].startswith("data:image/svg+xml;base64,")
-
-          package = private_tunnel_center_service.get_package()
-          assert package["ok"] is True
-          assert package["package"]["pairing"]["qr"]["format"] == "svg"
-
-          docs = Path("docs/frontend/private-tunnel-center.md").read_text(encoding="utf-8")
-          for marker in ["QR scannable local", "qrcode", "qr.svg", "qr.data_uri", "não chama serviços externos"]:
-              assert marker in docs, f"Missing doc marker: {marker}"
-
-          frontend = Path("backend/app/routes/private_tunnel_center_frontend.py").read_text(encoding="utf-8")
-          for marker in ["QR scannable local", "qrBox", "p.qr?.svg", "Copiar deep link"]:
-              assert marker in frontend, f"Missing frontend marker: {marker}"
+          required_docs = [
+              "Pairing por deep link",
+              "godmode://pair?payload=...",
+              "Base64 URL-safe",
+              "contains_secret=false",
+              "URLs com marcadores sensíveis são recusados",
+              "token=",
+              "password=",
+              "authorization=",
+          ]
+          missing_docs = [marker for marker in required_docs if marker not in docs]
+          assert not missing_docs, f"Android docs missing markers: {missing_docs}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "private_tunnel_center_frontend.py",
-              "private_tunnel_center.py",
-              "private_tunnel_center_service.py",
-              "private-tunnel-center.md",
+              "android-app",
+              "AndroidManifest.xml",
+              "MainActivity.java",
+              "android-webview-shell.md",
           ]
-          missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
-          assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
+          missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
+          assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("scannable pairing QR validation passed")
+          print("APK pair deeplink validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Scannable Pairing QR Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## APK Pair Deeplink Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- qrcode dependency was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Local SVG QR generation was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- QR payload remains non-secret.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK godmode://pair intent filter was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK decodes non-secret pairing payloads.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK rejects sensitive-looking pairing URLs.' >> "$GITHUB_STEP_SUMMARY"
