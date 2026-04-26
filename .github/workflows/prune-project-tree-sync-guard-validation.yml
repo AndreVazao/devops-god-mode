@@ -49,6 +49,7 @@ jobs:
 
           from main import app
           from app.services.money_command_center_service import money_command_center_service
+          from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
@@ -107,15 +108,18 @@ jobs:
           assert offers["ok"] is True
           assert offers["offers"], "offers endpoint should return project offers"
 
-          tree = Path("PROJECT_TREE.txt").read_text(encoding="utf-8")
+          generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
               "money_command_center_frontend.py",
               "money_command_center.py",
               "money_command_center_service.py",
               "money-command-center.md",
           ]
-          missing_tree = [entry for entry in required_tree_entries if entry not in tree]
-          assert not missing_tree, f"PROJECT_TREE missing entries: {missing_tree}"
+          missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
+          assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
+          compare = project_tree_autorefresh_service.compare_tree()
+          assert compare["ok"] is True
+          assert compare["report"]["generated_line_count"] > 10
 
           assert Path("backend/app/services/money_command_center_service.py").exists()
           assert Path("backend/app/routes/money_command_center.py").exists()
@@ -133,4 +137,4 @@ jobs:
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo '- Money Command Center API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
           echo '- Monetization readiness, revenue sprint, approval card and MVP delivery flow were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- PROJECT_TREE entries for this phase were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Project Tree Autorefresh generated tree entries for this phase were validated.' >> "$GITHUB_STEP_SUMMARY"
