@@ -1,4 +1,4 @@
-name: APK Launch Manifest Validation
+name: APK Manifest Router Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase56-*'
+      - 'phase57-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  apk-launch-manifest-validation:
+  apk-manifest-router-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate APK Launch Manifest
+      - name: Validate APK Manifest Router
         env:
           PYTHONPATH: backend
         run: |
@@ -48,71 +48,68 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.apk_launch_manifest_service import apk_launch_manifest_service
+          from app.services.apk_manifest_router_service import apk_manifest_router_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/apk-launch/status",
-              "/api/apk-launch/package",
-              "/api/apk-launch/manifest",
-              "/api/apk-launch/health",
-              "/api/apk-launch/dashboard",
-              "/api/apk-launch/launch",
-              "/app/apk-launch",
+              "/api/apk-router/status",
+              "/api/apk-router/package",
+              "/api/apk-router/resolve",
+              "/api/apk-router/dashboard",
+              "/app/apk-start",
+              "/app/start",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = apk_launch_manifest_service.get_status()
+          status = apk_manifest_router_service.get_status()
           assert status["ok"] is True
-          assert status["preferred_chat_surface"] == "/app/operator-chat-sync-cards"
-          assert status["fallback_chat_surface"] == "/app/operator-chat-sync"
+          assert status["default_chat_route"] == "/app/operator-chat-sync-cards"
+          assert status["legacy_chat_route"] == "/app/operator-chat-sync"
+          assert status["safe_fallback_route"] == "/app/home"
 
-          manifest_result = apk_launch_manifest_service.build_manifest(tenant_id="owner-andre", device_id="validation-apk")
-          assert manifest_result["ok"] is True
-          manifest = manifest_result["manifest"]
-          assert manifest["launch_policy"]["default_route"] == "/app/operator-chat-sync-cards"
-          assert manifest["launch_policy"]["fallback_route"] == "/app/operator-chat-sync"
-          assert manifest["capabilities"]["continuous_chat"] is True
-          assert manifest["capabilities"]["inline_action_cards"] is True
-          assert manifest["capabilities"]["destructive_actions_require_approval"] is True
-          assert manifest["safe_buttons"], "manifest should provide safe APK buttons"
+          auto = apk_manifest_router_service.resolve(tenant_id="owner-andre", device_id="validation-apk", prefer="auto")
+          assert auto["ok"] is True
+          assert auto["resolution"]["route"] == "/app/operator-chat-sync-cards"
+          assert auto["resolution"]["fallback_route"] == "/app/operator-chat-sync"
 
-          health_result = apk_launch_manifest_service.health(tenant_id="owner-andre", device_id="validation-apk")
-          assert health_result["ok"] is True
-          assert health_result["health"]["default_route"] == "/app/operator-chat-sync-cards"
-          assert health_result["health"]["fallback_route"] == "/app/operator-chat-sync"
-          assert health_result["health"]["status"] in {"green", "yellow"}
+          legacy = apk_manifest_router_service.resolve(tenant_id="owner-andre", device_id="validation-apk", prefer="legacy")
+          assert legacy["ok"] is True
+          assert legacy["resolution"]["route"] == "/app/operator-chat-sync"
 
-          dashboard = apk_launch_manifest_service.build_dashboard(tenant_id="owner-andre", device_id="validation-apk")
+          home = apk_manifest_router_service.resolve(tenant_id="owner-andre", device_id="validation-apk", prefer="home")
+          assert home["ok"] is True
+          assert home["resolution"]["route"] in {"/app/god-mode-home", "/app/home"}
+
+          dashboard = apk_manifest_router_service.dashboard(tenant_id="owner-andre", device_id="validation-apk")
           assert dashboard["ok"] is True
-          assert dashboard["manifest"]["launch_policy"]["default_api"] == "/api/chat-inline-card-renderer/send"
+          assert dashboard["latest_resolution"]["route"] == "/app/operator-chat-sync-cards"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "apk_launch_manifest_frontend.py",
-              "apk_launch_manifest.py",
-              "apk_launch_manifest_service.py",
-              "apk-launch-manifest.md",
+              "apk_manifest_router_frontend.py",
+              "apk_manifest_router.py",
+              "apk_manifest_router_service.py",
+              "apk-manifest-router.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/apk_launch_manifest_service.py").exists()
-          assert Path("backend/app/routes/apk_launch_manifest.py").exists()
-          assert Path("backend/app/routes/apk_launch_manifest_frontend.py").exists()
-          assert Path("docs/frontend/apk-launch-manifest.md").exists()
-          assert Path("data/apk_launch_manifest.json").exists()
-          assert Path("data/apk_launch_manifest.json.lock").exists()
+          assert Path("backend/app/services/apk_manifest_router_service.py").exists()
+          assert Path("backend/app/routes/apk_manifest_router.py").exists()
+          assert Path("backend/app/routes/apk_manifest_router_frontend.py").exists()
+          assert Path("docs/frontend/apk-manifest-router.md").exists()
+          assert Path("data/apk_manifest_router.json").exists()
+          assert Path("data/apk_manifest_router.json.lock").exists()
 
-          print("apk launch manifest validation passed")
+          print("apk manifest router validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## APK Launch Manifest Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## APK Manifest Router Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK launch manifest API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Default APK route points to chat inline cards.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Legacy chat fallback and safe buttons were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK manifest router API and start page were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Auto route opens chat inline cards.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Legacy and home fallback preferences were validated.' >> "$GITHUB_STEP_SUMMARY"
