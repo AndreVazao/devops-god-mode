@@ -115,8 +115,8 @@ jobs:
           dashboard = pc_autopilot_loop_service.build_dashboard()
           assert dashboard["ok"] is True
           assert dashboard["status"]["ok"] is True
-          assert any(button["endpoint"] == "/api/pc-autopilot/start" for button in dashboard["buttons"])
-          assert any(button["route"] == "/app/mobile-approval-cockpit-v2" for button in dashboard["buttons"])
+          assert any(button.get("endpoint") == "/api/pc-autopilot/start" for button in dashboard["buttons"])
+          assert any(button.get("route") == "/app/mobile-approval-cockpit-v2" for button in dashboard["buttons"])
 
           start = pc_autopilot_loop_service.start()
           assert start["ok"] is True
