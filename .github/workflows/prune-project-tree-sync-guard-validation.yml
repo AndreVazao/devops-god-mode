@@ -1,4 +1,4 @@
-name: Unified Money Command Center Validation
+name: God Mode Home Chat First Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase52-*'
+      - 'phase53-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  unified-money-command-center-validation:
+  god-mode-home-chat-first-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Unified Money Command Center
+      - name: Validate God Mode Home Chat First
         env:
           PYTHONPATH: backend
         run: |
@@ -48,93 +48,80 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.money_command_center_service import money_command_center_service
+          from app.services.god_mode_home_service import god_mode_home_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/money-command-center/status",
-              "/api/money-command-center/package",
-              "/api/money-command-center/dashboard",
-              "/api/money-command-center/matrix",
-              "/api/money-command-center/top-project",
-              "/api/money-command-center/blockers",
-              "/api/money-command-center/sellable-offers",
-              "/api/money-command-center/revenue-sprint",
-              "/api/money-command-center/approval-card",
-              "/api/money-command-center/prepare-mvp-delivery",
-              "/app/money-command-center",
+              "/api/god-mode-home/status",
+              "/api/god-mode-home/package",
+              "/api/god-mode-home/dashboard",
+              "/api/god-mode-home/driving-mode",
+              "/api/god-mode-home/one-tap",
+              "/api/god-mode-home/chat",
+              "/app/god-mode-home",
+              "/app/home",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = money_command_center_service.get_status()
+          status = god_mode_home_service.get_status()
           assert status["ok"] is True
-          assert status["atomic_store_enabled"] is True
+          assert status["chat_first"] is True
+          assert status["apk_ready_surface"] is True
 
-          matrix = money_command_center_service.build_money_matrix()
-          assert matrix["ok"] is True
-          assert matrix["report"]["rows"], "money matrix should include portfolio rows"
-          assert matrix["report"]["top_project"], "top money project should exist"
-          assert matrix["report"]["offers"], "sellable offers should exist"
-
-          top = money_command_center_service.top_project()
-          assert top["ok"] is True
-          assert top["top_project"]["first_sellable_feature"]
-
-          sprint = money_command_center_service.create_revenue_sprint(max_projects=2)
-          assert sprint["ok"] is True
-          assert sprint["sprint"]["status"] == "needs_operator_approval"
-          assert sprint["tasks"], "sprint should create actionable tasks"
-
-          card = money_command_center_service.create_approval_card(max_projects=2)
-          assert card["ok"] is True
-          assert card["approval_card"]["card"]["status"] == "pending_approval"
-
-          delivery = money_command_center_service.prepare_mvp_delivery()
-          assert delivery["ok"] is True
-          assert delivery["delivery"]["checklist"], "delivery checklist should exist"
-
-          dashboard = money_command_center_service.build_dashboard()
+          dashboard = god_mode_home_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["summary"]["portfolio_projects"] >= 1
-          assert dashboard["quick_buttons"], "mobile buttons should exist"
-          assert dashboard["operator_answer"], "operator answer should exist"
+          assert dashboard["next_action"], "home should choose one next action"
+          assert dashboard["open_buttons"], "home should expose large open buttons"
+          assert dashboard["one_tap_buttons"], "home should expose one-tap actions"
+          assert dashboard["chat_contract"]["primary_apk_mode"] == "continuous_chat_like_chatgpt"
+          assert dashboard["chat_contract"]["preferred_url"] == "/app/operator-chat-sync"
 
-          blockers = money_command_center_service.get_blockers()
-          assert blockers["ok"] is True
+          chat = god_mode_home_service.chat(message="quero ganhar dinheiro", tenant_id="owner-andre")
+          assert chat["ok"] is True
+          assert chat["thread_id"]
+          assert chat["reply"]
+          assert chat["suggested_next_steps"], "chat should return suggested actions"
 
-          offers = money_command_center_service.get_sellable_offers()
-          assert offers["ok"] is True
-          assert offers["offers"], "offers endpoint should return project offers"
+          blocked = god_mode_home_service.chat(message="token abc123", tenant_id="owner-andre")
+          assert blocked["ok"] is True
+          assert blocked["event"]["blocked"] is True
+          assert "Bloqueei" in blocked["reply"]
+
+          one_tap = god_mode_home_service.run_one_tap(action_id="one-tap-continue-god-mode", tenant_id="owner-andre")
+          assert one_tap["ok"] is True
+          assert one_tap["event"]["action_id"] == "one-tap-continue-god-mode"
+
+          driving = god_mode_home_service.driving_mode()
+          assert driving["ok"] is True
+          assert driving["speakable"], "driving mode should provide speakable lines"
+          assert driving["safe_buttons"], "driving mode should provide safe buttons"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "money_command_center_frontend.py",
-              "money_command_center.py",
-              "money_command_center_service.py",
-              "money-command-center.md",
+              "god_mode_home_frontend.py",
+              "god_mode_home.py",
+              "god_mode_home_service.py",
+              "god-mode-home.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
-          compare = project_tree_autorefresh_service.compare_tree()
-          assert compare["ok"] is True
-          assert compare["report"]["generated_line_count"] > 10
 
-          assert Path("backend/app/services/money_command_center_service.py").exists()
-          assert Path("backend/app/routes/money_command_center.py").exists()
-          assert Path("backend/app/routes/money_command_center_frontend.py").exists()
-          assert Path("docs/frontend/money-command-center.md").exists()
-          assert Path("data/money_command_center.json").exists()
-          assert Path("data/money_command_center.json.lock").exists()
+          assert Path("backend/app/services/god_mode_home_service.py").exists()
+          assert Path("backend/app/routes/god_mode_home.py").exists()
+          assert Path("backend/app/routes/god_mode_home_frontend.py").exists()
+          assert Path("docs/frontend/god-mode-home.md").exists()
+          assert Path("data/god_mode_home.json").exists()
+          assert Path("data/god_mode_home.json.lock").exists()
 
-          print("unified money command center validation passed")
+          print("god mode home chat first validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Unified Money Command Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## God Mode Home Chat First Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Money Command Center API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Monetization readiness, revenue sprint, approval card and MVP delivery flow were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Project Tree Autorefresh generated tree entries for this phase were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- God Mode Home API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK chat-first continuous conversation contract was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- One-tap, driving mode and secret-like chat blocking were validated.' >> "$GITHUB_STEP_SUMMARY"
