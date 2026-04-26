@@ -40,16 +40,44 @@ Ficheiro APK:
 O APK mostra:
 
 - campo para URL base do PC;
+- botão “Auto” para procurar o backend automaticamente;
 - botão “Abrir”;
 - botão “Teste” para testar `/health`;
 - botões rápidos para Start, First Use, Chat, Readiness e Drill;
 - WebView que carrega `base_url + rota`.
 
-Valor por defeito:
+## Auto discovery
+
+Ao abrir, o APK tenta encontrar o backend automaticamente.
+
+Ordem de tentativa:
+
+1. último URL guardado;
+2. `http://127.0.0.1:8000`;
+3. `http://10.0.2.2:8000` para emulador;
+4. gateway Wi-Fi;
+5. IPs prováveis na subnet do Wi-Fi.
+
+Cada candidato é validado com:
+
+- `/health`
+
+Se encontrar o backend:
+
+- guarda o URL;
+- preenche o campo;
+- abre `/app/apk-start`.
+
+Se não encontrar:
+
+- mostra mensagem clara;
+- mantém fallback manual por URL.
+
+## Valor por defeito
 
 - `http://127.0.0.1:8000`
 
-Num telemóvel físico, deve ser alterado para o IP do PC, por exemplo:
+Num telemóvel físico, caso a descoberta automática falhe, deve ser usado o IP do PC, por exemplo:
 
 - `http://192.168.1.50:8000`
 
@@ -72,19 +100,20 @@ Se falhar, mostra uma mensagem para verificar:
 
 ## Persistência local
 
-O último URL base introduzido é guardado nas preferências Android.
+O último URL base encontrado ou introduzido é guardado nas preferências Android.
 
 Assim, o operador não precisa de escrever o IP do PC sempre que abrir o APK.
 
 ## Segurança
 
 - `usesCleartextTraffic=true` é usado para permitir backend local HTTP durante teste controlado.
+- `ACCESS_WIFI_STATE` é usado para inferir gateway/subnet local.
 - Este APK é debug/primeiro teste, não release assinado final.
 - Não introduzir tokens, passwords, cookies ou API keys no chat.
 
 ## Próximos passos futuros
 
-- QR pairing para descobrir o PC automaticamente;
+- QR pairing para descobrir o PC de forma mais fiável;
 - diagnóstico de ligação mais profundo;
 - assinatura release;
 - pipeline release APK/AAB;

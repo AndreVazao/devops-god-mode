@@ -5,15 +5,18 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
+import android.net.DhcpInfo;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.WebSettings;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
@@ -24,12 +27,17 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends Activity {
     private static final String PREFS = "god_mode_mobile_prefs";
     private static final String PREF_BASE_URL = "base_url";
     private static final String DEFAULT_BASE_URL = "http://127.0.0.1:8000";
     private static final String ENTRY_ROUTE = "/app/apk-start";
+    private static final int HEALTH_TIMEOUT_MS = 1200;
 
     private WebView webView;
     private EditText baseUrlInput;
@@ -42,7 +50,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         buildUi();
-        loadRoute(ENTRY_ROUTE);
+        autoDiscoverAndOpen(true);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -57,7 +65,7 @@ public class MainActivity extends Activity {
 
         statusText = new TextView(this);
         statusText.setTextColor(Color.WHITE);
-        statusText.setText("God Mode APK · diagnóstico pronto");
+        statusText.setText("God Mode APK · auto discovery pronto");
         statusText.setPadding(18, 16, 18, 4);
         root.addView(statusText, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -82,7 +90,7 @@ public class MainActivity extends Activity {
         baseUrlInput.setText(preferences.getString(PREF_BASE_URL, DEFAULT_BASE_URL));
         baseUrlInput.setTextColor(Color.WHITE);
         baseUrlInput.setHintTextColor(Color.LTGRAY);
-        baseUrlInput.setHint("http://IP_DO_PC:8000");
+        baseUrlInput.setHint("auto ou http://IP_DO_PC:8000");
         baseUrlInput.setBackgroundColor(Color.rgb(15, 23, 42));
         controls.addView(baseUrlInput, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
@@ -99,12 +107,13 @@ public class MainActivity extends Activity {
         LinearLayout quickButtons = new LinearLayout(this);
         quickButtons.setOrientation(LinearLayout.HORIZONTAL);
         quickButtons.setPadding(12, 0, 12, 8);
-        addQuickButton(quickButtons, "Teste", "/health", true);
-        addQuickButton(quickButtons, "Start", "/app/apk-start", false);
-        addQuickButton(quickButtons, "First", "/app/first-use", false);
-        addQuickButton(quickButtons, "Chat", "/app/operator-chat-sync-cards", false);
-        addQuickButton(quickButtons, "Readiness", "/app/install-readiness", false);
-        addQuickButton(quickButtons, "Drill", "/app/e2e-operational-drill", false);
+        addQuickButton(quickButtons, "Auto", "auto", true, true);
+        addQuickButton(quickButtons, "Teste", "/health", true, false);
+        addQuickButton(quickButtons, "Start", "/app/apk-start", false, false);
+        addQuickButton(quickButtons, "First", "/app/first-use", false, false);
+        addQuickButton(quickButtons, "Chat", "/app/operator-chat-sync-cards", false, false);
+        addQuickButton(quickButtons, "Readiness", "/app/install-readiness", false, false);
+        addQuickButton(quickButtons, "Drill", "/app/e2e-operational-drill", false, false);
         quickScroll.addView(quickButtons);
         root.addView(quickScroll);
 
@@ -139,11 +148,13 @@ public class MainActivity extends Activity {
         setContentView(root);
     }
 
-    private void addQuickButton(LinearLayout parent, String label, String route, boolean diagnostic) {
+    private void addQuickButton(LinearLayout parent, String label, String route, boolean diagnostic, boolean autoDiscovery) {
         Button button = new Button(this);
         button.setText(label);
         button.setOnClickListener(v -> {
-            if (diagnostic) {
+            if (autoDiscovery) {
+                autoDiscoverAndOpen(false);
+            } else if (diagnostic) {
                 testHealth();
             } else {
                 loadRoute(route);
@@ -157,8 +168,8 @@ public class MainActivity extends Activity {
 
     private String normalizeBaseUrl() {
         String baseUrl = baseUrlInput.getText().toString().trim();
-        if (baseUrl.isEmpty()) {
-            baseUrl = DEFAULT_BASE_URL;
+        if (baseUrl.isEmpty() || "auto".equalsIgnoreCase(baseUrl)) {
+            baseUrl = preferences.getString(PREF_BASE_URL, DEFAULT_BASE_URL);
             baseUrlInput.setText(baseUrl);
         }
         while (baseUrl.endsWith("/")) {
@@ -174,6 +185,135 @@ public class MainActivity extends Activity {
         routeText.setText("Rota: " + route);
         statusText.setText("A abrir: " + target + " · rede: " + networkStatus());
         webView.loadUrl(target);
+    }
+
+    private void autoDiscoverAndOpen(boolean silentFallback) {
+        statusText.setText("A procurar God Mode no PC... · rede: " + networkStatus());
+        routeText.setText("Auto discovery: /health");
+        new Thread(() -> {
+            List<String> candidates = buildDiscoveryCandidates();
+            String found = null;
+            int checked = 0;
+            for (String candidate : candidates) {
+                checked++;
+                String finalCandidate = candidate;
+                int finalChecked = checked;
+                runOnUiThread(() -> statusText.setText("A testar " + finalCandidate + " (" + finalChecked + "/" + candidates.size() + ")"));
+                if (isHealthy(candidate, HEALTH_TIMEOUT_MS)) {
+                    found = candidate;
+                    break;
+                }
+            }
+            String finalFound = found;
+            int totalChecked = checked;
+            runOnUiThread(() -> {
+                if (finalFound != null) {
+                    preferences.edit().putString(PREF_BASE_URL, finalFound).apply();
+                    baseUrlInput.setText(finalFound);
+                    statusText.setText("God Mode encontrado automaticamente: " + finalFound);
+                    loadRoute(ENTRY_ROUTE);
+                } else {
+                    statusText.setText("Não encontrei o PC automaticamente após " + totalChecked + " testes. Escreve o IP do PC ou confirma firewall/porta 8000.");
+                    if (silentFallback) {
+                        loadRoute(ENTRY_ROUTE);
+                    }
+                }
+            });
+        }).start();
+    }
+
+    private List<String> buildDiscoveryCandidates() {
+        Set<String> candidates = new LinkedHashSet<>();
+        addCandidate(candidates, preferences.getString(PREF_BASE_URL, DEFAULT_BASE_URL));
+        addCandidate(candidates, DEFAULT_BASE_URL);
+        addCandidate(candidates, "http://10.0.2.2:8000");
+        addCandidate(candidates, "http://localhost:8000");
+        String gateway = gatewayIp();
+        if (gateway != null && gateway.contains(".")) {
+            addCandidate(candidates, "http://" + gateway + ":8000");
+            String prefix = gateway.substring(0, gateway.lastIndexOf('.') + 1);
+            int[] likelyHosts = new int[]{1, 2, 10, 20, 50, 100, 101, 102, 150, 200, 254};
+            for (int host : likelyHosts) {
+                addCandidate(candidates, "http://" + prefix + host + ":8000");
+            }
+        }
+        String phoneIp = phoneIp();
+        if (phoneIp != null && phoneIp.contains(".")) {
+            String prefix = phoneIp.substring(0, phoneIp.lastIndexOf('.') + 1);
+            int[] likelyHosts = new int[]{1, 2, 10, 20, 50, 100, 101, 102, 150, 200, 254};
+            for (int host : likelyHosts) {
+                addCandidate(candidates, "http://" + prefix + host + ":8000");
+            }
+        }
+        return new ArrayList<>(candidates);
+    }
+
+    private void addCandidate(Set<String> candidates, String candidate) {
+        if (candidate == null) {
+            return;
+        }
+        String normalized = candidate.trim();
+        if (normalized.isEmpty() || "auto".equalsIgnoreCase(normalized)) {
+            return;
+        }
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+            normalized = "http://" + normalized;
+        }
+        candidates.add(normalized);
+    }
+
+    private String gatewayIp() {
+        try {
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            if (wifiManager == null) {
+                return null;
+            }
+            DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
+            if (dhcpInfo == null || dhcpInfo.gateway == 0) {
+                return null;
+            }
+            return Formatter.formatIpAddress(dhcpInfo.gateway);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String phoneIp() {
+        try {
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            if (wifiManager == null || wifiManager.getConnectionInfo() == null) {
+                return null;
+            }
+            int ip = wifiManager.getConnectionInfo().getIpAddress();
+            if (ip == 0) {
+                return null;
+            }
+            return Formatter.formatIpAddress(ip);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private boolean isHealthy(String baseUrl, int timeoutMs) {
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(baseUrl + "/health");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(timeoutMs);
+            connection.setReadTimeout(timeoutMs);
+            connection.setRequestMethod("GET");
+            int code = connection.getResponseCode();
+            return code >= 200 && code < 400;
+        } catch (Exception ignored) {
+            return false;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
     }
 
     private void testHealth() {
@@ -206,7 +346,7 @@ public class MainActivity extends Activity {
                 ok = code >= 200 && code < 400;
                 message = (ok ? "Backend OK" : "Backend respondeu erro") + " · HTTP " + code + " · " + body;
             } catch (Exception exc) {
-                message = "Falha no teste · verifica IP do PC, firewall e se o backend está aberto · " + exc.getClass().getSimpleName();
+                message = "Falha no teste · tenta Auto ou verifica IP do PC, firewall e se o backend está aberto · " + exc.getClass().getSimpleName();
             } finally {
                 if (connection != null) {
                     connection.disconnect();

@@ -1,4 +1,4 @@
-name: APK Connection Diagnostics Validation
+name: APK Auto Discovery Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase69-*'
+      - 'phase70-*'
     paths:
       - 'android-app/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  apk-connection-diagnostics-validation:
+  apk-auto-discovery-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate APK Connection Diagnostics
+      - name: Validate APK Auto Discovery
         env:
           PYTHONPATH: backend
         run: |
@@ -47,38 +47,53 @@ jobs:
 
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
+          manifest_path = Path("android-app/app/src/main/AndroidManifest.xml")
           main_activity_path = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java")
           docs_path = Path("docs/frontend/android-webview-shell.md")
+          assert manifest_path.exists()
           assert main_activity_path.exists()
           assert docs_path.exists()
 
+          manifest = manifest_path.read_text(encoding="utf-8")
           main_activity = main_activity_path.read_text(encoding="utf-8")
           docs = docs_path.read_text(encoding="utf-8")
 
+          required_manifest_markers = [
+              "android.permission.INTERNET",
+              "android.permission.ACCESS_NETWORK_STATE",
+              "android.permission.ACCESS_WIFI_STATE",
+          ]
+          missing_manifest = [marker for marker in required_manifest_markers if marker not in manifest]
+          assert not missing_manifest, f"Manifest missing markers: {missing_manifest}"
+
           required_activity_markers = [
-              "SharedPreferences",
-              "PREF_BASE_URL",
-              "testHealth",
+              "autoDiscoverAndOpen",
+              "buildDiscoveryCandidates",
+              "gatewayIp",
+              "phoneIp",
+              "WifiManager",
+              "DhcpInfo",
+              "Formatter.formatIpAddress",
+              "HEALTH_TIMEOUT_MS",
+              "http://10.0.2.2:8000",
+              "isHealthy",
+              "button.setText(label)",
+              "Auto",
+              "preferences.edit().putString(PREF_BASE_URL, finalFound).apply()",
               "/health",
-              "loadRoute(ENTRY_ROUTE)",
-              "/app/first-use",
-              "/app/operator-chat-sync-cards",
-              "/app/install-readiness",
-              "/app/e2e-operational-drill",
-              "HttpURLConnection",
-              "setConnectTimeout(3500)",
-              "preferences.edit().putString",
+              "/app/apk-start",
           ]
           missing_activity = [marker for marker in required_activity_markers if marker not in main_activity]
           assert not missing_activity, f"MainActivity missing markers: {missing_activity}"
 
           required_doc_markers = [
-              "botão “Teste”",
-              "base_url + /health",
-              "último URL base",
-              "IP do PC",
-              "porta 8000",
-              "preferências Android",
+              "Auto discovery",
+              "botão “Auto”",
+              "gateway Wi-Fi",
+              "IPs prováveis",
+              "http://10.0.2.2:8000",
+              "ACCESS_WIFI_STATE",
+              "fallback manual",
           ]
           missing_docs = [marker for marker in required_doc_markers if marker not in docs]
           assert not missing_docs, f"Android WebView docs missing markers: {missing_docs}"
@@ -86,19 +101,20 @@ jobs:
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
               "android-app",
+              "AndroidManifest.xml",
               "MainActivity.java",
               "android-webview-shell.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          print("APK connection diagnostics validation passed")
+          print("APK auto discovery validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## APK Connection Diagnostics Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## APK Auto Discovery Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK stores the PC backend URL locally.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK exposes /health diagnostics and quick routes.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Android WebView documentation was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK auto discovery logic was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK tests saved URL, emulator host, gateway and likely LAN IPs.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Manual URL fallback remains documented.' >> "$GITHUB_STEP_SUMMARY"
