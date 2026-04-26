@@ -11,6 +11,10 @@ O Chat Autopilot Supervisor dá várias oportunidades controladas ao worker para
 - falha a rever;
 - orçamento de rondas atingido.
 
+Política técnica validada:
+
+- `continue_until_idle_blocked_or_budget`
+
 ## API
 
 - `GET /api/chat-autopilot/status`
