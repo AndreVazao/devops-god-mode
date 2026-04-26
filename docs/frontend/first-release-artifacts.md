@@ -17,8 +17,8 @@
 Mostrar a verdade dos artifacts da primeira release utilizável:
 
 - o EXE Windows é caminho real de instalação PC;
-- o APK Android ainda é placeholder no workflow atual;
-- o operador não deve confundir placeholder com APK instalável real.
+- o APK Android passa a ser um APK debug real WebView shell;
+- o operador deve instalar o APK apenas em teste controlado e configurar o URL do PC.
 
 ## Estado atual dos builds
 
@@ -45,22 +45,37 @@ Workflow:
 
 Artifact esperado:
 
-- `godmode-android-apk-placeholder`
+- `godmode-android-webview-apk`
+
+Ficheiro principal:
+
+- `GodModeMobile-debug.apk`
 
 Estado:
 
-- ainda placeholder;
-- não deve ser tratado como APK real instalável de produto;
-- próxima fase técnica deve substituir por APK real/WebView shell.
+- APK debug real;
+- WebView shell;
+- abre `/app/apk-start`;
+- por defeito usa `http://127.0.0.1:8000`;
+- num telemóvel físico, o operador deve trocar o URL base para o IP do PC, por exemplo `http://192.168.1.50:8000`.
 
 ## Passos de download
 
 1. Abrir GitHub Actions.
 2. Abrir último run verde de Windows EXE Build.
 3. Baixar artifact `godmode-windows-exe`.
-4. Validar no God Mode com `/app/first-use`, `/app/install-readiness` e `/app/e2e-operational-drill`.
-5. Para Android, não tratar o artifact placeholder como release real.
+4. Abrir último run verde de Android APK Build.
+5. Baixar artifact `godmode-android-webview-apk`.
+6. Instalar `GodModeMobile-debug.apk` em teste controlado.
+7. No APK, configurar o URL do PC.
+8. Validar no God Mode com `/app/first-use`, `/app/install-readiness` e `/app/e2e-operational-drill`.
 
 ## Próximo blocker técnico
 
-Criar o APK real/WebView shell, ou pelo menos atualizar o pipeline Android para produzir um APK instalável verdadeiro que abra `/app/apk-start`.
+Depois do APK debug real, o próximo passo será endurecer a distribuição:
+
+- assinatura release;
+- configuração automática do URL/pareamento com o PC;
+- QR/pairing flow;
+- permissões e diagnóstico de rede;
+- versão release fora de debug.
