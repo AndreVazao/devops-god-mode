@@ -1,4 +1,4 @@
-name: Request Worker Loop Validation
+name: Offline Buffer Orchestrator Bridge Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase62-*'
+      - 'phase63-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  request-worker-loop-validation:
+  offline-buffer-orchestrator-bridge-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Request Worker Loop
+      - name: Validate Offline Buffer Orchestrator Bridge
         env:
           PYTHONPATH: backend
         run: |
@@ -46,87 +46,107 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.request_orchestrator_service import request_orchestrator_service
-          from app.services.request_worker_loop_service import request_worker_loop_service
+          from app.services.offline_command_buffering_service import offline_command_buffering_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/request-worker/status",
-              "/api/request-worker/package",
-              "/api/request-worker/dashboard",
-              "/api/request-worker/configure",
-              "/api/request-worker/tick",
-              "/api/request-worker/run",
-              "/app/request-worker",
+              "/api/offline-command-buffering/status",
+              "/api/offline-command-buffering/connectivity",
+              "/api/offline-command-buffering/buffers",
+              "/api/offline-command-buffering/commands",
+              "/api/offline-command-buffering/sync",
+              "/api/offline-command-buffering/replay",
+              "/api/offline-command-buffering/sync-and-replay",
+              "/api/offline-command-buffering/replays",
+              "/api/offline-command-buffering/actions",
+              "/api/offline-command-buffering/package",
+              "/api/offline-command-buffering/next-buffer-action",
+              "/app/offline-command-buffering",
+              "/app/offline-buffer",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = request_worker_loop_service.get_status()
+          status = offline_command_buffering_service.get_buffer_package()
           assert status["ok"] is True
-          assert status["apk_disconnect_safe"] is True
-          assert status["tick_based"] is True
+          package = status["package"]
+          assert package["atomic_store_enabled"] is True
+          assert package["request_orchestrator_bridge"] is True
 
-          config = request_worker_loop_service.configure(enabled=True, max_jobs_per_tick=3)
-          assert config["ok"] is True
-          assert config["settings"]["enabled"] is True
-          assert config["settings"]["max_jobs_per_tick"] == 3
-
-          queued = request_orchestrator_service.submit_request(
-              request="prepara um plano seguro para continuar o God Mode",
-              tenant_id="owner-andre",
-              project_id="GOD_MODE",
-              auto_run=False,
+          offline_command_buffering_service.set_connectivity(pc_online=False, phone_online=True)
+          queued = offline_command_buffering_service.queue_command(
+              source_side="phone",
+              command_text="quero continuar o God Mode até precisares do meu OK",
+              project_hint="GOD_MODE",
           )
           assert queued["ok"] is True
-          assert queued["job"]["status"] == "queued"
+          assert queued["command"]["sync_status"] == "buffered_on_phone_until_pc_returns"
 
-          tick = request_worker_loop_service.tick(tenant_id="owner-andre", max_jobs=2)
-          assert tick["ok"] is True
-          assert tick["tick"]["processed_count"] >= 1
-          assert tick["tick"]["results"], "tick should return job results"
+          try:
+              offline_command_buffering_service.queue_command(
+                  source_side="phone",
+                  command_text="token abc123",
+                  project_hint="GOD_MODE",
+              )
+              raise AssertionError("sensitive-like command should be blocked")
+          except ValueError as exc:
+              assert str(exc) == "sensitive_like_command_blocked"
 
-          run = request_worker_loop_service.run_for_ticks(tenant_id="owner-andre", ticks=3, max_jobs_per_tick=2)
-          assert run["ok"] is True
-          assert run["run"]["status"] == "completed"
-          assert run["run"]["requested_ticks"] == 3
+          offline_command_buffering_service.set_connectivity(pc_online=True, phone_online=True)
+          sync = offline_command_buffering_service.sync_buffered_commands_to_pc()
+          assert sync["ok"] is True
+          assert sync["synced_count"] >= 1
 
-          disabled = request_worker_loop_service.configure(enabled=False)
-          assert disabled["settings"]["enabled"] is False
-          disabled_tick = request_worker_loop_service.tick(tenant_id="owner-andre", max_jobs=2)
-          assert disabled_tick["tick"]["status"] == "disabled"
-          request_worker_loop_service.configure(enabled=True)
+          replay = offline_command_buffering_service.replay_ready_commands_to_orchestrator(
+              tenant_id="owner-andre",
+              auto_run=True,
+              max_commands=5,
+          )
+          assert replay["ok"] is True
+          assert replay["replay"]["processed_count"] >= 1
+          assert replay["replay"]["success_count"] >= 1
 
-          dashboard = request_worker_loop_service.build_dashboard(tenant_id="owner-andre")
-          assert dashboard["ok"] is True
-          assert dashboard["buttons"], "worker dashboard should expose mobile buttons"
-          assert dashboard["recent_ticks"], "worker dashboard should record ticks"
+          commands = offline_command_buffering_service.get_commands()["commands"]
+          replayed = [item for item in commands if item.get("orchestrator_job_id")]
+          assert replayed, "replayed command should link to orchestrator job"
+
+          sync_replay = offline_command_buffering_service.sync_and_replay_to_pc(
+              tenant_id="owner-andre",
+              auto_run=True,
+              max_commands=5,
+          )
+          assert sync_replay["ok"] is True
+          assert sync_replay["worker_tick"] is not None
+
+          replays = offline_command_buffering_service.get_replays()
+          assert replays["ok"] is True
+          assert replays["count"] >= 1
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "request_worker_loop_frontend.py",
-              "request_worker_loop.py",
-              "request_worker_loop_service.py",
-              "request-worker-loop.md",
+              "offline_command_buffering_frontend.py",
+              "offline_command_buffering.py",
+              "offline_command_buffering_service.py",
+              "offline-buffer-orchestrator-bridge.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/request_worker_loop_service.py").exists()
-          assert Path("backend/app/routes/request_worker_loop.py").exists()
-          assert Path("backend/app/routes/request_worker_loop_frontend.py").exists()
-          assert Path("docs/frontend/request-worker-loop.md").exists()
-          assert Path("data/request_worker_loop.json").exists()
-          assert Path("data/request_worker_loop.json.lock").exists()
+          assert Path("backend/app/services/offline_command_buffering_service.py").exists()
+          assert Path("backend/app/routes/offline_command_buffering.py").exists()
+          assert Path("backend/app/routes/offline_command_buffering_frontend.py").exists()
+          assert Path("docs/frontend/offline-buffer-orchestrator-bridge.md").exists()
+          assert Path("data/offline_command_buffers.json").exists()
+          assert Path("data/offline_command_buffers.json.lock").exists()
 
-          print("request worker loop validation passed")
+          print("offline buffer orchestrator bridge validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Request Worker Loop Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Offline Buffer Orchestrator Bridge Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Tick-based backend worker loop was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Queued jobs continue without APK connection until blocked/completed.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Disabled mode, dashboard and Project Tree Autorefresh were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Offline buffer uses AtomicJsonStore.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Phone offline command buffering and PC replay were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Replay creates durable Request Orchestrator jobs and worker tick continues them.' >> "$GITHUB_STEP_SUMMARY"
