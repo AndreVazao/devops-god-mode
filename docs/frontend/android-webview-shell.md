@@ -46,6 +46,31 @@ O APK mostra:
 - botões rápidos para Start, First Use, Chat, Readiness e Drill;
 - WebView que carrega `base_url + rota`.
 
+## Pairing por deep link
+
+A Phase 75 adiciona receção de deep link:
+
+- `godmode://pair?payload=...`
+
+O Manifest tem intent filter para:
+
+- scheme `godmode`;
+- host `pair`;
+- categorias `DEFAULT` e `BROWSABLE`.
+
+Quando o APK recebe o deep link:
+
+1. lê o parâmetro `payload`;
+2. descodifica Base64 URL-safe;
+3. interpreta JSON;
+4. exige `type=god_mode_mobile_pairing`;
+5. exige `contains_secret=false`;
+6. valida que `base_url` começa por `http://` ou `https://`;
+7. rejeita URL com marcadores sensíveis como `token=`, `password=`, `cookie=`, `api_key=`, `authorization=` ou `bearer`;
+8. guarda `base_url` nas preferências Android;
+9. testa `/health`;
+10. se responder, abre `/app/apk-start`.
+
 ## Auto discovery
 
 Ao abrir, o APK tenta encontrar o backend automaticamente.
@@ -100,7 +125,7 @@ Se falhar, mostra uma mensagem para verificar:
 
 ## Persistência local
 
-O último URL base encontrado ou introduzido é guardado nas preferências Android.
+O último URL base encontrado, introduzido ou recebido por deep link é guardado nas preferências Android.
 
 Assim, o operador não precisa de escrever o IP do PC sempre que abrir o APK.
 
@@ -108,12 +133,14 @@ Assim, o operador não precisa de escrever o IP do PC sempre que abrir o APK.
 
 - `usesCleartextTraffic=true` é usado para permitir backend local HTTP durante teste controlado.
 - `ACCESS_WIFI_STATE` é usado para inferir gateway/subnet local.
+- Deep link só aceita payload `contains_secret=false`.
+- URLs com marcadores sensíveis são recusados.
 - Este APK é debug/primeiro teste, não release assinado final.
 - Não introduzir tokens, passwords, cookies ou API keys no chat.
 
 ## Próximos passos futuros
 
-- QR pairing para descobrir o PC de forma mais fiável;
+- leitura de QR dentro do APK com câmara;
 - diagnóstico de ligação mais profundo;
 - assinatura release;
 - pipeline release APK/AAB;
