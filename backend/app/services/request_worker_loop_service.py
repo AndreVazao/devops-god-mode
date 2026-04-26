@@ -75,7 +75,8 @@ class RequestWorkerLoopService:
             return store
 
         updated = REQUEST_WORKER_STORE.update(mutate)
-        return {"ok": True, "mode": "request_worker_loop_configure", "settings": updated.get("settings", {})}
+        payload = self._normalize_store(updated.get("payload", {}))
+        return {"ok": True, "mode": "request_worker_loop_configure", "settings": payload.get("settings", {})}
 
     def _runnable_jobs(self, tenant_id: str = "owner-andre", limit: int = 1000) -> List[Dict[str, Any]]:
         jobs = request_orchestrator_service.list_jobs(tenant_id=tenant_id, limit=limit).get("jobs", [])
