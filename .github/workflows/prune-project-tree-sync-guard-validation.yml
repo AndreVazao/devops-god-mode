@@ -1,4 +1,4 @@
-name: Mobile First Run Wizard Validation
+name: Chat Boot Briefing Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase59-*'
+      - 'phase60-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  mobile-first-run-wizard-validation:
+  chat-boot-briefing-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Mobile First Run Wizard
+      - name: Validate Chat Boot Briefing
         env:
           PYTHONPATH: backend
         run: |
@@ -46,69 +46,71 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.mobile_first_run_wizard_service import mobile_first_run_wizard_service
+          from app.services.chat_boot_briefing_service import chat_boot_briefing_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/mobile-first-run/status",
-              "/api/mobile-first-run/package",
-              "/api/mobile-first-run/check",
-              "/api/mobile-first-run/start",
-              "/api/mobile-first-run/dashboard",
-              "/app/mobile-first-run",
-              "/app/first-run",
+              "/api/chat-boot-briefing/status",
+              "/api/chat-boot-briefing/package",
+              "/api/chat-boot-briefing/briefing",
+              "/api/chat-boot-briefing/boot",
+              "/api/chat-boot-briefing/dashboard",
+              "/app/chat-boot-briefing",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = mobile_first_run_wizard_service.get_status()
+          status = chat_boot_briefing_service.get_status()
           assert status["ok"] is True
           assert status["atomic_store_enabled"] is True
 
-          check = mobile_first_run_wizard_service.run_check(tenant_id="owner-andre", device_id="validation-apk")
-          assert check["ok"] is True
-          assert check["check"]["status"] in {"green", "yellow", "red"}
-          assert check["check"]["recommended_route"]
-          assert check["check"]["fallback_route"] == "/app/operator-chat-sync"
-          assert check["check"]["safe_home_route"] == "/app/home"
-          assert check["check"]["checks"], "wizard should include component checks"
+          briefing_result = chat_boot_briefing_service.build_briefing(tenant_id="owner-andre", device_id="validation-apk")
+          assert briefing_result["ok"] is True
+          briefing = briefing_result["briefing"]
+          assert briefing["status"] in {"green", "yellow", "red"}
+          assert briefing["message"]
+          assert briefing["recommended_route"]
+          assert briefing["fallback_route"] == "/app/operator-chat-sync"
+          assert "Aprovações pendentes" in briefing["message"]
 
-          start = mobile_first_run_wizard_service.start(tenant_id="owner-andre", device_id="validation-apk")
-          assert start["ok"] is True
-          assert start["start"]["open_route"]
-          assert start["start"]["fallback_route"] == "/app/operator-chat-sync"
+          boot = chat_boot_briefing_service.boot_chat(tenant_id="owner-andre", device_id="validation-apk")
+          assert boot["ok"] is True
+          assert boot["boot"]["thread_id"]
+          assert boot["boot"]["card_count"] >= 3
+          assert boot["cards"], "boot should create inline action cards"
+          assert boot["append"]["ok"] is True
 
-          dashboard = mobile_first_run_wizard_service.build_dashboard(tenant_id="owner-andre", device_id="validation-apk")
+          dashboard = chat_boot_briefing_service.build_dashboard(tenant_id="owner-andre", device_id="validation-apk")
           assert dashboard["ok"] is True
-          assert dashboard["buttons"], "wizard should expose mobile buttons"
-          assert any(button["id"] == "start" for button in dashboard["buttons"])
-          assert dashboard["check"]["operator_message"]
+          assert dashboard["briefing"]["message"]
+          assert dashboard["buttons"], "dashboard should expose mobile buttons"
+          assert any(button["id"] == "boot" for button in dashboard["buttons"])
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "mobile_first_run_wizard_frontend.py",
-              "mobile_first_run_wizard.py",
-              "mobile_first_run_wizard_service.py",
-              "mobile-first-run-wizard.md",
+              "chat_boot_briefing_frontend.py",
+              "chat_boot_briefing.py",
+              "chat_boot_briefing_service.py",
+              "chat-boot-briefing.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/mobile_first_run_wizard_service.py").exists()
-          assert Path("backend/app/routes/mobile_first_run_wizard.py").exists()
-          assert Path("backend/app/routes/mobile_first_run_wizard_frontend.py").exists()
-          assert Path("docs/frontend/mobile-first-run-wizard.md").exists()
-          assert Path("data/mobile_first_run_wizard.json").exists()
-          assert Path("data/mobile_first_run_wizard.json.lock").exists()
+          assert Path("backend/app/services/chat_boot_briefing_service.py").exists()
+          assert Path("backend/app/routes/chat_boot_briefing.py").exists()
+          assert Path("backend/app/routes/chat_boot_briefing_frontend.py").exists()
+          assert Path("docs/frontend/chat-boot-briefing.md").exists()
+          assert Path("data/chat_boot_briefing.json").exists()
+          assert Path("data/chat_boot_briefing.json.lock").exists()
 
-          print("mobile first run wizard validation passed")
+          print("chat boot briefing validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Mobile First Run Wizard Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Chat Boot Briefing Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Mobile first run wizard API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Component checks, start route and fallback were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Mobile buttons and operator message were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Chat boot briefing API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Boot flow writes an initial chat message and creates action cards.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile dashboard buttons and Project Tree Autorefresh were validated.' >> "$GITHUB_STEP_SUMMARY"
