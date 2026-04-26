@@ -1,4 +1,4 @@
-name: Mobile Start Config Validation
+name: Mobile First Run Wizard Validation
 
 on:
   workflow_dispatch:
@@ -6,11 +6,10 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase58-*'
+      - 'phase59-*'
     paths:
       - 'backend/**'
       - 'docs/**'
-      - 'frontend/mobile-shell/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
   pull_request:
@@ -19,12 +18,11 @@ on:
     paths:
       - 'backend/**'
       - 'docs/**'
-      - 'frontend/mobile-shell/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  mobile-start-config-validation:
+  mobile-first-run-wizard-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Mobile Start Config
+      - name: Validate Mobile First Run Wizard
         env:
           PYTHONPATH: backend
         run: |
@@ -48,79 +46,69 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.mobile_start_config_service import mobile_start_config_service
+          from app.services.mobile_first_run_wizard_service import mobile_first_run_wizard_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/mobile-start-config/status",
-              "/api/mobile-start-config/package",
-              "/api/mobile-start-config/config",
-              "/api/mobile-start-config/validate",
-              "/api/mobile-start-config/launch-plan",
-              "/api/mobile-start-config/dashboard",
-              "/app/mobile-start-config",
+              "/api/mobile-first-run/status",
+              "/api/mobile-first-run/package",
+              "/api/mobile-first-run/check",
+              "/api/mobile-first-run/start",
+              "/api/mobile-first-run/dashboard",
+              "/app/mobile-first-run",
+              "/app/first-run",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = mobile_start_config_service.get_status()
+          status = mobile_first_run_wizard_service.get_status()
           assert status["ok"] is True
-          assert status["config_path"] == "frontend/mobile-shell/apk-launch-config.json"
+          assert status["atomic_store_enabled"] is True
 
-          read = mobile_start_config_service.read_config()
-          assert read["ok"] is True
-          config = read["config"]
-          assert config["default_entry_route"] == "/app/apk-start"
-          assert config["preferred_chat_route"] == "/app/operator-chat-sync-cards"
-          assert config["legacy_chat_route"] == "/app/operator-chat-sync"
-          assert config["rules"]["use_manifest_router_first"] is True
-          assert config["rules"]["prefer_inline_cards_chat"] is True
-          assert config["webview"]["javascript_enabled"] is True
-          assert config["webview"]["dom_storage_enabled"] is True
+          check = mobile_first_run_wizard_service.run_check(tenant_id="owner-andre", device_id="validation-apk")
+          assert check["ok"] is True
+          assert check["check"]["status"] in {"green", "yellow", "red"}
+          assert check["check"]["recommended_route"]
+          assert check["check"]["fallback_route"] == "/app/operator-chat-sync"
+          assert check["check"]["safe_home_route"] == "/app/home"
+          assert check["check"]["checks"], "wizard should include component checks"
 
-          validation = mobile_start_config_service.validate_config()
-          assert validation["ok"] is True
-          assert validation["validation"]["status"] == "green"
-          assert not validation["validation"]["blockers"]
+          start = mobile_first_run_wizard_service.start(tenant_id="owner-andre", device_id="validation-apk")
+          assert start["ok"] is True
+          assert start["start"]["open_route"]
+          assert start["start"]["fallback_route"] == "/app/operator-chat-sync"
 
-          plan = mobile_start_config_service.build_launch_plan(tenant_id="owner-andre", device_id="validation-apk")
-          assert plan["ok"] is True
-          assert plan["plan"]["open_first"] == "/app/apk-start"
-          assert plan["plan"]["resolved_route"] == "/app/operator-chat-sync-cards"
-          assert plan["plan"]["fallback_route"] == "/app/operator-chat-sync"
-          assert plan["plan"]["safe_home_route"] == "/app/home"
-
-          dashboard = mobile_start_config_service.build_dashboard(tenant_id="owner-andre", device_id="validation-apk")
+          dashboard = mobile_first_run_wizard_service.build_dashboard(tenant_id="owner-andre", device_id="validation-apk")
           assert dashboard["ok"] is True
-          assert dashboard["plan"]["validation_status"] == "green"
+          assert dashboard["buttons"], "wizard should expose mobile buttons"
+          assert any(button["id"] == "start" for button in dashboard["buttons"])
+          assert dashboard["check"]["operator_message"]
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "mobile_start_config_frontend.py",
-              "mobile_start_config.py",
-              "mobile_start_config_service.py",
-              "apk-launch-config.json",
-              "mobile-start-config.md",
+              "mobile_first_run_wizard_frontend.py",
+              "mobile_first_run_wizard.py",
+              "mobile_first_run_wizard_service.py",
+              "mobile-first-run-wizard.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("frontend/mobile-shell/apk-launch-config.json").exists()
-          assert Path("backend/app/services/mobile_start_config_service.py").exists()
-          assert Path("backend/app/routes/mobile_start_config.py").exists()
-          assert Path("backend/app/routes/mobile_start_config_frontend.py").exists()
-          assert Path("docs/frontend/mobile-start-config.md").exists()
-          assert Path("data/mobile_start_config.json").exists()
-          assert Path("data/mobile_start_config.json.lock").exists()
+          assert Path("backend/app/services/mobile_first_run_wizard_service.py").exists()
+          assert Path("backend/app/routes/mobile_first_run_wizard.py").exists()
+          assert Path("backend/app/routes/mobile_first_run_wizard_frontend.py").exists()
+          assert Path("docs/frontend/mobile-first-run-wizard.md").exists()
+          assert Path("data/mobile_first_run_wizard.json").exists()
+          assert Path("data/mobile_first_run_wizard.json.lock").exists()
 
-          print("mobile start config validation passed")
+          print("mobile first run wizard validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Mobile Start Config Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Mobile First Run Wizard Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Mobile/APK start config was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK entry route points to /app/apk-start.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Launch plan resolves to chat inline cards with legacy fallback.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile first run wizard API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Component checks, start route and fallback were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile buttons and operator message were validated.' >> "$GITHUB_STEP_SUMMARY"
