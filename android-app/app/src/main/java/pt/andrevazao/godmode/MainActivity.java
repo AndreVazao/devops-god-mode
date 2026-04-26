@@ -2,14 +2,17 @@ package pt.andrevazao.godmode;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.DhcpInfo;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.text.format.Formatter;
+import android.util.Base64;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -23,10 +26,13 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,7 +56,16 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         buildUi();
-        autoDiscoverAndOpen(true);
+        if (!handlePairingIntent(getIntent())) {
+            autoDiscoverAndOpen(true);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handlePairingIntent(intent);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -65,7 +80,7 @@ public class MainActivity extends Activity {
 
         statusText = new TextView(this);
         statusText.setTextColor(Color.WHITE);
-        statusText.setText("God Mode APK · auto discovery pronto");
+        statusText.setText("God Mode APK · pairing/deeplink pronto");
         statusText.setPadding(18, 16, 18, 4);
         root.addView(statusText, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -90,7 +105,7 @@ public class MainActivity extends Activity {
         baseUrlInput.setText(preferences.getString(PREF_BASE_URL, DEFAULT_BASE_URL));
         baseUrlInput.setTextColor(Color.WHITE);
         baseUrlInput.setHintTextColor(Color.LTGRAY);
-        baseUrlInput.setHint("auto ou http://IP_DO_PC:8000");
+        baseUrlInput.setHint("auto, QR ou http://IP_DO_PC:8000");
         baseUrlInput.setBackgroundColor(Color.rgb(15, 23, 42));
         controls.addView(baseUrlInput, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
@@ -146,6 +161,69 @@ public class MainActivity extends Activity {
         ));
 
         setContentView(root);
+    }
+
+    private boolean handlePairingIntent(Intent intent) {
+        if (intent == null || intent.getData() == null) {
+            return false;
+        }
+        Uri uri = intent.getData();
+        if (!"godmode".equalsIgnoreCase(uri.getScheme()) || !"pair".equalsIgnoreCase(uri.getHost())) {
+            return false;
+        }
+        String encodedPayload = uri.getQueryParameter("payload");
+        if (encodedPayload == null || encodedPayload.trim().isEmpty()) {
+            statusText.setText("Pairing inválido: payload vazio");
+            return true;
+        }
+        try {
+            String padded = padBase64Url(encodedPayload.trim());
+            byte[] decoded = Base64.decode(padded, Base64.URL_SAFE | Base64.NO_WRAP);
+            String json = new String(decoded, StandardCharsets.UTF_8);
+            JSONObject payload = new JSONObject(json);
+            boolean containsSecret = payload.optBoolean("contains_secret", true);
+            String type = payload.optString("type", "");
+            String baseUrl = payload.optString("base_url", "").trim();
+            if (containsSecret || !"god_mode_mobile_pairing".equals(type) || !isSafePairingBaseUrl(baseUrl)) {
+                statusText.setText("Pairing recusado: payload inseguro ou URL inválido");
+                return true;
+            }
+            while (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+            }
+            preferences.edit().putString(PREF_BASE_URL, baseUrl).apply();
+            baseUrlInput.setText(baseUrl);
+            statusText.setText("Pairing aplicado: " + baseUrl);
+            testHealth();
+            return true;
+        } catch (Exception exc) {
+            statusText.setText("Pairing falhou: " + exc.getClass().getSimpleName());
+            return true;
+        }
+    }
+
+    private String padBase64Url(String value) {
+        int remainder = value.length() % 4;
+        if (remainder == 0) {
+            return value;
+        }
+        StringBuilder builder = new StringBuilder(value);
+        for (int i = remainder; i < 4; i++) {
+            builder.append('=');
+        }
+        return builder.toString();
+    }
+
+    private boolean isSafePairingBaseUrl(String baseUrl) {
+        if (baseUrl == null) {
+            return false;
+        }
+        String normalized = baseUrl.trim().toLowerCase();
+        if (!(normalized.startsWith("http://") || normalized.startsWith("https://"))) {
+            return false;
+        }
+        String forbidden = normalized;
+        return !(forbidden.contains("token=") || forbidden.contains("password=") || forbidden.contains("cookie=") || forbidden.contains("api_key=") || forbidden.contains("apikey=") || forbidden.contains("authorization=") || forbidden.contains("bearer"));
     }
 
     private void addQuickButton(LinearLayout parent, String label, String route, boolean diagnostic, boolean autoDiscovery) {
