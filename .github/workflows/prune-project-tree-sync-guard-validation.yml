@@ -1,4 +1,4 @@
-name: Project Tree Autorefresh Validation
+name: Self Update Preserve Memory Validation
 
 on:
   workflow_dispatch:
@@ -6,10 +6,11 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase50-*'
+      - 'phase51-*'
     paths:
       - 'backend/**'
       - 'docs/**'
+      - 'memory/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
   pull_request:
@@ -18,11 +19,12 @@ on:
     paths:
       - 'backend/**'
       - 'docs/**'
+      - 'memory/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  project-tree-autorefresh-validation:
+  self-update-preserve-memory-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Project Tree Autorefresh
+      - name: Validate Self Update Preserve Memory
         env:
           PYTHONPATH: backend
         run: |
@@ -46,61 +48,61 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
+          from app.services.self_update_service import self_update_service, DEFAULT_PRESERVE_PATHS
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/project-tree-autorefresh/status",
-              "/api/project-tree-autorefresh/package",
-              "/api/project-tree-autorefresh/dashboard",
-              "/api/project-tree-autorefresh/current",
-              "/api/project-tree-autorefresh/generated",
-              "/api/project-tree-autorefresh/compare",
-              "/api/project-tree-autorefresh/write",
-              "/app/project-tree-autorefresh",
+              "/api/self-update/status",
+              "/api/self-update/package",
+              "/api/self-update/dashboard",
+              "/api/self-update/git-state",
+              "/api/self-update/plan",
+              "/api/self-update/backup-manifest",
+              "/api/self-update/execute",
+              "/app/self-update",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = project_tree_autorefresh_service.get_status()
+          status = self_update_service.get_status()
           assert status["ok"] is True
-          assert status["tree_file"] == "PROJECT_TREE.txt"
+          assert status["atomic_store_enabled"] is True
 
-          current = project_tree_autorefresh_service.read_current_tree()
-          assert current["ok"] is True
-          assert "devops-god-mode/" in current["content"]
+          plan = self_update_service.create_update_plan(channel="main")
+          assert plan["ok"] is True
+          assert "memory" in plan["plan"]["preserve_paths"]
+          assert "data" in plan["plan"]["preserve_paths"]
+          assert ".env" in plan["plan"]["preserve_paths"]
+          assert any("Nunca apagar data/" in rule for rule in plan["plan"]["rules"])
 
-          generated = project_tree_autorefresh_service.build_tree_text()
-          assert "backend" in generated
-          assert "project_tree_autorefresh_service.py" in generated
-          assert "project_tree_autorefresh.py" in generated
+          backup = self_update_service.create_backup_manifest()
+          assert backup["ok"] is True
+          assert backup["backup"]["status"] == "manifest_only"
 
-          compare = project_tree_autorefresh_service.compare_tree()
-          assert compare["ok"] is True
-          assert compare["report"]["generated_line_count"] > 10
-          assert compare["report"]["current_line_count"] > 10
+          dry = self_update_service.execute_safe_git_update(channel="main", dry_run=True)
+          assert dry["ok"] is True
+          assert dry["run"]["dry_run"] is True
+          assert dry["run"]["status"] in {"dry_run_ready", "blocked_dirty_worktree", "blocked_git_unavailable"}
 
-          write_blocked = project_tree_autorefresh_service.write_generated_tree(allow_overwrite=False)
-          assert write_blocked["ok"] is False
-          assert write_blocked["error"] == "overwrite_requires_explicit_allow"
-
-          dashboard = project_tree_autorefresh_service.build_dashboard()
+          dashboard = self_update_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["status"] in {"in_sync", "needs_refresh"}
+          assert "data" in dashboard["preserve_paths"]
+          assert "memory" in dashboard["preserve_paths"]
+          assert DEFAULT_PRESERVE_PATHS == dashboard["preserve_paths"]
 
-          assert Path("backend/app/services/project_tree_autorefresh_service.py").exists()
-          assert Path("backend/app/routes/project_tree_autorefresh.py").exists()
-          assert Path("backend/app/routes/project_tree_autorefresh_frontend.py").exists()
-          assert Path("docs/frontend/project-tree-autorefresh.md").exists()
-          assert Path("data/project_tree_autorefresh.json").exists()
-          assert Path("data/project_tree_autorefresh.json.lock").exists()
+          assert Path("backend/app/services/self_update_service.py").exists()
+          assert Path("backend/app/routes/self_update.py").exists()
+          assert Path("backend/app/routes/self_update_frontend.py").exists()
+          assert Path("docs/frontend/self-update.md").exists()
+          assert Path("data/self_update_state.json").exists()
+          assert Path("data/self_update_state.json.lock").exists()
 
-          print("project tree autorefresh validation passed")
+          print("self update preserve memory validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Project Tree Autorefresh Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Self Update Preserve Memory Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Project tree generation and comparison were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Overwrite protection was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Self update API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Preserve paths for data, memory and env files were validated.' >> "$GITHUB_STEP_SUMMARY"
