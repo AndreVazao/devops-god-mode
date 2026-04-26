@@ -1,4 +1,4 @@
-name: Persistent Request Orchestrator Validation
+name: Request Worker Loop Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase61-*'
+      - 'phase62-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  persistent-request-orchestrator-validation:
+  request-worker-loop-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Persistent Request Orchestrator
+      - name: Validate Request Worker Loop
         env:
           PYTHONPATH: backend
         run: |
@@ -47,107 +47,86 @@ jobs:
 
           from main import app
           from app.services.request_orchestrator_service import request_orchestrator_service
+          from app.services.request_worker_loop_service import request_worker_loop_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/request-orchestrator/status",
-              "/api/request-orchestrator/package",
-              "/api/request-orchestrator/dashboard",
-              "/api/request-orchestrator/jobs",
-              "/api/request-orchestrator/job/{job_id}",
-              "/api/request-orchestrator/submit",
-              "/api/request-orchestrator/resume",
-              "/api/request-orchestrator/run/{job_id}",
-              "/api/chat-inline-card-renderer/send-orchestrated",
-              "/app/request-orchestrator",
+              "/api/request-worker/status",
+              "/api/request-worker/package",
+              "/api/request-worker/dashboard",
+              "/api/request-worker/configure",
+              "/api/request-worker/tick",
+              "/api/request-worker/run",
+              "/app/request-worker",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = request_orchestrator_service.get_status()
+          status = request_worker_loop_service.get_status()
           assert status["ok"] is True
-          assert status["durable_jobs"] is True
           assert status["apk_disconnect_safe"] is True
-          assert status["run_until_blocked"] is True
+          assert status["tick_based"] is True
 
-          money = request_orchestrator_service.submit_request(
-              request="quero começar a ganhar dinheiro com o projeto mais rápido",
+          config = request_worker_loop_service.configure(enabled=True, max_jobs_per_tick=3)
+          assert config["ok"] is True
+          assert config["settings"]["enabled"] is True
+          assert config["settings"]["max_jobs_per_tick"] == 3
+
+          queued = request_orchestrator_service.submit_request(
+              request="prepara um plano seguro para continuar o God Mode",
               tenant_id="owner-andre",
               project_id="GOD_MODE",
-              auto_run=True,
+              auto_run=False,
           )
-          assert money["ok"] is True
-          assert money["job"]["intent"] == "money_flow"
-          assert money["job"]["status"] == "blocked_approval"
-          assert money["job"]["blocking_reason"]
+          assert queued["ok"] is True
+          assert queued["job"]["status"] == "queued"
 
-          provider = request_orchestrator_service.submit_request(
-              request="preciso usar Gemini provider, prepara login manual",
-              tenant_id="owner-andre",
-              project_id="GOD_MODE",
-              auto_run=True,
-          )
-          assert provider["ok"] is True
-          assert provider["job"]["intent"] == "provider_handoff"
-          assert provider["job"]["status"] == "blocked_credentials"
-          assert provider["job"]["blocking_reason"]
+          tick = request_worker_loop_service.tick(tenant_id="owner-andre", max_jobs=2)
+          assert tick["ok"] is True
+          assert tick["tick"]["processed_count"] >= 1
+          assert tick["tick"]["results"], "tick should return job results"
 
-          blocked_secret = request_orchestrator_service.submit_request(
-              request="token abc123",
-              tenant_id="owner-andre",
-              project_id="GOD_MODE",
-              auto_run=True,
-          )
-          assert blocked_secret["ok"] is False
-          assert blocked_secret["error"] == "secret_like_text_blocked"
+          run = request_worker_loop_service.run_for_ticks(tenant_id="owner-andre", ticks=3, max_jobs_per_tick=2)
+          assert run["ok"] is True
+          assert run["run"]["status"] == "completed"
+          assert run["run"]["requested_ticks"] == 3
 
-          jobs = request_orchestrator_service.list_jobs(tenant_id="owner-andre")
-          assert jobs["ok"] is True
-          assert jobs["job_count"] >= 2
+          disabled = request_worker_loop_service.configure(enabled=False)
+          assert disabled["settings"]["enabled"] is False
+          disabled_tick = request_worker_loop_service.tick(tenant_id="owner-andre", max_jobs=2)
+          assert disabled_tick["tick"]["status"] == "disabled"
+          request_worker_loop_service.configure(enabled=True)
 
-          first_job_id = jobs["jobs"][-1]["job_id"]
-          detail = request_orchestrator_service.get_job(job_id=first_job_id, tenant_id="owner-andre")
-          assert detail["ok"] is True
-          assert detail["job"]["job_id"] == first_job_id
-
-          resumed = request_orchestrator_service.resume_job(
-              job_id=money["job"]["job_id"],
-              tenant_id="owner-andre",
-              operator_note="validation resume",
-          )
-          assert resumed["ok"] is True
-          assert resumed["job"]["status"] in {"completed", "blocked_approval", "blocked_manual_input", "blocked_credentials", "running", "queued"}
-
-          dashboard = request_orchestrator_service.build_dashboard(tenant_id="owner-andre")
+          dashboard = request_worker_loop_service.build_dashboard(tenant_id="owner-andre")
           assert dashboard["ok"] is True
-          assert dashboard["summary"]["jobs"] >= 2
-          assert dashboard["recent_jobs"]
+          assert dashboard["buttons"], "worker dashboard should expose mobile buttons"
+          assert dashboard["recent_ticks"], "worker dashboard should record ticks"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "request_orchestrator_frontend.py",
-              "request_orchestrator.py",
-              "request_orchestrator_service.py",
-              "request-orchestrator.md",
+              "request_worker_loop_frontend.py",
+              "request_worker_loop.py",
+              "request_worker_loop_service.py",
+              "request-worker-loop.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/request_orchestrator_service.py").exists()
-          assert Path("backend/app/routes/request_orchestrator.py").exists()
-          assert Path("backend/app/routes/request_orchestrator_frontend.py").exists()
-          assert Path("docs/frontend/request-orchestrator.md").exists()
-          assert Path("data/request_orchestrator.json").exists()
-          assert Path("data/request_orchestrator.json.lock").exists()
+          assert Path("backend/app/services/request_worker_loop_service.py").exists()
+          assert Path("backend/app/routes/request_worker_loop.py").exists()
+          assert Path("backend/app/routes/request_worker_loop_frontend.py").exists()
+          assert Path("docs/frontend/request-worker-loop.md").exists()
+          assert Path("data/request_worker_loop.json").exists()
+          assert Path("data/request_worker_loop.json.lock").exists()
 
-          print("persistent request orchestrator validation passed")
+          print("request worker loop validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Persistent Request Orchestrator Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Request Worker Loop Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Durable request jobs were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Run-until-blocked behavior was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Approval, manual-login blocking and sensitive-value protection were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Tick-based backend worker loop was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Queued jobs continue without APK connection until blocked/completed.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Disabled mode, dashboard and Project Tree Autorefresh were validated.' >> "$GITHUB_STEP_SUMMARY"
