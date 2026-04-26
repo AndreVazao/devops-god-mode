@@ -1,4 +1,4 @@
-name: APK Manifest Router Validation
+name: Mobile Start Config Validation
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase57-*'
+      - 'phase58-*'
     paths:
       - 'backend/**'
       - 'docs/**'
-      - 'memory/**'
+      - 'frontend/mobile-shell/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
   pull_request:
@@ -19,12 +19,12 @@ on:
     paths:
       - 'backend/**'
       - 'docs/**'
-      - 'memory/**'
+      - 'frontend/mobile-shell/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  apk-manifest-router-validation:
+  mobile-start-config-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate APK Manifest Router
+      - name: Validate Mobile Start Config
         env:
           PYTHONPATH: backend
         run: |
@@ -48,68 +48,79 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.apk_manifest_router_service import apk_manifest_router_service
+          from app.services.mobile_start_config_service import mobile_start_config_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/apk-router/status",
-              "/api/apk-router/package",
-              "/api/apk-router/resolve",
-              "/api/apk-router/dashboard",
-              "/app/apk-start",
-              "/app/start",
+              "/api/mobile-start-config/status",
+              "/api/mobile-start-config/package",
+              "/api/mobile-start-config/config",
+              "/api/mobile-start-config/validate",
+              "/api/mobile-start-config/launch-plan",
+              "/api/mobile-start-config/dashboard",
+              "/app/mobile-start-config",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = apk_manifest_router_service.get_status()
+          status = mobile_start_config_service.get_status()
           assert status["ok"] is True
-          assert status["default_chat_route"] == "/app/operator-chat-sync-cards"
-          assert status["legacy_chat_route"] == "/app/operator-chat-sync"
-          assert status["safe_fallback_route"] == "/app/home"
+          assert status["config_path"] == "frontend/mobile-shell/apk-launch-config.json"
 
-          auto = apk_manifest_router_service.resolve(tenant_id="owner-andre", device_id="validation-apk", prefer="auto")
-          assert auto["ok"] is True
-          assert auto["resolution"]["route"] == "/app/operator-chat-sync-cards"
-          assert auto["resolution"]["fallback_route"] == "/app/operator-chat-sync"
+          read = mobile_start_config_service.read_config()
+          assert read["ok"] is True
+          config = read["config"]
+          assert config["default_entry_route"] == "/app/apk-start"
+          assert config["preferred_chat_route"] == "/app/operator-chat-sync-cards"
+          assert config["legacy_chat_route"] == "/app/operator-chat-sync"
+          assert config["rules"]["use_manifest_router_first"] is True
+          assert config["rules"]["prefer_inline_cards_chat"] is True
+          assert config["webview"]["javascript_enabled"] is True
+          assert config["webview"]["dom_storage_enabled"] is True
 
-          legacy = apk_manifest_router_service.resolve(tenant_id="owner-andre", device_id="validation-apk", prefer="legacy")
-          assert legacy["ok"] is True
-          assert legacy["resolution"]["route"] == "/app/operator-chat-sync"
+          validation = mobile_start_config_service.validate_config()
+          assert validation["ok"] is True
+          assert validation["validation"]["status"] == "green"
+          assert not validation["validation"]["blockers"]
 
-          home = apk_manifest_router_service.resolve(tenant_id="owner-andre", device_id="validation-apk", prefer="home")
-          assert home["ok"] is True
-          assert home["resolution"]["route"] in {"/app/god-mode-home", "/app/home"}
+          plan = mobile_start_config_service.build_launch_plan(tenant_id="owner-andre", device_id="validation-apk")
+          assert plan["ok"] is True
+          assert plan["plan"]["open_first"] == "/app/apk-start"
+          assert plan["plan"]["resolved_route"] == "/app/operator-chat-sync-cards"
+          assert plan["plan"]["fallback_route"] == "/app/operator-chat-sync"
+          assert plan["plan"]["safe_home_route"] == "/app/home"
 
-          dashboard = apk_manifest_router_service.dashboard(tenant_id="owner-andre", device_id="validation-apk")
+          dashboard = mobile_start_config_service.build_dashboard(tenant_id="owner-andre", device_id="validation-apk")
           assert dashboard["ok"] is True
-          assert dashboard["latest_resolution"]["route"] == "/app/operator-chat-sync-cards"
+          assert dashboard["plan"]["validation_status"] == "green"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "apk_manifest_router_frontend.py",
-              "apk_manifest_router.py",
-              "apk_manifest_router_service.py",
-              "apk-manifest-router.md",
+              "mobile_start_config_frontend.py",
+              "mobile_start_config.py",
+              "mobile_start_config_service.py",
+              "apk-launch-config.json",
+              "mobile-start-config.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/apk_manifest_router_service.py").exists()
-          assert Path("backend/app/routes/apk_manifest_router.py").exists()
-          assert Path("backend/app/routes/apk_manifest_router_frontend.py").exists()
-          assert Path("docs/frontend/apk-manifest-router.md").exists()
-          assert Path("data/apk_manifest_router.json").exists()
-          assert Path("data/apk_manifest_router.json.lock").exists()
+          assert Path("frontend/mobile-shell/apk-launch-config.json").exists()
+          assert Path("backend/app/services/mobile_start_config_service.py").exists()
+          assert Path("backend/app/routes/mobile_start_config.py").exists()
+          assert Path("backend/app/routes/mobile_start_config_frontend.py").exists()
+          assert Path("docs/frontend/mobile-start-config.md").exists()
+          assert Path("data/mobile_start_config.json").exists()
+          assert Path("data/mobile_start_config.json.lock").exists()
 
-          print("apk manifest router validation passed")
+          print("mobile start config validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## APK Manifest Router Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Mobile Start Config Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK manifest router API and start page were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Auto route opens chat inline cards.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Legacy and home fallback preferences were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Mobile/APK start config was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK entry route points to /app/apk-start.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Launch plan resolves to chat inline cards with legacy fallback.' >> "$GITHUB_STEP_SUMMARY"
