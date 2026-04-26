@@ -1,4 +1,4 @@
-name: Install Run Readiness Validation
+name: End To End Operational Drill Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase64-*'
+      - 'phase65-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  install-run-readiness-validation:
+  end-to-end-operational-drill-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Install Run Readiness
+      - name: Validate End To End Operational Drill
         env:
           PYTHONPATH: backend
         run: |
@@ -46,74 +46,84 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.install_run_readiness_service import install_run_readiness_service
+          from app.services.end_to_end_operational_drill_service import end_to_end_operational_drill_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/install-run-readiness/status",
-              "/api/install-run-readiness/package",
-              "/api/install-run-readiness/report",
-              "/api/install-run-readiness/checklist",
-              "/api/install-run-readiness/dashboard",
-              "/app/install-run-readiness",
-              "/app/install-readiness",
+              "/api/e2e-operational-drill/status",
+              "/api/e2e-operational-drill/package",
+              "/api/e2e-operational-drill/dashboard",
+              "/api/e2e-operational-drill/latest-report",
+              "/api/e2e-operational-drill/run",
+              "/app/e2e-operational-drill",
+              "/app/operational-drill",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = install_run_readiness_service.get_status()
+          status = end_to_end_operational_drill_service.get_status()
           assert status["ok"] is True
-          assert status["status"] in {"green", "yellow", "red"}
-          assert 0 <= status["score"] <= 100
+          assert status["non_destructive"] is True
+          assert status["atomic_store_enabled"] is True
 
-          report = install_run_readiness_service.build_report()
-          assert report["ok"] is True
-          assert report["checks_count"] >= 20
-          assert report["critical_count"] > 0
-          assert report["install_decision"] in {"ready_for_local_install_and_mobile_use", "usable_with_warnings", "not_ready"}
-          assert report["install_paths"]["mobile_apk"]["entry_route"] == "/app/apk-start"
-          assert report["install_paths"]["mobile_apk"]["preferred_chat"] == "/app/operator-chat-sync-cards"
-          assert any(item.get("endpoint") == "/api/chat-inline-card-renderer/send-orchestrated" for item in report["end_to_end_path"])
-          assert any(item.get("route") == "/app/offline-buffer" for item in report["end_to_end_path"])
+          result = end_to_end_operational_drill_service.run_drill(
+              tenant_id="owner-andre",
+              project_id="GOD_MODE",
+              request_text="prepara um plano seguro para continuar o God Mode até precisares do meu OK",
+              include_offline_bridge=True,
+          )
+          assert result["ok"] is True
+          report = result["report"]
+          assert report["status"] in {"green", "yellow", "red"}
+          assert report["thread_id"], "drill should create a chat thread"
+          assert report["job_id"], "drill should create a durable job"
+          assert report["proof"]["chat_thread_created"] is True
+          assert report["proof"]["job_created"] is True
+          assert report["proof"]["worker_tick_ran"] is True
+          assert report["proof"]["approval_surface_checked"] is True
+          assert report["proof"]["resume_checked"] is True
+          assert report["proof"]["offline_bridge_checked"] is True
+          assert report["proof"]["report_written_to_chat"] is True
+          assert report["trace"], "drill should keep a trace"
 
-          checklist = install_run_readiness_service.build_checklist()
-          assert checklist["ok"] is True
-          assert checklist["items"], "readiness checklist should expose next actions"
-          assert checklist["install_paths"]["pc_local"]["launcher"] == "desktop/godmode_desktop_launcher.py"
+          latest = end_to_end_operational_drill_service.latest_report()
+          assert latest["ok"] is True
+          assert latest["report"]["drill_id"] == report["drill_id"]
 
-          dashboard = install_run_readiness_service.build_dashboard()
+          dashboard = end_to_end_operational_drill_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["buttons"], "readiness dashboard should expose mobile buttons"
-          assert any(button["route"] == "/app/mobile-first-run" for button in dashboard["buttons"])
+          assert dashboard["latest_report"]["drill_id"] == report["drill_id"]
+          assert dashboard["buttons"], "dashboard should expose mobile buttons"
 
-          package = install_run_readiness_service.get_package()
+          package = end_to_end_operational_drill_service.get_package()
           assert package["ok"] is True
-          assert package["package"]["status"]["ok"] is True
-          assert package["package"]["dashboard"]["ok"] is True
+          assert package["package"]["latest_report"]["report"]["drill_id"] == report["drill_id"]
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "install_run_readiness_frontend.py",
-              "install_run_readiness.py",
-              "install_run_readiness_service.py",
-              "install-run-readiness.md",
+              "end_to_end_operational_drill_frontend.py",
+              "end_to_end_operational_drill.py",
+              "end_to_end_operational_drill_service.py",
+              "end-to-end-operational-drill.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/install_run_readiness_service.py").exists()
-          assert Path("backend/app/routes/install_run_readiness.py").exists()
-          assert Path("backend/app/routes/install_run_readiness_frontend.py").exists()
-          assert Path("docs/frontend/install-run-readiness.md").exists()
+          assert Path("backend/app/services/end_to_end_operational_drill_service.py").exists()
+          assert Path("backend/app/routes/end_to_end_operational_drill.py").exists()
+          assert Path("backend/app/routes/end_to_end_operational_drill_frontend.py").exists()
+          assert Path("docs/frontend/end-to-end-operational-drill.md").exists()
+          assert Path("data/end_to_end_operational_drill.json").exists()
+          assert Path("data/end_to_end_operational_drill.json.lock").exists()
 
-          print("install run readiness validation passed")
+          print("end-to-end operational drill validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Install Run Readiness Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## End To End Operational Drill Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Install/readiness cockpit and API were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- PC/APK/build paths and end-to-end flow were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Project Tree Autorefresh was validated for new files.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- E2E operational drill API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Chat thread, durable job, worker tick, approval surface, resume and offline bridge were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Final report written to chat and persisted in data store.' >> "$GITHUB_STEP_SUMMARY"
