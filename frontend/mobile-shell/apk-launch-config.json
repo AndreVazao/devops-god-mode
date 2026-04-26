@@ -1,0 +1,40 @@
+{
+  "config_version": 1,
+  "profile": "god-mode-mobile-shell",
+  "default_entry_route": "/app/apk-start",
+  "default_manifest_endpoint": "/api/apk-launch/manifest",
+  "default_router_endpoint": "/api/apk-router/resolve",
+  "preferred_chat_route": "/app/operator-chat-sync-cards",
+  "legacy_chat_route": "/app/operator-chat-sync",
+  "safe_home_route": "/app/home",
+  "diagnostics_route": "/app/apk-launch",
+  "startup_timeout_ms": 8000,
+  "redirect_delay_ms": 1800,
+  "offline_cache_keys": [
+    "godmode.apk.lastRoute",
+    "godmode.apk.lastFallback"
+  ],
+  "webview": {
+    "javascript_enabled": true,
+    "dom_storage_enabled": true,
+    "mixed_content_mode": "compatibility",
+    "pull_to_refresh": true,
+    "back_button_behavior": "webview_history_then_exit_confirm",
+    "open_external_links_outside_webview": true
+  },
+  "safe_buttons": [
+    {"id": "start", "label": "Start", "route": "/app/apk-start"},
+    {"id": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards"},
+    {"id": "fallback_chat", "label": "Chat antigo", "route": "/app/operator-chat-sync"},
+    {"id": "home", "label": "Home", "route": "/app/home"},
+    {"id": "diagnostics", "label": "Diagnóstico", "route": "/app/apk-launch"}
+  ],
+  "rules": {
+    "use_manifest_router_first": true,
+    "never_hardcode_chat_route_in_apk": true,
+    "prefer_inline_cards_chat": true,
+    "keep_legacy_chat_as_fallback": true,
+    "show_fallback_buttons_on_error": true,
+    "do_not_store_sensitive_values": true
+  }
+}
