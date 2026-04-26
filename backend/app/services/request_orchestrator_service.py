@@ -132,6 +132,15 @@ class RequestOrchestratorService:
             "result": None,
         }
 
+    def _step_snapshot(self, step: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "step_id": step.get("step_id"),
+            "title": step.get("title"),
+            "step_type": step.get("step_type"),
+            "detail": step.get("detail"),
+            "status_at_block": step.get("status"),
+        }
+
     def _open_or_get_thread(self, tenant_id: str, thread_id: str | None) -> str:
         if thread_id:
             existing = operator_conversation_thread_service.get_thread(thread_id)
@@ -295,6 +304,7 @@ class RequestOrchestratorService:
         )
 
     def _block_for_approval(self, job: Dict[str, Any], step: Dict[str, Any]) -> Dict[str, Any]:
+        step_snapshot = self._step_snapshot(step)
         card = mobile_approval_cockpit_v2_service.create_card(
             title=f"OK necessário: {step['title']}",
             body=f"Pedido: {job['request']}\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
@@ -309,7 +319,7 @@ class RequestOrchestratorService:
                 {"action_id": "revise-request-job", "label": "Pedir ajustes", "decision": "needs_changes"},
             ],
             source_ref={"type": "request_orchestrator", "job_id": job["job_id"], "step_id": step["step_id"]},
-            metadata={"job_id": job["job_id"], "step": step},
+            metadata={"job_id": job["job_id"], "step_snapshot": step_snapshot},
         )
         chat_card = chat_action_cards_service.create_card(
             thread_id=job["thread_id"],
