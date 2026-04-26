@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-import os
 import platform
 import shutil
 import subprocess
@@ -48,6 +46,7 @@ class SelfUpdateService:
             "mode": "self_update_status",
             "status": "self_update_ready",
             "store_file": str(UPDATE_STATE_FILE),
+            "atomic_store_enabled": True,
             "platform": platform.platform(),
             "git_available": self._git_available(),
             "plan_count": len(store.get("plans", [])),
