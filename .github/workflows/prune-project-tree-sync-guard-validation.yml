@@ -1,4 +1,4 @@
-name: Tunnel QR Street Setup Validation
+name: Scannable Pairing QR Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase73-*'
+      - 'phase74-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  tunnel-qr-street-setup-validation:
+  scannable-pairing-qr-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,16 +38,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Tunnel QR Street Setup
+      - name: Validate Scannable Pairing QR
         env:
           PYTHONPATH: backend
         run: |
           python - <<'PY'
           from pathlib import Path
 
+          import qrcode
+
           from main import app
           from app.services.private_tunnel_center_service import private_tunnel_center_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
+
+          assert qrcode is not None
+          requirements = Path("backend/requirements.txt").read_text(encoding="utf-8")
+          assert "qrcode" in requirements
 
           route_paths = {route.path for route in app.routes}
           required = {
@@ -67,6 +73,7 @@ jobs:
           assert status["recommended_provider"] == "tailscale"
           assert status["stores_secrets"] is False
           assert status["pairing_payload_available"] is True
+          assert status["scannable_qr_available"] is True
 
           pairing = private_tunnel_center_service.build_pairing_payload()
           assert pairing["ok"] is True
@@ -79,28 +86,37 @@ jobs:
           assert pairing["qr_ready_text"] == pairing["deep_link"]
           assert pairing["security"]["contains_secret"] is False
           assert pairing["security"]["safe_to_show_on_screen"] is True
-          assert pairing["is_scannable_qr_generated"] is False
+          assert pairing["security"]["generated_locally"] is True
+          assert pairing["is_scannable_qr_generated"] is True
+          assert pairing["qr_status"] == "scannable_qr_generated_locally"
+          assert pairing["qr"]["ok"] is True
+          assert pairing["qr"]["format"] == "svg"
+          assert pairing["qr"]["mime_type"] == "image/svg+xml"
+          assert pairing["qr"]["data_uri"].startswith("data:image/svg+xml;base64,")
+          assert "<svg" in pairing["qr"]["svg"]
+          assert pairing["qr"]["contains_secret"] is False
 
           report = private_tunnel_center_service.build_tunnel_report()
           assert report["ok"] is True
-          assert report["pairing_payload"]["payload"]["contains_secret"] is False
+          assert report["pairing_payload"]["is_scannable_qr_generated"] is True
+          assert report["pairing_payload"]["qr"]["svg_base64"]
           assert any(item["step"] == 6 for item in report["street_mode_steps"])
-          assert any("payload" in item["label"].lower() or "payload" in item["detail"].lower() for item in report["next_actions"])
+          assert any("QR" in item["label"] or "QR" in item["detail"] for item in report["next_actions"])
 
           dashboard = private_tunnel_center_service.build_dashboard()
           assert dashboard["ok"] is True
-          assert dashboard["report"]["pairing_payload"]["deep_link"].startswith("godmode://pair")
+          assert dashboard["report"]["pairing_payload"]["qr"]["data_uri"].startswith("data:image/svg+xml;base64,")
 
           package = private_tunnel_center_service.get_package()
           assert package["ok"] is True
-          assert package["package"]["pairing"]["payload"]["contains_secret"] is False
+          assert package["package"]["pairing"]["qr"]["format"] == "svg"
 
           docs = Path("docs/frontend/private-tunnel-center.md").read_text(encoding="utf-8")
-          for marker in ["pairing-payload", "payload não secreto", "deep_link", "qr_ready_text", "QR scannable real"]:
+          for marker in ["QR scannable local", "qrcode", "qr.svg", "qr.data_uri", "não chama serviços externos"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
           frontend = Path("backend/app/routes/private_tunnel_center_frontend.py").read_text(encoding="utf-8")
-          for marker in ["Copiar URL", "Copiar payload", "qr_status", "payload_json"]:
+          for marker in ["QR scannable local", "qrBox", "p.qr?.svg", "Copiar deep link"]:
               assert marker in frontend, f"Missing frontend marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
@@ -113,13 +129,13 @@ jobs:
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          print("tunnel QR street setup validation passed")
+          print("scannable pairing QR validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Tunnel QR Street Setup Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Scannable Pairing QR Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Non-secret pairing payload was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Deep link and QR-ready text were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Scannable QR remains explicitly future work.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- qrcode dependency was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Local SVG QR generation was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- QR payload remains non-secret.' >> "$GITHUB_STEP_SUMMARY"

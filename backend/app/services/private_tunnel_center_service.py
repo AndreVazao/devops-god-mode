@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import io
 import json
 import os
 import shutil
@@ -9,6 +10,9 @@ import subprocess
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 from urllib.parse import quote
+
+import qrcode
+import qrcode.image.svg
 
 DEFAULT_PORT = int(os.environ.get("PORT", os.environ.get("GODMODE_PORT", "8000")))
 
@@ -98,6 +102,33 @@ class PrivateTunnelCenterService:
     def _recommended_provider(self, providers: List[Dict[str, Any]]) -> Dict[str, Any]:
         return next((item for item in providers if item["provider_id"] == "tailscale"), providers[0])
 
+    def _build_qr_svg(self, text: str) -> Dict[str, Any]:
+        qr = qrcode.QRCode(
+            version=None,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=8,
+            border=3,
+            image_factory=qrcode.image.svg.SvgPathImage,
+        )
+        qr.add_data(text)
+        qr.make(fit=True)
+        image = qr.make_image(attrib={"class": "godmode-pairing-qr"})
+        buffer = io.BytesIO()
+        image.save(buffer)
+        svg = buffer.getvalue().decode("utf-8")
+        encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+        return {
+            "ok": True,
+            "format": "svg",
+            "mime_type": "image/svg+xml",
+            "svg": svg,
+            "svg_base64": encoded,
+            "data_uri": f"data:image/svg+xml;base64,{encoded}",
+            "content": text,
+            "content_length": len(text),
+            "contains_secret": False,
+        }
+
     def build_pairing_payload(self) -> Dict[str, Any]:
         report = self.build_tunnel_report(include_pairing=False)
         provider = self._recommended_provider(report["providers"])
@@ -117,6 +148,7 @@ class PrivateTunnelCenterService:
         encoded = base64.urlsafe_b64encode(compact.encode("utf-8")).decode("ascii").rstrip("=")
         deep_link = f"godmode://pair?payload={quote(encoded)}"
         browser_link = f"{base_url}/app/apk-start" if base_url else None
+        qr = self._build_qr_svg(deep_link)
         return {
             "ok": True,
             "mode": "private_tunnel_pairing_payload",
@@ -127,12 +159,14 @@ class PrivateTunnelCenterService:
             "deep_link": deep_link,
             "browser_link": browser_link,
             "qr_ready_text": deep_link,
-            "qr_status": "qr_ready_payload_not_secret",
-            "is_scannable_qr_generated": False,
+            "qr_status": "scannable_qr_generated_locally",
+            "is_scannable_qr_generated": True,
+            "qr": qr,
             "security": {
                 "contains_secret": False,
                 "safe_to_show_on_screen": True,
                 "safe_to_copy": True,
+                "generated_locally": True,
             },
         }
 
@@ -176,13 +210,13 @@ class PrivateTunnelCenterService:
             {"step": 3, "label": "Confirmar IP Tailscale do PC", "detail": tailscale.get("detected_ip") or "Depois de login, o God Mode tenta mostrar o IP Tailscale aqui."},
             {"step": 4, "label": "Abrir APK na rua", "detail": "Usar Auto. Se falhar, colar o URL Tailscale recomendado."},
             {"step": 5, "label": "Validar /health", "detail": "O APK deve abrir /app/apk-start quando /health responder."},
-            {"step": 6, "label": "Usar pairing não secreto", "detail": "Copiar o deep link/payload não secreto se o Auto falhar."},
+            {"step": 6, "label": "Ler QR ou usar pairing não secreto", "detail": "Apontar o APK/câmara ao QR local ou copiar o payload não secreto."},
         ]
 
     def _apk_instruction(self, tailscale: Dict[str, Any]) -> str:
         if tailscale.get("apk_base_url"):
             return f"No APK, usar Auto ou colar {tailscale['apk_base_url']} e carregar em Teste."
-        return "No APK, usar Auto na mesma rede. Para rua, instalar/logar Tailscale no PC e telemóvel, depois colar o IP Tailscale do PC."
+        return "No APK, usar Auto na mesma rede. Para rua, instalar/logar Tailscale no PC e telemóvel, depois colar o IP Tailscale do PC ou ler o QR local."
 
     def _next_actions(self, blockers: List[Dict[str, Any]], tailscale: Dict[str, Any]) -> List[Dict[str, Any]]:
         actions = []
@@ -192,8 +226,8 @@ class PrivateTunnelCenterService:
             actions.append({"priority": "critical", "label": "Testar APK pela rede Tailscale", "detail": tailscale["apk_base_url"]})
         actions.extend([
             {"priority": "high", "label": "Manter LAN Auto Discovery como fallback", "detail": "/app/pairing"},
-            {"priority": "medium", "label": "Usar pairing payload não secreto", "detail": "Copiar deep link ou base URL para o APK."},
-            {"priority": "medium", "label": "Futuro: QR scannable real", "detail": "Adicionar gerador QR local aprovado para o deep link não secreto."},
+            {"priority": "high", "label": "Usar QR scannable local", "detail": "QR gerado localmente a partir do deep link não secreto."},
+            {"priority": "medium", "label": "Futuro: APK ler godmode://pair", "detail": "Adicionar intent/deep-link receiver no APK."},
         ])
         return actions
 
@@ -207,6 +241,7 @@ class PrivateTunnelCenterService:
             "blocker_count": len(report["blockers"]),
             "stores_secrets": False,
             "pairing_payload_available": True,
+            "scannable_qr_available": True,
         }
 
     def build_dashboard(self) -> Dict[str, Any]:
