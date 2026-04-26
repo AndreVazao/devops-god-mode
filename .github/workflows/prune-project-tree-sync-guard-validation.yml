@@ -1,4 +1,4 @@
-name: APK Pair Deeplink Validation
+name: Operator Priority Real Work Validation
 
 on:
   workflow_dispatch:
@@ -6,9 +6,9 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase75-*'
+      - 'phase76-*'
     paths:
-      - 'android-app/**'
+      - 'backend/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
@@ -16,13 +16,13 @@ on:
     branches:
       - main
     paths:
-      - 'android-app/**'
+      - 'backend/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  apk-pair-deeplink-validation:
+  operator-priority-real-work-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,84 +38,109 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate APK Pair Deeplink
+      - name: Validate Operator Priority Real Work
         env:
           PYTHONPATH: backend
         run: |
           python - <<'PY'
           from pathlib import Path
 
+          from main import app
+          from app.services.operator_priority_service import operator_priority_service
+          from app.services.real_work_command_pipeline_service import real_work_command_pipeline_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
-          manifest = Path("android-app/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
-          main_activity = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java").read_text(encoding="utf-8")
-          docs = Path("docs/frontend/android-webview-shell.md").read_text(encoding="utf-8")
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/operator-priority/status",
+              "/api/operator-priority/package",
+              "/api/operator-priority/priorities",
+              "/api/operator-priority/resolve",
+              "/api/operator-priority/order",
+              "/api/operator-priority/active",
+              "/api/real-work/status",
+              "/api/real-work/package",
+              "/api/real-work/latest",
+              "/api/real-work/submit",
+              "/app/operator-priority",
+              "/app/project-priority",
+              "/app/real-work",
+              "/app/work-command",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing routes: {missing}"
 
-          required_manifest = [
-              "android:launchMode=\"singleTask\"",
-              "android.intent.action.VIEW",
-              "android.intent.category.BROWSABLE",
-              "android:scheme=\"godmode\"",
-              "android:host=\"pair\"",
-          ]
-          missing_manifest = [marker for marker in required_manifest if marker not in manifest]
-          assert not missing_manifest, f"Manifest missing markers: {missing_manifest}"
+          status = operator_priority_service.get_status()
+          assert status["ok"] is True
+          assert status["policy"] == "operator_order_first_money_is_consequence"
+          assert status["money_priority_enabled"] is False
+          assert status["active_project"] == "GOD_MODE"
 
-          required_activity = [
-              "handlePairingIntent",
-              "onNewIntent",
-              "Uri uri = intent.getData()",
-              "godmode",
-              "pair",
-              "getQueryParameter(\"payload\")",
-              "Base64.URL_SAFE",
-              "Base64.NO_WRAP",
-              "JSONObject payload",
-              "contains_secret",
-              "god_mode_mobile_pairing",
-              "isSafePairingBaseUrl",
-              "token=",
-              "password=",
-              "cookie=",
-              "api_key=",
-              "authorization=",
-              "bearer",
-              "preferences.edit().putString(PREF_BASE_URL, baseUrl).apply()",
-              "testHealth()",
-          ]
-          missing_activity = [marker for marker in required_activity if marker not in main_activity]
-          assert not missing_activity, f"MainActivity missing markers: {missing_activity}"
+          order = operator_priority_service.set_order(
+              ["PROVENTIL", "GOD_MODE", "BARIBUDOS_STUDIO"],
+              active_project="PROVENTIL",
+              note="validation order",
+          )
+          assert order["ok"] is True
+          resolved = operator_priority_service.resolve_project()
+          assert resolved["project"]["project_id"] == "PROVENTIL"
+          explicit = operator_priority_service.resolve_project("GOD_MODE")
+          assert explicit["project"]["project_id"] == "GOD_MODE"
 
-          required_docs = [
-              "Pairing por deep link",
-              "godmode://pair?payload=...",
-              "Base64 URL-safe",
-              "contains_secret=false",
-              "URLs com marcadores sensíveis são recusados",
-              "token=",
-              "password=",
-              "authorization=",
-          ]
-          missing_docs = [marker for marker in required_docs if marker not in docs]
-          assert not missing_docs, f"Android docs missing markers: {missing_docs}"
+          pipeline_status = real_work_command_pipeline_service.get_status()
+          assert pipeline_status["ok"] is True
+          assert pipeline_status["money_priority_enabled"] is False
+          assert pipeline_status["policy"] == "operator_project_order_first"
+
+          result = real_work_command_pipeline_service.submit_command(
+              command_text="continua o projeto até precisares do meu OK",
+              tenant_id="owner-andre",
+              requested_project=None,
+              auto_run=True,
+          )
+          assert result["ok"] is True
+          package = result["package"]
+          report = result["report"]
+          assert package["project"]["project_id"] == "PROVENTIL"
+          assert package["intent"] == "continue_project"
+          assert "money is consequence" in package["orchestrator_request"]
+          assert package["approval_required"] is True
+          assert package["execution_actions"], "execution actions should be present"
+          assert report["operator_priority_obeyed"] is True
+          assert report["money_priority_enabled"] is False
+          assert report["job_id"], "real work pipeline should submit durable orchestrator job"
+
+          latest = real_work_command_pipeline_service.latest()
+          assert latest["ok"] is True
+          assert latest["report"]["command_id"] == report["command_id"]
+
+          docs = Path("docs/frontend/operator-priority-real-work.md").read_text(encoding="utf-8")
+          for marker in ["operator_order_first_money_is_consequence", "money_priority_enabled=false", "/api/real-work/submit", "/app/operator-priority"]:
+              assert marker in docs, f"Missing doc marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "android-app",
-              "AndroidManifest.xml",
-              "MainActivity.java",
-              "android-webview-shell.md",
+              "operator_priority_frontend.py",
+              "operator_priority.py",
+              "operator_priority_service.py",
+              "real_work_command_pipeline_frontend.py",
+              "real_work_command_pipeline.py",
+              "real_work_command_pipeline_service.py",
+              "operator-priority-real-work.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("APK pair deeplink validation passed")
+          assert Path("data/operator_project_priorities.json").exists()
+          assert Path("data/real_work_command_pipeline.json").exists()
+
+          print("operator priority real work validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## APK Pair Deeplink Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Operator Priority Real Work Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK godmode://pair intent filter was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK decodes non-secret pairing payloads.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK rejects sensitive-looking pairing URLs.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Operator project order is now the planning policy.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Money priority is explicitly disabled.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Natural work command creates an orchestrator job.' >> "$GITHUB_STEP_SUMMARY"
