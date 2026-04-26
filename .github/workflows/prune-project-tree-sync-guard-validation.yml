@@ -1,4 +1,4 @@
-name: Chat Inline Card Renderer Validation
+name: APK Launch Manifest Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase55-*'
+      - 'phase56-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  chat-inline-card-renderer-validation:
+  apk-launch-manifest-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Chat Inline Card Renderer
+      - name: Validate APK Launch Manifest
         env:
           PYTHONPATH: backend
         run: |
@@ -48,76 +48,71 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.chat_inline_card_renderer_service import chat_inline_card_renderer_service
+          from app.services.apk_launch_manifest_service import apk_launch_manifest_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/chat-inline-card-renderer/status",
-              "/api/chat-inline-card-renderer/package",
-              "/api/chat-inline-card-renderer/dashboard",
-              "/api/chat-inline-card-renderer/manifest",
-              "/api/chat-inline-card-renderer/open-session",
-              "/api/chat-inline-card-renderer/send",
-              "/app/operator-chat-sync-cards",
-              "/app/chat-inline-cards",
+              "/api/apk-launch/status",
+              "/api/apk-launch/package",
+              "/api/apk-launch/manifest",
+              "/api/apk-launch/health",
+              "/api/apk-launch/dashboard",
+              "/api/apk-launch/launch",
+              "/app/apk-launch",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = chat_inline_card_renderer_service.get_status()
+          status = apk_launch_manifest_service.get_status()
           assert status["ok"] is True
-          assert status["inline_cards_enabled"] is True
-          assert status["apk_chat_first"] is True
+          assert status["preferred_chat_surface"] == "/app/operator-chat-sync-cards"
+          assert status["fallback_chat_surface"] == "/app/operator-chat-sync"
 
-          manifest = chat_inline_card_renderer_service.build_manifest()
-          assert manifest["ok"] is True
-          assert manifest["manifest"]["frontend_routes"]["primary"] == "/app/operator-chat-sync-cards"
-          assert manifest["manifest"]["render_contract"]["render_inline"] is True
-          assert manifest["manifest"]["render_contract"]["message_mode"] == "continuous_chat_like_chatgpt"
+          manifest_result = apk_launch_manifest_service.build_manifest(tenant_id="owner-andre", device_id="validation-apk")
+          assert manifest_result["ok"] is True
+          manifest = manifest_result["manifest"]
+          assert manifest["launch_policy"]["default_route"] == "/app/operator-chat-sync-cards"
+          assert manifest["launch_policy"]["fallback_route"] == "/app/operator-chat-sync"
+          assert manifest["capabilities"]["continuous_chat"] is True
+          assert manifest["capabilities"]["inline_action_cards"] is True
+          assert manifest["capabilities"]["destructive_actions_require_approval"] is True
+          assert manifest["safe_buttons"], "manifest should provide safe APK buttons"
 
-          opened = chat_inline_card_renderer_service.open_session(title="Renderer validation")
-          assert opened["ok"] is True
-          thread_id = opened["session"]["thread_id"]
+          health_result = apk_launch_manifest_service.health(tenant_id="owner-andre", device_id="validation-apk")
+          assert health_result["ok"] is True
+          assert health_result["health"]["default_route"] == "/app/operator-chat-sync-cards"
+          assert health_result["health"]["fallback_route"] == "/app/operator-chat-sync"
+          assert health_result["health"]["status"] in {"green", "yellow"}
 
-          sent = chat_inline_card_renderer_service.send_message(
-              message="quero ganhar dinheiro",
-              thread_id=thread_id,
-              tenant_id="owner-andre",
-          )
-          assert sent["ok"] is True
-          assert sent["thread_id"] == thread_id
-          assert sent["open_cards"], "inline renderer should return open cards for UI rendering"
-          assert sent["event"]["card_count"] >= 1
-
-          dashboard = chat_inline_card_renderer_service.build_dashboard()
+          dashboard = apk_launch_manifest_service.build_dashboard(tenant_id="owner-andre", device_id="validation-apk")
           assert dashboard["ok"] is True
-          assert dashboard["manifest"]["frontend_routes"]["alias"] == "/app/chat-inline-cards"
+          assert dashboard["manifest"]["launch_policy"]["default_api"] == "/api/chat-inline-card-renderer/send"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "chat_inline_card_renderer_frontend.py",
-              "chat_inline_card_renderer.py",
-              "chat_inline_card_renderer_service.py",
-              "chat-inline-card-renderer.md",
+              "apk_launch_manifest_frontend.py",
+              "apk_launch_manifest.py",
+              "apk_launch_manifest_service.py",
+              "apk-launch-manifest.md",
           ]
           missing_generated_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_generated_tree, f"Autorefresh generated tree missing entries: {missing_generated_tree}"
 
-          assert Path("backend/app/services/chat_inline_card_renderer_service.py").exists()
-          assert Path("backend/app/routes/chat_inline_card_renderer.py").exists()
-          assert Path("backend/app/routes/chat_inline_card_renderer_frontend.py").exists()
-          assert Path("docs/frontend/chat-inline-card-renderer.md").exists()
-          assert Path("data/chat_inline_card_renderer.json").exists()
-          assert Path("data/chat_inline_card_renderer.json.lock").exists()
+          assert Path("backend/app/services/apk_launch_manifest_service.py").exists()
+          assert Path("backend/app/routes/apk_launch_manifest.py").exists()
+          assert Path("backend/app/routes/apk_launch_manifest_frontend.py").exists()
+          assert Path("docs/frontend/apk-launch-manifest.md").exists()
+          assert Path("data/apk_launch_manifest.json").exists()
+          assert Path("data/apk_launch_manifest.json.lock").exists()
 
-          print("chat inline card renderer validation passed")
+          print("apk launch manifest validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Chat Inline Card Renderer Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## APK Launch Manifest Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Chat inline card renderer API and frontend were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK chat-first inline render contract was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Renderer send flow returns open cards ready for mobile UI.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK launch manifest API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Default APK route points to chat inline cards.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Legacy chat fallback and safe buttons were validated.' >> "$GITHUB_STEP_SUMMARY"
