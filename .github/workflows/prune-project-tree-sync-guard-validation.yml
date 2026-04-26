@@ -1,4 +1,4 @@
-name: Operator Priority Real Work Validation
+name: Chat Real Work Bridge Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase76-*'
+      - 'phase77-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  operator-priority-real-work-validation:
+  chat-real-work-bridge-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Operator Priority Real Work
+      - name: Validate Chat Real Work Bridge
         env:
           PYTHONPATH: backend
         run: |
@@ -47,100 +47,85 @@ jobs:
 
           from main import app
           from app.services.operator_priority_service import operator_priority_service
-          from app.services.real_work_command_pipeline_service import real_work_command_pipeline_service
+          from app.services.operator_chat_real_work_bridge_service import operator_chat_real_work_bridge_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/operator-priority/status",
-              "/api/operator-priority/package",
-              "/api/operator-priority/priorities",
-              "/api/operator-priority/resolve",
-              "/api/operator-priority/order",
-              "/api/operator-priority/active",
-              "/api/real-work/status",
-              "/api/real-work/package",
-              "/api/real-work/latest",
-              "/api/real-work/submit",
-              "/app/operator-priority",
-              "/app/project-priority",
-              "/app/real-work",
-              "/app/work-command",
+              "/api/operator-chat-real-work/status",
+              "/api/operator-chat-real-work/package",
+              "/api/operator-chat-real-work/latest",
+              "/api/operator-chat-real-work/submit",
+              "/app/operator-chat-sync-cards",
+              "/app/chat",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = operator_priority_service.get_status()
-          assert status["ok"] is True
-          assert status["policy"] == "operator_order_first_money_is_consequence"
-          assert status["money_priority_enabled"] is False
-          assert status["active_project"] == "GOD_MODE"
-
-          order = operator_priority_service.set_order(
-              ["PROVENTIL", "GOD_MODE", "BARIBUDOS_STUDIO"],
-              active_project="PROVENTIL",
-              note="validation order",
+          operator_priority_service.set_order(
+              ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
+              active_project="GOD_MODE",
+              note="chat bridge validation order",
           )
-          assert order["ok"] is True
-          resolved = operator_priority_service.resolve_project()
-          assert resolved["project"]["project_id"] == "PROVENTIL"
-          explicit = operator_priority_service.resolve_project("GOD_MODE")
-          assert explicit["project"]["project_id"] == "GOD_MODE"
 
-          pipeline_status = real_work_command_pipeline_service.get_status()
-          assert pipeline_status["ok"] is True
-          assert pipeline_status["money_priority_enabled"] is False
-          assert pipeline_status["policy"] == "operator_project_order_first"
+          status = operator_chat_real_work_bridge_service.get_status()
+          assert status["ok"] is True
+          assert status["status"] == "chat_to_real_work_ready"
+          assert status["primary_chat_route"] == "/app/operator-chat-sync-cards"
+          assert status["real_work_endpoint"] == "/api/real-work/submit"
+          assert status["money_priority_enabled"] is False
 
-          result = real_work_command_pipeline_service.submit_command(
-              command_text="continua o projeto até precisares do meu OK",
+          result = operator_chat_real_work_bridge_service.submit_chat_command(
+              message="continua o God Mode até precisares do meu OK",
               tenant_id="owner-andre",
               requested_project=None,
               auto_run=True,
           )
           assert result["ok"] is True
-          package = result["package"]
+          assert result["thread_id"], "chat bridge should create or use a thread"
           report = result["report"]
-          assert package["project"]["project_id"] == "PROVENTIL"
-          assert package["intent"] == "continue_project"
-          assert "money is consequence" in package["orchestrator_request"]
-          assert package["approval_required"] is True
-          assert package["execution_actions"], "execution actions should be present"
+          assert report["resolved_project_id"] == "GOD_MODE"
+          assert report["intent"] == "continue_project"
+          assert report["job_id"], "chat bridge should create a durable orchestrator job"
           assert report["operator_priority_obeyed"] is True
           assert report["money_priority_enabled"] is False
-          assert report["job_id"], "real work pipeline should submit durable orchestrator job"
+          assert any(item["route"] == "/app/mobile-approval-cockpit-v2" for item in report["next_actions"])
 
-          latest = real_work_command_pipeline_service.latest()
+          latest = operator_chat_real_work_bridge_service.latest()
           assert latest["ok"] is True
-          assert latest["report"]["command_id"] == report["command_id"]
+          assert latest["report"]["bridge_id"] == report["bridge_id"]
 
-          docs = Path("docs/frontend/operator-priority-real-work.md").read_text(encoding="utf-8")
-          for marker in ["operator_order_first_money_is_consequence", "money_priority_enabled=false", "/api/real-work/submit", "/app/operator-priority"]:
+          package = operator_chat_real_work_bridge_service.get_package()
+          assert package["ok"] is True
+          assert package["package"]["status"]["ok"] is True
+          assert package["package"]["latest"]["report"]["bridge_id"] == report["bridge_id"]
+
+          frontend = Path("backend/app/routes/operator_chat_sync_cards_frontend.py").read_text(encoding="utf-8")
+          for marker in ["/api/operator-chat-real-work/submit", "Enviar e executar", "Prioridades", "Aprovações"]:
+              assert marker in frontend, f"Missing frontend marker: {marker}"
+
+          docs = Path("docs/frontend/operator-chat-real-work-bridge.md").read_text(encoding="utf-8")
+          for marker in ["/app/operator-chat-sync-cards", "/api/operator-chat-real-work/submit", "Request Orchestrator", "ordem do operador"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "operator_priority_frontend.py",
-              "operator_priority.py",
-              "operator_priority_service.py",
-              "real_work_command_pipeline_frontend.py",
-              "real_work_command_pipeline.py",
-              "real_work_command_pipeline_service.py",
-              "operator-priority-real-work.md",
+              "operator_chat_real_work_bridge.py",
+              "operator_chat_real_work_bridge_service.py",
+              "operator_chat_sync_cards_frontend.py",
+              "operator-chat-real-work-bridge.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          assert Path("data/operator_project_priorities.json").exists()
-          assert Path("data/real_work_command_pipeline.json").exists()
-
-          print("operator priority real work validation passed")
+          assert Path("data/operator_chat_real_work_bridge.json").exists()
+          print("chat real work bridge validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Operator Priority Real Work Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Chat Real Work Bridge Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Operator project order is now the planning policy.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Money priority is explicitly disabled.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Natural work command creates an orchestrator job.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Main mobile chat now submits to real work pipeline.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Operator priority policy is preserved.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Chat command creates durable orchestrator job.' >> "$GITHUB_STEP_SUMMARY"
