@@ -84,24 +84,48 @@ class RealOperatorRehearsalService:
 
     def _build_probe(self) -> Dict[str, Any]:
         checks = []
-        for path, label in [
-            (".github/workflows/android-real-build-progressive.yml", "Android APK workflow"),
-            (".github/workflows/windows-exe-real-build.yml", "Windows EXE workflow"),
-        ]:
+        workflow_specs = [
+            (
+                ".github/workflows/android-real-build-progressive.yml",
+                "Android APK workflow",
+                ["gradle --no-daemon :app:assembleDebug", "GodModeMobile-debug.apk", "real_webview_shell_apk", "apk.stat().st_size > 1024"],
+            ),
+            (
+                ".github/workflows/windows-exe-real-build.yml",
+                "Windows EXE workflow",
+                ["upload-artifact", "GodMode.exe", "pyinstaller"],
+            ),
+        ]
+        for path, label, positive_markers in workflow_specs:
             target = Path(path)
             text = target.read_text(encoding="utf-8") if target.exists() else ""
+            lower = text.lower()
+            harmful_placeholder = any(marker in lower for marker in [
+                "echo placeholder",
+                "dummy artifact",
+                "placeholder artifact",
+                "fake apk",
+                "fake exe",
+            ])
             checks.append({
                 "label": label,
                 "path": path,
                 "exists": target.exists(),
                 "mentions_upload_artifact": "upload-artifact" in text,
-                "mentions_placeholder": "placeholder" in text.lower() or "dummy" in text.lower(),
+                "positive_markers_present": all(marker.lower() in lower for marker in positive_markers),
+                "mentions_placeholder": harmful_placeholder,
                 "size_bytes": target.stat().st_size if target.exists() else 0,
             })
         return {
-            "ok": all(item["exists"] and item["mentions_upload_artifact"] and not item["mentions_placeholder"] for item in checks),
+            "ok": all(
+                item["exists"]
+                and item["mentions_upload_artifact"]
+                and item["positive_markers_present"]
+                and not item["mentions_placeholder"]
+                for item in checks
+            ),
             "checks": checks,
-            "note": "CI also validates produced artifact files in the temporary workflow.",
+            "note": "CI also validates produced artifact files in the canonical APK/EXE workflows.",
         }
 
     def _checks(
