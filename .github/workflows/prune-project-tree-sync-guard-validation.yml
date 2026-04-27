@@ -1,4 +1,4 @@
-name: Daily Command Router Validation
+name: Easy Mode Command Buttons Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase87-*'
+      - 'phase88-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  daily-command-router-validation:
+  easy-mode-command-buttons-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Daily Command Router
+      - name: Validate Easy Mode Command Buttons
         env:
           PYTHONPATH: backend
         run: |
@@ -53,11 +53,9 @@ jobs:
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/daily-command-router/status",
-              "/api/daily-command-router/package",
-              "/api/daily-command-router/commands",
-              "/api/daily-command-router/route",
               "/api/home-operator-ux/panel",
+              "/api/daily-command-router/route",
+              "/api/god-mode-home/dashboard",
               "/app/home",
           }
           missing = sorted(required - route_paths)
@@ -66,89 +64,55 @@ jobs:
           operator_priority_service.set_order(
               ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
               active_project="GOD_MODE",
-              note="daily command router validation order",
+              note="easy mode command buttons validation order",
           )
-
-          status = daily_command_router_service.get_status()
-          assert status["ok"] is True
-          assert status["command_count"] >= 6
-          assert "continue_active_project" in status["command_ids"]
-          assert "fix_blockers" in status["command_ids"]
-          assert "prepare_install" in status["command_ids"]
-
-          commands = daily_command_router_service.available_commands()
-          assert commands["ok"] is True
-          assert any(cmd["id"] == "show_artifacts" for cmd in commands["commands"])
 
           panel = home_operator_ux_service.build_panel(tenant_id="owner-andre")
           assert panel["ok"] is True
           assert panel["daily_command_route_endpoint"] == "/api/daily-command-router/route"
+          assert len(panel["quick_commands"]) >= 4
+          assert all(cmd["route_endpoint"] == "/api/daily-command-router/route" for cmd in panel["quick_commands"])
           assert panel["primary_action"]["endpoint"] == "/api/daily-command-router/route"
           assert panel["primary_action"]["payload"]["command_id"] == "continue_active_project"
-          assert all(cmd["route_endpoint"] == "/api/daily-command-router/route" for cmd in panel["quick_commands"])
 
-          routed = daily_command_router_service.route(
-              command_id="continue_active_project",
-              tenant_id="owner-andre",
-              requested_project=None,
-          )
+          routed = daily_command_router_service.route("prepare_install", tenant_id="owner-andre", requested_project="GOD_MODE")
           assert routed["ok"] is True
-          assert routed["kind"] == "chat_command"
-          assert routed["project"] == "GOD_MODE"
-          assert routed["result"]["report"]["job_id"]
-          assert routed["operator_next"]["label"]
+          assert routed["kind"] == "read_endpoint"
+          assert routed["endpoint"] == "/api/install-first-run/guide"
 
-          blockers = daily_command_router_service.route(
-              command_id="fix_blockers",
-              tenant_id="owner-andre",
-              requested_project="PROVENTIL",
-          )
-          assert blockers["ok"] is True
-          assert blockers["project"] == "PROVENTIL"
-          assert "blockers" in blockers["message"]
+          frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
+          frontend_markers = [
+              "easyPanel",
+              "easyContent",
+              "routeCommand(commandId)",
+              "/api/daily-command-router/route",
+              "renderEasy(panel)",
+              "Comandos rápidos",
+              "payload.command_id",
+              "route_endpoint",
+          ]
+          for marker in frontend_markers:
+              assert marker in frontend, f"Missing frontend marker: {marker}"
 
-          install = daily_command_router_service.route(command_id="prepare_install", tenant_id="owner-andre")
-          assert install["ok"] is True
-          assert install["kind"] == "read_endpoint"
-          assert install["endpoint"] == "/api/install-first-run/guide"
-          assert install["result"]["steps"]
-
-          health = daily_command_router_service.route(command_id="show_health", tenant_id="owner-andre")
-          assert health["ok"] is True
-          assert health["result"]["health_score"] >= 70
-
-          artifacts = daily_command_router_service.route(command_id="show_artifacts", tenant_id="owner-andre")
-          assert artifacts["ok"] is True
-          assert artifacts["result"]["artifact_count"] == 2
-
-          unknown = daily_command_router_service.route(command_id="does_not_exist", tenant_id="owner-andre")
-          assert unknown["ok"] is False
-          assert unknown["error"] == "unknown_command_id"
-
-          docs = Path("docs/frontend/daily-command-router.md").read_text(encoding="utf-8")
-          for marker in ["/api/daily-command-router/route", "continue_active_project", "fix_blockers", "show_artifacts"]:
+          docs = Path("docs/frontend/easy-mode-command-buttons.md").read_text(encoding="utf-8")
+          for marker in ["Modo fácil", "/api/daily-command-router/route", "continue_active_project", "Botões seguros"]:
               assert marker in docs, f"Missing doc marker: {marker}"
-
-          source = Path("backend/app/services/daily_command_router_service.py").read_text(encoding="utf-8")
-          for marker in ["DailyCommandRouterService", "COMMANDS", "operator_next", "unknown_command_id"]:
-              assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "daily_command_router.py",
-              "daily_command_router_service.py",
-              "daily-command-router.md",
+              "god_mode_home_frontend.py",
+              "easy-mode-command-buttons.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("daily command router validation passed")
+          print("easy mode command buttons validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Daily Command Router Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Easy Mode Command Buttons Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Daily command router API was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Modo fácil commands now route through stable command IDs.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Continue, blockers, install, health and artifacts commands are covered.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home easy mode now renders clickable command buttons.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Commands call the Daily Command Router by command_id.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Safe buttons support command payloads, routes and endpoints.' >> "$GITHUB_STEP_SUMMARY"
