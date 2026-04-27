@@ -82,13 +82,6 @@ class HomeOperatorUxService:
         return f"Pronto para ordem · saúde {health_score}%"
 
     def _primary_action(self, health: Dict[str, Any], pc: Dict[str, Any], active_project: str) -> Dict[str, Any]:
-        if health.get("next_action"):
-            action = dict(health["next_action"])
-            action.setdefault("kind", "health_next_action")
-            action.setdefault("priority", "critical")
-            return action
-        if pc.get("status") == "disabled":
-            return {"kind": "start_autopilot", "label": "Ligar PC Autopilot", "endpoint": "/api/god-mode-home/start-autopilot", "priority": "critical"}
         return {
             "kind": "continue_project",
             "label": f"Continuar {active_project}",
@@ -103,6 +96,7 @@ class HomeOperatorUxService:
             {"kind": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards", "priority": "critical"},
             {"kind": "approve", "label": "Aprovar próximo", "endpoint": "/api/god-mode-home/approve-next", "priority": "high"},
             {"kind": "health", "label": "Saúde", "endpoint": "/api/daily-command-router/route", "payload": {"command_id": "show_health"}, "priority": "high"},
+            {"kind": "start_pc_autopilot", "label": "Ligar PC", "endpoint": "/api/god-mode-home/start-autopilot", "priority": "high"},
             {"kind": "stop", "label": "Parar", "endpoint": "/api/god-mode-home/stop-autopilot", "priority": "medium"},
         ]
         seen = set()
