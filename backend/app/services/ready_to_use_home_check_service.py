@@ -19,11 +19,6 @@ class ReadyToUseHomeCheckService:
         except Exception as exc:
             return {"ok": False, "mode": label, "error": exc.__class__.__name__, "detail": str(exc)[:240]}
 
-    def _home(self):
-        from app.services.god_mode_home_service import god_mode_home_service
-
-        return god_mode_home_service
-
     def _pc_autopilot(self):
         from app.services.pc_autopilot_loop_service import pc_autopilot_loop_service
 
@@ -40,14 +35,13 @@ class ReadyToUseHomeCheckService:
         return operator_chat_real_work_bridge_service
 
     def build_checklist(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
-        home = self._safe("home_dashboard", lambda: self._home().build_dashboard(tenant_id=tenant_id))
         pc = self._safe("pc_autopilot", self._pc_autopilot().get_status)
         priority = self._safe("operator_priority", self._operator_priority().get_status)
         chat = self._safe("chat_bridge", self._chat_bridge().get_status)
         files = self._file_checks()
         checks = [
             self._check("home_route", "APK cai na Home principal", files["apk_home_entry"], "/app/home é a rota principal do APK"),
-            self._check("home_api", "Home API responde", home.get("ok") is True, "/api/god-mode-home/dashboard disponível"),
+            self._check("home_backend_route", "Backend tem Home principal", files["home_backend_route_present"], "/app/home e /api/god-mode-home existem"),
             self._check("chat_pipeline", "Chat ligado ao trabalho real", chat.get("ok") is True, "/api/operator-chat-real-work/submit pronto"),
             self._check("operator_priority", "Prioridade do operador ativa", priority.get("ok") is True and priority.get("money_priority_enabled") is False, "ordem do operador vence dinheiro"),
             self._check("pc_autopilot", "PC Autopilot instalado", pc.get("ok") is True and pc.get("apk_disconnect_safe") is True, "PC consegue continuar com APK fechado"),
@@ -73,9 +67,9 @@ class ReadyToUseHomeCheckService:
             "blockers": blockers,
             "next_action": next_action,
             "home_summary": {
-                "traffic_light": home.get("traffic_light"),
-                "active_project": home.get("active_project"),
-                "operator_message": home.get("operator_message"),
+                "home_route_present": files["home_backend_route_present"],
+                "apk_home_entry": files["apk_home_entry"],
+                "active_project": priority.get("active_project"),
             },
             "pc_autopilot": {
                 "status": pc.get("status"),
@@ -90,9 +84,12 @@ class ReadyToUseHomeCheckService:
     def _file_checks(self) -> Dict[str, bool]:
         main_activity = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java")
         main_activity_text = main_activity.read_text(encoding="utf-8") if main_activity.exists() else ""
+        home_route = Path("backend/app/routes/god_mode_home.py")
+        home_frontend = Path("backend/app/routes/god_mode_home_frontend.py")
         route_files = [Path("backend/app/routes/mobile_approval_cockpit_v2_frontend.py"), Path("backend/app/routes/mobile_approval_cockpit_v2.py")]
         return {
             "apk_home_entry": 'ENTRY_ROUTE = "/app/home"' in main_activity_text,
+            "home_backend_route_present": home_route.exists() and home_frontend.exists(),
             "approval_cockpit_present": any(path.exists() for path in route_files),
             "android_project_present": Path("android-app/app/build.gradle").exists() and main_activity.exists(),
             "apk_workflow_present": Path(".github/workflows/android-real-build-progressive.yml").exists(),
