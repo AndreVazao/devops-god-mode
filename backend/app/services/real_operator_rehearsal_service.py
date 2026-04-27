@@ -93,7 +93,7 @@ class RealOperatorRehearsalService:
             (
                 ".github/workflows/windows-exe-real-build.yml",
                 "Windows EXE workflow",
-                ["upload-artifact", "GodMode.exe", "pyinstaller"],
+                ["pyinstaller --clean --noconfirm desktop/GodModeDesktop.spec", "GodModeDesktop.exe", "desktop-installer-manifest.json", "godmode-windows-exe"],
             ),
         ]
         for path, label, positive_markers in workflow_specs:
