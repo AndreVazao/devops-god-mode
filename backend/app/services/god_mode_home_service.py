@@ -47,6 +47,11 @@ class GodModeHomeService:
 
         return real_work_command_pipeline_service
 
+    def _ready_to_use(self):
+        from app.services.ready_to_use_home_check_service import ready_to_use_home_check_service
+
+        return ready_to_use_home_check_service
+
     def _pending_approvals(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
         cards = mobile_approval_cockpit_v2_service.list_cards(tenant_id=tenant_id, status="pending_approval", limit=50)
         return {"ok": cards.get("ok", False), "count": cards.get("card_count", 0), "cards": cards.get("cards", [])}
@@ -61,9 +66,14 @@ class GodModeHomeService:
 
     def _traffic_light(self, dashboard: Dict[str, Any]) -> Dict[str, str]:
         approvals = dashboard.get("approvals", {})
+        ready = dashboard.get("ready_to_use", {})
         pc_status = dashboard.get("pc_autopilot", {}).get("status")
         if approvals.get("count", 0) > 0:
             return {"color": "yellow", "label": "Precisa do teu OK", "reason": "pending_approval"}
+        if ready.get("status") == "not_ready":
+            return {"color": "red", "label": "Ainda não está pronto", "reason": "ready_to_use_blockers"}
+        if ready.get("status") == "almost_ready":
+            return {"color": "yellow", "label": "Quase pronto", "reason": "ready_to_use_partial"}
         if pc_status == "running":
             return {"color": "green", "label": "PC a trabalhar", "reason": "pc_autopilot_running"}
         if pc_status == "enabled_idle":
@@ -73,6 +83,9 @@ class GodModeHomeService:
     def _next_task(self, dashboard: Dict[str, Any]) -> Dict[str, str]:
         if dashboard.get("approvals", {}).get("count", 0) > 0:
             return {"kind": "approval", "label": "Decidir aprovações pendentes", "route": "/app/mobile-approval-cockpit-v2", "priority": "critical"}
+        ready = dashboard.get("ready_to_use", {})
+        if ready.get("status") in {"not_ready", "almost_ready"} and ready.get("next_action"):
+            return ready["next_action"]
         if dashboard.get("pc_autopilot", {}).get("status") == "disabled":
             return {"kind": "autopilot", "label": "Ligar PC Autopilot", "endpoint": "/api/god-mode-home/start-autopilot", "priority": "high"}
         latest_chat = dashboard.get("latest_result", {}).get("chat") or {}
@@ -87,6 +100,7 @@ class GodModeHomeService:
             {"id": "start_autopilot", "label": "Ligar PC Autopilot", "endpoint": "/api/god-mode-home/start-autopilot", "priority": "high"},
             {"id": "stop_autopilot", "label": "Parar", "endpoint": "/api/god-mode-home/stop-autopilot", "priority": "medium"},
             {"id": "approve_next", "label": "Aprovar próximo", "endpoint": "/api/god-mode-home/approve-next", "priority": "high"},
+            {"id": "ready", "label": "Pronto para usar", "endpoint": "/api/ready-to-use/checklist", "priority": "high"},
             {"id": "problems", "label": "Ver problemas", "route": "/app/mobile-approval-cockpit-v2", "priority": "high"},
             {"id": "priority", "label": "Prioridades", "route": "/app/operator-priority", "priority": "medium"},
             {"id": "pc_loop", "label": "PC Loop", "route": "/app/pc-autopilot", "priority": "medium"},
@@ -97,6 +111,7 @@ class GodModeHomeService:
         active_project = priority.get("active_project") or "GOD_MODE"
         memory = self._safe("memory_context", lambda: memory_core_service.compact_context(active_project, max_chars=1600))
         pc_raw = self._safe("pc_autopilot", self._pc_autopilot().get_status)
+        ready = self._safe("ready_to_use", lambda: self._ready_to_use().get_status(tenant_id=tenant_id))
         dashboard = {
             "ok": True,
             "mode": "god_mode_home_dashboard",
@@ -112,13 +127,14 @@ class GodModeHomeService:
             "chat_autopilot": self._safe("chat_autopilot", self._chat_autopilot().get_status),
             "real_work": self._safe("real_work", self._real_work().get_status),
             "approvals": self._safe("pending_approvals", lambda: self._pending_approvals(tenant_id)),
+            "ready_to_use": ready,
             "memory": {"ok": memory.get("ok", False), "active_project": active_project, "chars": memory.get("chars", 0), "preview": (memory.get("context") or "")[-700:]},
             "latest_result": self._latest_result(),
         }
         dashboard["traffic_light"] = self._traffic_light(dashboard)
         dashboard["next_task"] = self._next_task(dashboard)
         dashboard["quick_actions"] = self._quick_actions()
-        dashboard["operator_message"] = f"{dashboard['traffic_light']['label']} · {dashboard['next_task']['label']}"
+        dashboard["operator_message"] = f"{dashboard['traffic_light']['label']} · {dashboard['next_task'].get('label', 'Dar ordem no chat')}"
         return dashboard
 
     def get_status(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
@@ -130,6 +146,7 @@ class GodModeHomeService:
             "active_project": dashboard["active_project"],
             "pc_autopilot_status": dashboard["pc_autopilot"].get("status"),
             "pending_approval_count": dashboard["approvals"].get("count", 0),
+            "ready_to_use": dashboard["ready_to_use"],
             "next_task": dashboard["next_task"],
             "money_priority_enabled": False,
         }
@@ -169,7 +186,8 @@ class GodModeHomeService:
     def driving_mode(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
         dashboard = self.build_dashboard(tenant_id=tenant_id)
         next_task = dashboard.get("next_task", {})
-        return {"ok": True, "mode": "god_mode_home_driving_mode", "speakable": [dashboard.get("operator_message", "Pronto."), f"Próxima ação: {next_task.get('label', 'dar ordem no chat')}", "Não escrevas dados sensíveis no chat."], "safe_buttons": [next_task, *dashboard.get("quick_actions", [])[:4]]}
+        ready = dashboard.get("ready_to_use", {})
+        return {"ok": True, "mode": "god_mode_home_driving_mode", "speakable": [dashboard.get("operator_message", "Pronto."), f"Prontidão: {ready.get('readiness_score', 0)} por cento.", f"Próxima ação: {next_task.get('label', 'dar ordem no chat')}", "Não escrevas dados sensíveis no chat."], "safe_buttons": [next_task, *dashboard.get("quick_actions", [])[:4]]}
 
 
 god_mode_home_service = GodModeHomeService()
