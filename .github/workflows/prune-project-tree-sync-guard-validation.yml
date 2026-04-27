@@ -1,4 +1,4 @@
-name: Home General Test Button Validation
+name: PR Checks Visibility Validation
 
 on:
   workflow_dispatch:
@@ -6,11 +6,10 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase92-*'
+      - 'phase93-*'
     paths:
       - 'backend/**'
       - 'docs/**'
-      - 'memory/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
   pull_request:
@@ -19,12 +18,11 @@ on:
     paths:
       - 'backend/**'
       - 'docs/**'
-      - 'memory/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  home-general-test-button-validation:
+  pr-checks-visibility-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Home General Test Button
+      - name: Validate PR Checks Visibility
         env:
           PYTHONPATH: backend
         run: |
@@ -48,68 +46,69 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.home_operator_ux_service import home_operator_ux_service
-          from app.services.real_operator_rehearsal_service import real_operator_rehearsal_service
+          from app.services.pr_checks_visibility_service import pr_checks_visibility_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/home-operator-ux/panel",
-              "/api/real-operator-rehearsal/run",
-              "/api/god-mode-home/dashboard",
-              "/app/home",
+              "/api/pr-checks-visibility/status",
+              "/api/pr-checks-visibility/package",
+              "/api/pr-checks-visibility/demo",
+              "/api/pr-checks-visibility/classify",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          panel = home_operator_ux_service.build_panel(tenant_id="owner-andre")
-          assert panel["ok"] is True
-          assert panel["general_test_endpoint"] == "/api/real-operator-rehearsal/run"
-          general_buttons = [b for b in panel["safe_buttons"] if b.get("kind") == "general_test"]
-          assert len(general_buttons) == 1
-          assert general_buttons[0]["label"] == "Teste geral"
-          assert general_buttons[0]["endpoint"] == "/api/real-operator-rehearsal/run"
-          assert general_buttons[0]["payload"]["tenant_id"] == "owner-andre"
+          base_pr = {"number": 231, "state": "open", "mergeable": True, "head_sha": "demo", "title": "Demo"}
+          green = pr_checks_visibility_service.classify(base_pr, workflow_runs=[{"name": "Universal", "conclusion": "success"}], statuses=[])
+          assert green["classification"] == "green"
+          assert green["merge_allowed"] is True
 
-          rehearsal = real_operator_rehearsal_service.run(tenant_id="owner-andre", requested_project="GOD_MODE")
-          assert rehearsal["ok"] is True
-          assert rehearsal["status"] == "ready", rehearsal["failed_checks"]
-          assert rehearsal["score"] == 100
-          assert rehearsal["flow"]["route_result"]["job_id"]
+          red = pr_checks_visibility_service.classify(base_pr, workflow_runs=[{"name": "APK", "conclusion": "failure"}], statuses=[])
+          assert red["classification"] == "red"
+          assert red["merge_allowed"] is False
 
-          frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
-          frontend_markers = [
-              "runPayloadButton(endpoint,payload={})",
-              "Teste geral",
-              "/api/real-operator-rehearsal/run",
-              "general_test",
-              "r?.flow?.route_result?.job_id",
-              "r?.score",
-              "window.__easyPayloads",
-          ]
-          for marker in frontend_markers:
-              assert marker in frontend, f"Missing frontend marker: {marker}"
+          pending = pr_checks_visibility_service.classify(base_pr, workflow_runs=[{"name": "EXE", "status": "in_progress"}], statuses=[])
+          assert pending["classification"] == "pending"
+          assert pending["merge_allowed"] is False
 
-          docs = Path("docs/frontend/home-general-test-button.md").read_text(encoding="utf-8")
-          for marker in ["Teste geral", "/api/real-operator-rehearsal/run", "requested_project", "Ver JSON"]:
+          missing_checks = pr_checks_visibility_service.classify(base_pr, workflow_runs=[], statuses=[])
+          assert missing_checks["classification"] == "no_checks_reported"
+          assert missing_checks["merge_allowed"] is False
+          assert missing_checks["operator_next"]["kind"] == "checks_missing"
+
+          status = pr_checks_visibility_service.get_status()
+          assert status["ok"] is True
+          assert status["no_checks_blocks_merge"] is True
+          assert status["green_allows_merge"] is True
+
+          demo = pr_checks_visibility_service.demo_scenarios()
+          assert set(demo["scenarios"].keys()) == {"green", "red", "pending", "no_checks_reported"}
+
+          docs = Path("docs/frontend/pr-checks-visibility.md").read_text(encoding="utf-8")
+          for marker in ["no_checks_reported", "/api/pr-checks-visibility/classify", "green", "red", "pending"]:
               assert marker in docs, f"Missing doc marker: {marker}"
+
+          source = Path("backend/app/services/pr_checks_visibility_service.py").read_text(encoding="utf-8")
+          for marker in ["PRChecksVisibilityService", "no_checks_reported", "merge_allowed", "checks_missing"]:
+              assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "home_operator_ux_service.py",
-              "god_mode_home_frontend.py",
-              "home-general-test-button.md",
+              "pr_checks_visibility.py",
+              "pr_checks_visibility_service.py",
+              "pr-checks-visibility.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("home general test button validation passed")
+          print("pr checks visibility validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Home General Test Button Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## PR Checks Visibility Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Modo Fácil now exposes a Teste geral safe button.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Teste geral calls the real operator rehearsal endpoint.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Result cards support rehearsal score, status and job data.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- PR check visibility classifications were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Missing checks are not treated as green.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Green, red, pending and no-check scenarios are covered.' >> "$GITHUB_STEP_SUMMARY"
