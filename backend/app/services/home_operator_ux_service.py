@@ -57,7 +57,7 @@ class HomeOperatorUxService:
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
                 "O backend continua até terminar, bloquear ou pedir OK.",
-                "Não escrever tokens, passwords, cookies ou API keys no chat.",
+                "Não escrever dados sensíveis no chat: tokens, passwords, cookies ou API keys.",
                 "Se estiver a conduzir, usar só botões curtos e aprovações claras.",
             ],
             "signals": {
