@@ -1,9 +1,10 @@
-# God Mode Home
+# God Mode Home Cockpit
 
 ## Cockpit
 
-- `/app/god-mode-home`
 - `/app/home`
+- `/app/god-mode`
+- `/app/god-mode-home`
 
 ## API
 
@@ -11,89 +12,72 @@
 - `GET /api/god-mode-home/package`
 - `GET /api/god-mode-home/dashboard`
 - `GET /api/god-mode-home/driving-mode`
-- `POST /api/god-mode-home/one-tap`
+- `POST /api/god-mode-home/continue`
 - `POST /api/god-mode-home/chat`
+- `POST /api/god-mode-home/start-autopilot`
+- `POST /api/god-mode-home/stop-autopilot`
+- `POST /api/god-mode-home/approve-next`
 
 ## Objetivo
 
-Criar uma entrada principal simples para o God Mode, pensada para telemóvel e APK.
+Criar o cockpit principal definitivo do God Mode.
 
-O operador não deve ter de decorar cockpits, comandos ou rotas técnicas. A Home responde:
+A Home não substitui os módulos especializados. Ela é a porta de entrada simples para o operador usar no APK/telemóvel.
 
-> O que carrego agora?
+## Política
 
-## Regra principal para o APK
+- Uma Home controla vários cockpits por baixo.
+- A ordem de projetos vem do operador.
+- `money_priority_enabled=false`.
+- Dinheiro é consequência de arranjar, montar, validar e publicar projetos; não é o critério principal de routing.
+- O backend trabalha até concluir ou precisar de aprovação/input.
 
-O APK trabalha em modo de conversa corrida tipo ChatGPT.
+## O que aparece na Home
 
-Por isso, a Home não substitui o chat. Ela funciona como:
+- Chat rápido.
+- Semáforo geral.
+- Projeto ativo.
+- Estado do PC Autopilot.
+- Aprovações pendentes.
+- Próxima tarefa.
+- Último resultado.
+- Botão Continuar.
+- Botão Parar.
+- Botão Aprovar próximo.
+- Botão Ver problemas.
 
-- entrada rápida;
-- resumo de estado;
-- decisão da próxima ação;
-- fallback com botões grandes;
-- ponte para `/app/operator-chat-sync`.
+## Integrações por baixo
 
-## Chat-first contract
+- Operator Priority.
+- Real Work Command Pipeline.
+- Operator Chat Real Work Bridge.
+- Chat Autopilot Supervisor.
+- PC Autopilot Loop.
+- Mobile Approval Cockpit V2.
+- AndreOS Memory Core.
 
-A resposta de `/api/god-mode-home/dashboard` inclui `chat_contract` com estas regras:
+## Fluxo principal
 
-- conversas corridas são a superfície principal no APK;
-- botões devem aparecer como ações sugeridas dentro do chat;
-- aprovações, inputs seguros e replay devem aparecer inline na conversa;
-- não guardar segredos em memória AndreOS.
-
-## One-tap actions
-
-A Home suporta ações de um toque:
-
-- `one-tap-money`: cria cartão de aprovação para sprint de dinheiro;
-- `one-tap-continue-god-mode`: continua God Mode por comando guiado;
-- `one-tap-review-memory`: revê memória do projeto ativo.
-
-## Chat endpoint
-
-`POST /api/god-mode-home/chat` permite ao APK enviar mensagens como:
-
-- “continua”;
-- “quero ganhar dinheiro”;
-- “revê memória”;
-- “tenho aprovações?”;
-- “avança para próxima fase”.
-
-O serviço responde com:
-
-- `reply`;
-- `suggested_next_steps`;
-- `thread_id`;
-- thread atualizada no sistema de conversa contínua.
+1. Operador abre `/app/home` no APK.
+2. Vê semáforo e próxima tarefa.
+3. Escreve ordem no chat rápido ou carrega em Continuar.
+4. Backend resolve projeto pela prioridade do operador.
+5. Backend cria job real.
+6. Autopilot tenta trabalhar.
+7. Se bloquear, Home mostra Aprovações/Problemas.
+8. PC Autopilot pode continuar no PC com APK fechado.
 
 ## Segurança
 
-A Home bloqueia mensagens que pareçam conter:
-
-- token;
-- password;
-- bearer;
-- authorization;
-- cookie;
-- api key;
-- secrets.
-
-Essas mensagens não entram como conteúdo normal no chat e não são escritas na memória AndreOS.
+- Não contorna aprovações.
+- Não executa atalhos destrutivos.
+- Não muda prioridade para dinheiro automaticamente.
+- Não mistura dados sensíveis com memória operacional normal.
 
 ## Modo condução
 
-`GET /api/god-mode-home/driving-mode` devolve frases curtas e botões seguros para uso em contexto móvel, evitando escrita longa.
+`GET /api/god-mode-home/driving-mode` devolve frases curtas e botões seguros para contexto móvel.
 
-## Integrações
+## Próximo endurecimento
 
-- Operator Chat Runtime Snapshot;
-- Operator Conversation Thread;
-- Money Command Center;
-- Mobile Approval Cockpit;
-- Mission Control;
-- Guided Command Center;
-- Project Portfolio;
-- Self Update;
-- AndreOS Memory Core.
+Depois desta fase, o próximo passo é fazer o APK abrir `/app/home` como landing principal depois do pairing, em vez de mandar o operador para cockpits técnicos.
