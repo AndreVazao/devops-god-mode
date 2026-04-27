@@ -54,9 +54,9 @@ class ArtifactsCenterService:
             {
                 "id": "windows_exe_build",
                 "label": "Windows EXE Build",
-                "path": ".github/workflows/windows-exe-build.yml",
+                "path": ".github/workflows/windows-exe-real-build.yml",
                 "required": True,
-                "present": Path(".github/workflows/windows-exe-build.yml").exists(),
+                "present": Path(".github/workflows/windows-exe-real-build.yml").exists(),
             },
             {
                 "id": "universal_total_test",
@@ -85,7 +85,7 @@ class ArtifactsCenterService:
                 "expected_artifact_name": "godmode-windows-exe",
                 "expected_file": "GodMode.exe",
                 "workflow": "Windows EXE Build",
-                "workflow_path": ".github/workflows/windows-exe-build.yml",
+                "workflow_path": ".github/workflows/windows-exe-real-build.yml",
                 "install_target": "PC Windows",
                 "next_step": "Abrir no PC para servir o backend local.",
             },
