@@ -57,6 +57,11 @@ class GodModeHomeService:
 
         return install_first_run_guide_service
 
+    def _artifacts(self):
+        from app.services.artifacts_center_service import artifacts_center_service
+
+        return artifacts_center_service
+
     def _pending_approvals(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
         cards = mobile_approval_cockpit_v2_service.list_cards(tenant_id=tenant_id, status="pending_approval", limit=50)
         return {"ok": cards.get("ok", False), "count": cards.get("card_count", 0), "cards": cards.get("cards", [])}
@@ -103,6 +108,7 @@ class GodModeHomeService:
             {"id": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards", "priority": "critical"},
             {"id": "continue", "label": "Continuar", "endpoint": "/api/god-mode-home/continue", "priority": "critical"},
             {"id": "install", "label": "Instalar/1º arranque", "endpoint": "/api/install-first-run/guide", "priority": "critical"},
+            {"id": "artifacts", "label": "APK/EXE", "endpoint": "/api/artifacts-center/dashboard", "priority": "critical"},
             {"id": "start_autopilot", "label": "Ligar PC Autopilot", "endpoint": "/api/god-mode-home/start-autopilot", "priority": "high"},
             {"id": "stop_autopilot", "label": "Parar", "endpoint": "/api/god-mode-home/stop-autopilot", "priority": "medium"},
             {"id": "approve_next", "label": "Aprovar próximo", "endpoint": "/api/god-mode-home/approve-next", "priority": "high"},
@@ -119,6 +125,7 @@ class GodModeHomeService:
         pc_raw = self._safe("pc_autopilot", self._pc_autopilot().get_status)
         ready = self._safe("ready_to_use", lambda: self._ready_to_use().get_status(tenant_id=tenant_id))
         install = self._safe("install_first_run", lambda: self._install_guide().get_status(tenant_id=tenant_id))
+        artifacts = self._safe("artifacts_center", self._artifacts().get_status)
         dashboard = {
             "ok": True,
             "mode": "god_mode_home_dashboard",
@@ -136,6 +143,7 @@ class GodModeHomeService:
             "approvals": self._safe("pending_approvals", lambda: self._pending_approvals(tenant_id)),
             "ready_to_use": ready,
             "install_first_run": install,
+            "artifacts_center": artifacts,
             "memory": {"ok": memory.get("ok", False), "active_project": active_project, "chars": memory.get("chars", 0), "preview": (memory.get("context") or "")[-700:]},
             "latest_result": self._latest_result(),
         }
@@ -156,6 +164,7 @@ class GodModeHomeService:
             "pending_approval_count": dashboard["approvals"].get("count", 0),
             "ready_to_use": dashboard["ready_to_use"],
             "install_first_run": dashboard["install_first_run"],
+            "artifacts_center": dashboard["artifacts_center"],
             "next_task": dashboard["next_task"],
             "money_priority_enabled": False,
         }
@@ -197,7 +206,8 @@ class GodModeHomeService:
         next_task = dashboard.get("next_task", {})
         ready = dashboard.get("ready_to_use", {})
         install = dashboard.get("install_first_run", {})
-        return {"ok": True, "mode": "god_mode_home_driving_mode", "speakable": [dashboard.get("operator_message", "Pronto."), f"Prontidão: {ready.get('readiness_score', 0)} por cento.", f"Instalação: {install.get('done_count', 0)} passos prontos.", f"Próxima ação: {next_task.get('label', 'dar ordem no chat')}", "Não escrevas dados sensíveis no chat."], "safe_buttons": [next_task, *dashboard.get("quick_actions", [])[:4]]}
+        artifacts = dashboard.get("artifacts_center", {})
+        return {"ok": True, "mode": "god_mode_home_driving_mode", "speakable": [dashboard.get("operator_message", "Pronto."), f"Prontidão: {ready.get('readiness_score', 0)} por cento.", f"Instalação: {install.get('done_count', 0)} passos prontos.", f"Artifacts: {artifacts.get('artifact_count', 0)} pacotes previstos.", f"Próxima ação: {next_task.get('label', 'dar ordem no chat')}", "Não escrevas dados sensíveis no chat."], "safe_buttons": [next_task, *dashboard.get("quick_actions", [])[:4]]}
 
 
 god_mode_home_service = GodModeHomeService()

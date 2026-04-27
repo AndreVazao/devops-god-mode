@@ -1,4 +1,4 @@
-name: Install First Run Guide Validation
+name: Artifacts Center Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase83-*'
+      - 'phase84-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  install-first-run-guide-validation:
+  artifacts-center-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Install First Run Guide
+      - name: Validate Artifacts Center
         env:
           PYTHONPATH: backend
         run: |
@@ -46,16 +46,16 @@ jobs:
           from pathlib import Path
 
           from main import app
+          from app.services.artifacts_center_service import artifacts_center_service
           from app.services.god_mode_home_service import god_mode_home_service
-          from app.services.install_first_run_guide_service import install_first_run_guide_service
           from app.services.operator_priority_service import operator_priority_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/install-first-run/status",
-              "/api/install-first-run/package",
-              "/api/install-first-run/guide",
+              "/api/artifacts-center/status",
+              "/api/artifacts-center/package",
+              "/api/artifacts-center/dashboard",
               "/api/god-mode-home/dashboard",
               "/app/home",
           }
@@ -65,72 +65,69 @@ jobs:
           operator_priority_service.set_order(
               ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
               active_project="GOD_MODE",
-              note="install first run validation order",
+              note="artifacts center validation order",
           )
 
-          guide = install_first_run_guide_service.build_guide(tenant_id="owner-andre")
-          assert guide["ok"] is True
-          assert guide["mode"] == "install_first_run_guide"
-          assert guide["readiness_score"] >= 75
-          assert guide["steps"]
-          assert len(guide["steps"]) == 8
-          assert guide["current_step"]
-          assert any(step["title"] == "Abrir APK" for step in guide["steps"])
-          assert any(step["title"] == "Ligar APK ao PC" for step in guide["steps"])
-          assert any(step["title"] == "Dar primeiro comando" for step in guide["steps"])
-          assert any(item["route"] == "/app/home" for item in guide["primary_routes"] if item.get("route"))
-          assert any(item["route"] == "/app/pc-autopilot" for item in guide["primary_routes"] if item.get("route"))
-          assert any("Não escrever dados sensíveis" in item for item in guide["safe_operator_rules"])
+          dashboard = artifacts_center_service.build_dashboard()
+          assert dashboard["ok"] is True
+          assert dashboard["mode"] == "artifacts_center_dashboard"
+          assert dashboard["status"] == "ready"
+          assert dashboard["artifact_count"] == 2
+          assert dashboard["actions_url"].endswith("/actions")
+          assert dashboard["latest_artifacts_url"].endswith("branch%3Amain")
+          assert any(item["expected_artifact_name"] == "godmode-android-webview-apk" for item in dashboard["artifacts"])
+          assert any(item["expected_file"] == "GodModeMobile-debug.apk" for item in dashboard["artifacts"])
+          assert any(item["id"] == "exe" for item in dashboard["artifacts"])
+          assert any(step["artifact"] == "godmode-android-webview-apk" for step in dashboard["install_order"] if step.get("artifact"))
 
-          status = install_first_run_guide_service.get_status(tenant_id="owner-andre")
+          status = artifacts_center_service.get_status()
           assert status["ok"] is True
-          assert status["readiness_score"] == guide["readiness_score"]
-          assert status["done_count"] == guide["done_count"]
-          assert status["current_step"]
+          assert status["artifact_count"] == 2
+          assert status["ready_workflow_count"] >= 2
 
-          package = install_first_run_guide_service.get_package(tenant_id="owner-andre")
+          package = artifacts_center_service.get_package()
           assert package["ok"] is True
-          assert package["package"]["guide"]["done_count"] == guide["done_count"]
+          assert package["package"]["dashboard"]["status"] == "ready"
 
           home = god_mode_home_service.build_dashboard(tenant_id="owner-andre")
           assert home["ok"] is True
-          assert "install_first_run" in home
-          assert home["install_first_run"]["ok"] is True
-          assert home["install_first_run"]["readiness_score"] >= 75
-          assert any(item.get("endpoint") == "/api/install-first-run/guide" for item in home["quick_actions"])
+          assert "artifacts_center" in home
+          assert home["artifacts_center"]["ok"] is True
+          assert home["artifacts_center"]["artifact_count"] == 2
+          assert any(item.get("endpoint") == "/api/artifacts-center/dashboard" for item in home["quick_actions"])
 
           driving = god_mode_home_service.driving_mode(tenant_id="owner-andre")
           assert driving["ok"] is True
-          assert any("Instalação" in item for item in driving["speakable"])
+          assert any("Artifacts" in item for item in driving["speakable"])
 
-          docs = Path("docs/frontend/install-first-run-guide.md").read_text(encoding="utf-8")
-          for marker in ["/api/install-first-run/guide", "Instalar/abrir backend no PC", "Ligar APK ao PC", "Dar primeiro comando"]:
+          docs = Path("docs/frontend/artifacts-center.md").read_text(encoding="utf-8")
+          for marker in ["/api/artifacts-center/dashboard", "GodModeMobile-debug.apk", "godmode-android-webview-apk", "GodMode.exe"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
           frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
-          for marker in ["Instalar/1º arranque", "/api/install-first-run/guide", "install_first_run"]:
+          for marker in ["APK/EXE", "/api/artifacts-center/dashboard", "artifacts_center"]:
               assert marker in frontend, f"Missing frontend marker: {marker}"
 
-          source = Path("backend/app/services/install_first_run_guide_service.py").read_text(encoding="utf-8")
-          for marker in ["InstallFirstRunGuideService", "Confirmar builds", "Ligar PC Autopilot", "safe_operator_rules"]:
+          source = Path("backend/app/services/artifacts_center_service.py").read_text(encoding="utf-8")
+          for marker in ["ArtifactsCenterService", "godmode-android-webview-apk", "windows-exe-real-build.yml", "Android APK Build"]:
               assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "install_first_run_guide.py",
-              "install_first_run_guide_service.py",
-              "install-first-run-guide.md",
+              "artifacts_center.py",
+              "artifacts_center_service.py",
+              "artifacts-center.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("install first run guide validation passed")
+          print("artifacts center validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Install First Run Guide Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Artifacts Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Install and first-run guide API was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Home now exposes install/first-run status and action.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Guide covers PC, APK, pairing, autopilot, first command and approvals.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Artifacts Center API was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home now exposes APK/EXE guidance.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Canonical APK/EXE workflows and expected artifact names are covered.' >> "$GITHUB_STEP_SUMMARY"
