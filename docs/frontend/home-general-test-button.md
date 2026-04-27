@@ -40,6 +40,10 @@ O cartão de resultado mostra:
 - artifacts;
 - botão `Ver JSON`.
 
+## Critério de aceitação
+
+A validação da fase deve confirmar que o botão existe no Modo Fácil, chama `/api/real-operator-rehearsal/run`, devolve score pronto e mostra o resultado em cartão.
+
 ## Segurança
 
 - Não contorna aprovações.
