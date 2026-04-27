@@ -2,11 +2,13 @@
 
 ## Objetivo
 
-Criar o primeiro APK Android real para o God Mode.
+Criar o APK Android real do God Mode.
 
-Este APK é um WebView shell simples e controlado que abre o backend local do PC na rota:
+O APK é um WebView shell simples e controlado que abre o backend local do PC na Home principal:
 
-- `/app/apk-start`
+- `/app/home`
+
+`/app/apk-start` fica como fallback legado.
 
 ## Projeto Android
 
@@ -41,14 +43,22 @@ O APK mostra:
 
 - campo para URL base do PC;
 - botão “Auto” para procurar o backend automaticamente;
-- botão “Abrir”;
+- botão “Home” para abrir `/app/home`;
 - botão “Teste” para testar `/health`;
-- botões rápidos para Start, First Use, Chat, Readiness e Drill;
+- botões rápidos para Home, Chat, OK/Aprovações, PC Autopilot, Start legado e First Use;
 - WebView que carrega `base_url + rota`.
+
+## Entrada principal
+
+A Phase 81 muda a rota principal do APK para:
+
+- `/app/home`
+
+Assim, depois de pairing, auto discovery ou teste `/health`, o operador cai no God Mode Home Cockpit em vez de cockpits técnicos.
 
 ## Pairing por deep link
 
-A Phase 75 adiciona receção de deep link:
+O APK recebe deep link:
 
 - `godmode://pair?payload=...`
 
@@ -69,7 +79,7 @@ Quando o APK recebe o deep link:
 7. rejeita URL com marcadores sensíveis como `token=`, `password=`, `cookie=`, `api_key=`, `authorization=` ou `bearer`;
 8. guarda `base_url` nas preferências Android;
 9. testa `/health`;
-10. se responder, abre `/app/apk-start`.
+10. se responder, abre `/app/home`.
 
 ## Auto discovery
 
@@ -91,7 +101,7 @@ Se encontrar o backend:
 
 - guarda o URL;
 - preenche o campo;
-- abre `/app/apk-start`.
+- abre `/app/home`.
 
 Se não encontrar:
 
@@ -114,7 +124,7 @@ O botão “Teste” faz um pedido HTTP a:
 
 Se o backend responder, o APK abre automaticamente:
 
-- `/app/apk-start`
+- `/app/home`
 
 Se falhar, mostra uma mensagem para verificar:
 
