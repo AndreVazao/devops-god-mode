@@ -53,6 +53,7 @@ class HomeOperatorUxService:
             "primary_action": primary_action,
             "safe_buttons": self._safe_buttons(primary_action),
             "quick_commands": self._quick_commands(active_project),
+            "daily_command_route_endpoint": "/api/daily-command-router/route",
             "driving_safe": True,
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
@@ -91,8 +92,8 @@ class HomeOperatorUxService:
         return {
             "kind": "continue_project",
             "label": f"Continuar {active_project}",
-            "endpoint": "/api/god-mode-home/continue",
-            "payload": {"requested_project": active_project},
+            "endpoint": "/api/daily-command-router/route",
+            "payload": {"command_id": "continue_active_project", "requested_project": active_project},
             "priority": "critical",
         }
 
@@ -101,7 +102,7 @@ class HomeOperatorUxService:
             primary_action,
             {"kind": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards", "priority": "critical"},
             {"kind": "approve", "label": "Aprovar próximo", "endpoint": "/api/god-mode-home/approve-next", "priority": "high"},
-            {"kind": "health", "label": "Saúde", "endpoint": "/api/home-system-health/snapshot", "priority": "high"},
+            {"kind": "health", "label": "Saúde", "endpoint": "/api/daily-command-router/route", "payload": {"command_id": "show_health"}, "priority": "high"},
             {"kind": "stop", "label": "Parar", "endpoint": "/api/god-mode-home/stop-autopilot", "priority": "medium"},
         ]
         seen = set()
@@ -115,26 +116,31 @@ class HomeOperatorUxService:
         return unique
 
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
+        route_endpoint = "/api/daily-command-router/route"
         return [
             {
                 "id": "continue_active_project",
                 "label": f"Continua {active_project}",
                 "message": f"continua o projeto {active_project} até terminares ou precisares do meu OK",
+                "route_endpoint": route_endpoint,
             },
             {
                 "id": "fix_blockers",
                 "label": "Corrigir blockers",
                 "message": f"analisa os blockers do {active_project}, cria plano curto e executa o que for seguro sem contornar aprovações",
+                "route_endpoint": route_endpoint,
             },
             {
                 "id": "prepare_install",
                 "label": "Preparar instalação",
                 "message": "mostra o caminho mais simples para instalar e abrir o God Mode no PC e no APK",
+                "route_endpoint": route_endpoint,
             },
             {
                 "id": "summarize_next",
                 "label": "Resumo curto",
                 "message": "dá-me só o estado atual, próximo passo e o que precisa do meu OK",
+                "route_endpoint": route_endpoint,
             },
         ]
 
@@ -148,6 +154,7 @@ class HomeOperatorUxService:
             "primary_action": panel["primary_action"],
             "safe_button_count": len(panel["safe_buttons"]),
             "quick_command_count": len(panel["quick_commands"]),
+            "daily_command_route_endpoint": panel["daily_command_route_endpoint"],
             "driving_safe": panel["driving_safe"],
         }
 
