@@ -1,282 +1,175 @@
 from __future__ import annotations
 
-import re
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 from uuid import uuid4
 
-from app.services.guided_mobile_command_center_service import guided_mobile_command_center_service
-from app.services.memory_core_service import DEFAULT_BLOCKED_KEYWORDS, memory_core_service
-from app.services.mission_control_cockpit_service import mission_control_cockpit_service
+from app.services.memory_core_service import memory_core_service
 from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
-from app.services.money_command_center_service import money_command_center_service
-from app.services.operator_chat_runtime_snapshot_service import operator_chat_runtime_snapshot_service
-from app.services.operator_conversation_thread_service import operator_conversation_thread_service
-from app.services.project_portfolio_service import project_portfolio_service
-from app.services.self_update_service import self_update_service
-from app.utils.atomic_json_store import AtomicJsonStore
-
-DATA_DIR = Path("data")
-GOD_MODE_HOME_FILE = DATA_DIR / "god_mode_home.json"
-GOD_MODE_HOME_STORE = AtomicJsonStore(
-    GOD_MODE_HOME_FILE,
-    default_factory=lambda: {"actions": [], "sessions": [], "chat_events": []},
-)
-
-SECRET_WORDS = [item.lower() for item in DEFAULT_BLOCKED_KEYWORDS]
+from app.services.operator_priority_service import operator_priority_service
 
 
 class GodModeHomeService:
-    """Phone-first home cockpit with one-tap actions and ChatGPT-style continuous conversation."""
+    """Unified mobile-first home cockpit.
 
-    def get_status(self) -> Dict[str, Any]:
-        store = self._load_store()
-        return {
-            "ok": True,
-            "mode": "god_mode_home_status",
-            "status": "god_mode_home_ready",
-            "store_file": str(GOD_MODE_HOME_FILE),
-            "atomic_store_enabled": True,
-            "chat_first": True,
-            "apk_ready_surface": True,
-            "action_count": len(store.get("actions", [])),
-            "session_count": len(store.get("sessions", [])),
-            "chat_event_count": len(store.get("chat_events", [])),
-        }
+    One screen, many engines underneath. The operator project order is the source
+    of truth. Money is a consequence of shipping/fixing projects, not the routing
+    priority for this cockpit.
+    """
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
 
-    def _normalize_store(self, store: Dict[str, Any]) -> Dict[str, Any]:
-        if not isinstance(store, dict):
-            return {"actions": [], "sessions": [], "chat_events": []}
-        store.setdefault("actions", [])
-        store.setdefault("sessions", [])
-        store.setdefault("chat_events", [])
-        return store
-
-    def _load_store(self) -> Dict[str, Any]:
-        return self._normalize_store(GOD_MODE_HOME_STORE.load())
-
-    def _safe_call(self, label: str, fn: Any) -> Dict[str, Any]:
+    def _safe(self, label: str, fn: Callable[[], Any]) -> Dict[str, Any]:
         try:
-            return {"ok": True, "label": label, "result": fn()}
-        except Exception as exc:  # pragma: no cover - defensive home cockpit shield
-            return {"ok": False, "label": label, "error": str(exc)}
+            value = fn()
+            return value if isinstance(value, dict) else {"ok": True, "mode": label, "value": value}
+        except Exception as exc:
+            return {"ok": False, "mode": label, "error": exc.__class__.__name__, "detail": str(exc)[:300]}
 
-    def _contains_secret_keyword(self, text: str) -> bool:
-        lowered = text.lower()
-        return any(re.search(rf"(?<![a-z0-9_]){re.escape(word)}(?![a-z0-9_])", lowered) for word in SECRET_WORDS)
+    def _chat_bridge(self):
+        from app.services.operator_chat_real_work_bridge_service import operator_chat_real_work_bridge_service
 
-    def _safe_chat_text(self, text: str) -> Dict[str, Any]:
-        clean = (text or "").strip()
-        if not clean:
-            return {"ok": False, "error": "empty_message", "safe_text": ""}
-        if self._contains_secret_keyword(clean):
-            return {
-                "ok": False,
-                "error": "secret_like_text_blocked",
-                "safe_text": "[Mensagem bloqueada: parece conter token/password/secret. Não colar segredos no chat.]",
-            }
-        return {"ok": True, "safe_text": clean[:4000]}
+        return operator_chat_real_work_bridge_service
 
-    def _remember(self, title: str, body: str) -> Dict[str, Any]:
-        memory_core_service.initialize()
+    def _chat_autopilot(self):
+        from app.services.chat_autopilot_supervisor_service import chat_autopilot_supervisor_service
+
+        return chat_autopilot_supervisor_service
+
+    def _pc_autopilot(self):
+        from app.services.pc_autopilot_loop_service import pc_autopilot_loop_service
+
+        return pc_autopilot_loop_service
+
+    def _real_work(self):
+        from app.services.real_work_command_pipeline_service import real_work_command_pipeline_service
+
+        return real_work_command_pipeline_service
+
+    def _pending_approvals(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
+        cards = mobile_approval_cockpit_v2_service.list_cards(tenant_id=tenant_id, status="pending_approval", limit=50)
+        return {"ok": cards.get("ok", False), "count": cards.get("card_count", 0), "cards": cards.get("cards", [])}
+
+    def _latest_result(self) -> Dict[str, Any]:
         return {
-            "history": memory_core_service.write_history("GOD_MODE", title, body),
-            "last_session": memory_core_service.update_last_session("GOD_MODE", f"God Mode Home: {title}", body),
+            "chat": self._safe("chat_latest", self._chat_bridge().latest).get("report"),
+            "real_work": self._safe("real_work_latest", self._real_work().latest).get("report"),
+            "chat_autopilot": self._safe("chat_autopilot_latest", self._chat_autopilot().latest).get("report"),
+            "pc_autopilot": self._safe("pc_autopilot_latest", self._pc_autopilot().latest).get("cycle"),
         }
 
-    def _open_buttons(self) -> List[Dict[str, Any]]:
+    def _traffic_light(self, dashboard: Dict[str, Any]) -> Dict[str, str]:
+        approvals = dashboard.get("approvals", {})
+        pc_status = dashboard.get("pc_autopilot", {}).get("status")
+        if approvals.get("count", 0) > 0:
+            return {"color": "yellow", "label": "Precisa do teu OK", "reason": "pending_approval"}
+        if pc_status == "running":
+            return {"color": "green", "label": "PC a trabalhar", "reason": "pc_autopilot_running"}
+        if pc_status == "enabled_idle":
+            return {"color": "green", "label": "Pronto", "reason": "pc_autopilot_enabled"}
+        return {"color": "blue", "label": "Pronto para ordem", "reason": "waiting_operator_command"}
+
+    def _next_task(self, dashboard: Dict[str, Any]) -> Dict[str, str]:
+        if dashboard.get("approvals", {}).get("count", 0) > 0:
+            return {"kind": "approval", "label": "Decidir aprovações pendentes", "route": "/app/mobile-approval-cockpit-v2", "priority": "critical"}
+        if dashboard.get("pc_autopilot", {}).get("status") == "disabled":
+            return {"kind": "autopilot", "label": "Ligar PC Autopilot", "endpoint": "/api/god-mode-home/start-autopilot", "priority": "high"}
+        latest_chat = dashboard.get("latest_result", {}).get("chat") or {}
+        if latest_chat.get("job_id"):
+            return {"kind": "job", "label": f"Acompanhar job {latest_chat.get('job_id')}", "route": "/app/operator-chat-sync-cards", "priority": "medium"}
+        return {"kind": "command", "label": "Dar próxima ordem no chat", "route": "/app/operator-chat-sync-cards", "priority": "high"}
+
+    def _quick_actions(self) -> List[Dict[str, str]]:
         return [
-            {"button_id": "open-chat", "label": "Chat corrido", "kind": "open", "url": "/app/operator-chat-sync", "priority": "critical"},
-            {"button_id": "open-money", "label": "Ganhar dinheiro", "kind": "open", "url": "/app/money-command-center", "priority": "high"},
-            {"button_id": "open-approvals", "label": "Aprovações", "kind": "open", "url": "/app/mobile-approval-cockpit-v2", "priority": "high"},
-            {"button_id": "open-mission", "label": "Mission Control", "kind": "open", "url": "/app/mission-control", "priority": "medium"},
-            {"button_id": "open-guided", "label": "Comandos guiados", "kind": "open", "url": "/app/guided-command-center", "priority": "medium"},
-            {"button_id": "open-builds", "label": "Builds", "kind": "open", "url": "/app/build-catalog", "priority": "medium"},
-            {"button_id": "open-memory", "label": "Memória", "kind": "open", "url": "/app/memory-core", "priority": "medium"},
-            {"button_id": "open-self-update", "label": "Atualizar God Mode", "kind": "open", "url": "/app/self-update", "priority": "medium"},
+            {"id": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards", "priority": "critical"},
+            {"id": "continue", "label": "Continuar", "endpoint": "/api/god-mode-home/continue", "priority": "critical"},
+            {"id": "start_autopilot", "label": "Ligar PC Autopilot", "endpoint": "/api/god-mode-home/start-autopilot", "priority": "high"},
+            {"id": "stop_autopilot", "label": "Parar", "endpoint": "/api/god-mode-home/stop-autopilot", "priority": "medium"},
+            {"id": "approve_next", "label": "Aprovar próximo", "endpoint": "/api/god-mode-home/approve-next", "priority": "high"},
+            {"id": "problems", "label": "Ver problemas", "route": "/app/mobile-approval-cockpit-v2", "priority": "high"},
+            {"id": "priority", "label": "Prioridades", "route": "/app/operator-priority", "priority": "medium"},
+            {"id": "pc_loop", "label": "PC Loop", "route": "/app/pc-autopilot", "priority": "medium"},
         ]
-
-    def _one_tap_buttons(self) -> List[Dict[str, Any]]:
-        return [
-            {"button_id": "one-tap-money", "label": "Criar próximo passo para dinheiro", "kind": "execute", "endpoint": "/api/god-mode-home/one-tap", "payload": {"action_id": "one-tap-money"}, "risk": "creates_approval_card"},
-            {"button_id": "one-tap-continue-god-mode", "label": "Continuar God Mode", "kind": "execute", "endpoint": "/api/god-mode-home/one-tap", "payload": {"action_id": "one-tap-continue-god-mode"}, "risk": "creates_approval_card"},
-            {"button_id": "one-tap-review-memory", "label": "Rever memória", "kind": "execute", "endpoint": "/api/god-mode-home/one-tap", "payload": {"action_id": "one-tap-review-memory"}, "risk": "safe_planning"},
-        ]
-
-    def _summary_from_snapshots(self, mission: Dict[str, Any], money: Dict[str, Any], approvals: Dict[str, Any], portfolio: Dict[str, Any], update: Dict[str, Any], chat: Dict[str, Any]) -> Dict[str, Any]:
-        mission_result = mission.get("result", {}) if mission.get("ok") else {}
-        money_result = money.get("result", {}) if money.get("ok") else {}
-        approvals_result = approvals.get("result", {}) if approvals.get("ok") else {}
-        portfolio_result = portfolio.get("result", {}) if portfolio.get("ok") else {}
-        update_result = update.get("result", {}) if update.get("ok") else {}
-        chat_result = chat.get("result", {}) if chat.get("ok") else {}
-        return {
-            "readiness": mission_result.get("readiness", "unknown"),
-            "pending_approvals": approvals_result.get("pending_approval_count", 0),
-            "top_money_project": (money_result.get("top_project") or {}).get("project_id"),
-            "top_money_answer": money_result.get("operator_answer", ""),
-            "project_count": portfolio_result.get("summary", {}).get("project_count", 0),
-            "git_available": update_result.get("status", {}).get("git_available"),
-            "chat_threads": chat_result.get("thread_count", 0),
-            "chat_waiting_threads": chat_result.get("waiting_thread_count", 0),
-            "chat_pending_gates": chat_result.get("pending_gate_count", 0),
-        }
-
-    def _choose_next_action(self, summary: Dict[str, Any]) -> Dict[str, Any]:
-        if summary.get("chat_pending_gates", 0) > 0 or summary.get("chat_waiting_threads", 0) > 0:
-            return {"action_id": "open-chat", "label": "Tens conversa pendente no APK/chat. Continua no chat corrido.", "button_label": "Abrir chat", "url": "/app/operator-chat-sync", "reason": "O modo principal no APK é conversa contínua com estado inline.", "urgency": "critical"}
-        if summary.get("pending_approvals", 0) > 0:
-            return {"action_id": "open-approvals", "label": "Tens aprovações pendentes. Decide primeiro.", "button_label": "Abrir aprovações", "url": "/app/mobile-approval-cockpit-v2", "reason": "A execução segura depende de decisões explícitas.", "urgency": "high"}
-        if summary.get("top_money_project"):
-            return {"action_id": "one-tap-money", "label": f"Ataca dinheiro agora: {summary.get('top_money_project')}.", "button_label": "Criar próximo passo para dinheiro", "endpoint": "/api/god-mode-home/one-tap", "reason": summary.get("top_money_answer") or "Existe projeto com caminho comercial calculado.", "urgency": "high"}
-        if summary.get("readiness") == "red":
-            return {"action_id": "open-mission", "label": "Há bloqueio técnico. Abre Mission Control.", "button_label": "Abrir Mission Control", "url": "/app/mission-control", "reason": "Readiness geral está vermelho.", "urgency": "high"}
-        return {"action_id": "one-tap-continue-god-mode", "label": "Continua o God Mode com comando guiado.", "button_label": "Continuar God Mode", "endpoint": "/api/god-mode-home/one-tap", "reason": "Sem bloqueio óbvio; avançar por fase pequena.", "urgency": "medium"}
 
     def build_dashboard(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
-        mission = self._safe_call("mission_control", lambda: mission_control_cockpit_service.build_dashboard(tenant_id=tenant_id))
-        money = self._safe_call("money_command_center", lambda: money_command_center_service.build_dashboard(tenant_id=tenant_id))
-        approvals = self._safe_call("mobile_approvals", lambda: mobile_approval_cockpit_v2_service.build_dashboard(tenant_id=tenant_id))
-        portfolio = self._safe_call("project_portfolio", lambda: project_portfolio_service.build_dashboard())
-        update = self._safe_call("self_update", lambda: self_update_service.build_dashboard())
-        chat = self._safe_call("operator_chat", lambda: operator_chat_runtime_snapshot_service.build_snapshot(tenant_id=tenant_id))
-        summary = self._summary_from_snapshots(mission, money, approvals, portfolio, update, chat)
-        next_action = self._choose_next_action(summary)
-        session = {"session_id": f"home-session-{uuid4().hex[:12]}", "created_at": self._now(), "tenant_id": tenant_id, "summary": summary, "next_action": next_action}
-
-        def mutate(payload: Dict[str, Any]) -> Dict[str, Any]:
-            payload = self._normalize_store(payload)
-            payload["sessions"].append(session)
-            payload["sessions"] = payload["sessions"][-100:]
-            return payload
-
-        GOD_MODE_HOME_STORE.update(mutate)
-        store = self._load_store()
-        return {
+        priority = self._safe("operator_priority", operator_priority_service.get_status)
+        active_project = priority.get("active_project") or "GOD_MODE"
+        memory = self._safe("memory_context", lambda: memory_core_service.compact_context(active_project, max_chars=1600))
+        pc_raw = self._safe("pc_autopilot", self._pc_autopilot().get_status)
+        dashboard = {
             "ok": True,
             "mode": "god_mode_home_dashboard",
-            "tenant_id": tenant_id,
             "created_at": self._now(),
-            "status": self.get_status(),
-            "summary": summary,
-            "next_action": next_action,
-            "open_buttons": self._open_buttons(),
-            "one_tap_buttons": self._one_tap_buttons(),
-            "chat_contract": {
-                "primary_apk_mode": "continuous_chat_like_chatgpt",
-                "preferred_url": "/app/operator-chat-sync",
-                "fallback_url": "/app/god-mode-home",
-                "rules": [
-                    "Conversas corridas são a superfície principal no APK.",
-                    "Botões devem aparecer como ações sugeridas dentro do chat.",
-                    "Aprovações, inputs seguros e replay devem aparecer inline na conversa.",
-                    "Não guardar segredos em memória AndreOS.",
-                ],
-            },
-            "recent_actions": store.get("actions", [])[-20:],
-            "operator_message": next_action["label"],
+            "tenant_id": tenant_id,
+            "policy": "one_home_screen_controls_specialized_cockpits",
+            "money_priority_enabled": False,
+            "home_routes": ["/app/home", "/app/god-mode", "/app/god-mode-home"],
+            "operator_priority": priority,
+            "active_project": active_project,
+            "chat": self._safe("operator_chat_real_work", self._chat_bridge().get_status),
+            "pc_autopilot": pc_raw,
+            "chat_autopilot": self._safe("chat_autopilot", self._chat_autopilot().get_status),
+            "real_work": self._safe("real_work", self._real_work().get_status),
+            "approvals": self._safe("pending_approvals", lambda: self._pending_approvals(tenant_id)),
+            "memory": {"ok": memory.get("ok", False), "active_project": active_project, "chars": memory.get("chars", 0), "preview": (memory.get("context") or "")[-700:]},
+            "latest_result": self._latest_result(),
+        }
+        dashboard["traffic_light"] = self._traffic_light(dashboard)
+        dashboard["next_task"] = self._next_task(dashboard)
+        dashboard["quick_actions"] = self._quick_actions()
+        dashboard["operator_message"] = f"{dashboard['traffic_light']['label']} · {dashboard['next_task']['label']}"
+        return dashboard
+
+    def get_status(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
+        dashboard = self.build_dashboard(tenant_id=tenant_id)
+        return {
+            "ok": True,
+            "mode": "god_mode_home_status",
+            "traffic_light": dashboard["traffic_light"],
+            "active_project": dashboard["active_project"],
+            "pc_autopilot_status": dashboard["pc_autopilot"].get("status"),
+            "pending_approval_count": dashboard["approvals"].get("count", 0),
+            "next_task": dashboard["next_task"],
+            "money_priority_enabled": False,
         }
 
-    def run_one_tap(self, action_id: str, project_id: str = "GOD_MODE", tenant_id: str = "owner-andre") -> Dict[str, Any]:
-        normalized_project = project_id.upper().replace("-", "_").replace(" ", "_")
-        if action_id == "one-tap-money":
-            result = money_command_center_service.create_approval_card(max_projects=2, tenant_id=tenant_id)
-            action_label = "Created money approval card"
-        elif action_id == "one-tap-continue-god-mode":
-            result = guided_mobile_command_center_service.execute_guided_action(
-                project="GOD_MODE",
-                action_id="continue-project",
-                extra_instruction="Foca em tornar o God Mode brutalmente fácil de usar no telemóvel e no APK com conversas corridas tipo ChatGPT. Próxima fase pequena, sem alterações destrutivas.",
-                tenant_id=tenant_id,
-            )
-            action_label = "Submitted guided God Mode continuation"
-        elif action_id == "one-tap-review-memory":
-            result = guided_mobile_command_center_service.execute_guided_action(project=normalized_project, action_id="memory-review", extra_instruction="Mostra o que falta para continuar em mobile-first e chat-first sem repetir contexto.", tenant_id=tenant_id)
-            action_label = "Submitted guided memory review"
-        else:
-            return {"ok": False, "error": "unknown_one_tap_action", "allowed": ["one-tap-money", "one-tap-continue-god-mode", "one-tap-review-memory"]}
-        event = {"event_id": f"home-action-{uuid4().hex[:12]}", "created_at": self._now(), "tenant_id": tenant_id, "action_id": action_id, "project_id": normalized_project, "label": action_label, "ok": bool(result.get("ok"))}
+    def get_package(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
+        return {"ok": True, "mode": "god_mode_home_package", "package": {"status": self.get_status(tenant_id), "dashboard": self.build_dashboard(tenant_id)}}
 
-        def mutate(payload: Dict[str, Any]) -> Dict[str, Any]:
-            payload = self._normalize_store(payload)
-            payload["actions"].append(event)
-            payload["actions"] = payload["actions"][-200:]
-            return payload
+    def continue_work(self, command_text: str | None = None, tenant_id: str = "owner-andre", requested_project: str | None = None) -> Dict[str, Any]:
+        resolved = operator_priority_service.resolve_project(requested_project)
+        project = (resolved.get("project") or {}).get("project_id") or "GOD_MODE"
+        command = command_text or f"continua o projeto {project} até precisares do meu OK"
+        result = self._chat_bridge().submit_chat_command(message=command, tenant_id=tenant_id, requested_project=project, auto_run=True)
+        memory_core_service.write_history(project, "God Mode Home continue", f"Command: {command}")
+        return {"ok": True, "mode": "god_mode_home_continue", "action_id": f"home-continue-{uuid4().hex[:12]}", "project": project, "command": command, "result": result, "dashboard": self.build_dashboard(tenant_id)}
 
-        GOD_MODE_HOME_STORE.update(mutate)
-        memory = self._remember("God Mode Home one-tap action", f"{action_label}: {action_id} para {normalized_project}")
-        return {"ok": True, "mode": "god_mode_home_one_tap", "event": event, "result": result, "memory": memory, "dashboard": self.build_dashboard(tenant_id=tenant_id)}
+    def start_autopilot(self) -> Dict[str, Any]:
+        result = self._pc_autopilot().start()
+        return {"ok": True, "mode": "god_mode_home_start_autopilot", "result": result, "dashboard": self.build_dashboard()}
 
-    def chat(self, message: str, thread_id: str | None = None, project_id: str = "GOD_MODE", tenant_id: str = "owner-andre") -> Dict[str, Any]:
-        safe = self._safe_chat_text(message)
-        if thread_id:
-            thread_result = operator_conversation_thread_service.get_thread(thread_id)
-            if not thread_result.get("ok"):
-                thread_result = operator_conversation_thread_service.open_thread(tenant_id=tenant_id, conversation_title="God Mode Home", channel_mode="apk_continuous_chat")
-                thread_id = thread_result["thread"]["thread_id"]
-        else:
-            thread_result = operator_conversation_thread_service.open_thread(tenant_id=tenant_id, conversation_title="God Mode Home", channel_mode="apk_continuous_chat")
-            thread_id = thread_result["thread"]["thread_id"]
-        user_text = safe.get("safe_text", "")
-        operator_conversation_thread_service.append_message(thread_id=thread_id, role="operator", content=user_text, operational_state="blocked_secret" if not safe.get("ok") else "active")
-        if not safe.get("ok"):
-            reply = "Bloqueei essa mensagem porque parece conter segredo. Não coloques tokens, passwords, cookies, bearer ou API keys no chat."
-            suggested = ["Abrir aprovações", "Continuar sem segredos"]
-        else:
-            intent = self._chat_intent(user_text)
-            action = self._intent_to_action(intent, project_id=project_id, tenant_id=tenant_id)
-            reply = action["reply"]
-            suggested = action["suggested_next_steps"]
-        operator_conversation_thread_service.append_message(thread_id=thread_id, role="assistant", content=reply, operational_state="ready", suggested_next_steps=suggested)
-        event = {"event_id": f"home-chat-{uuid4().hex[:12]}", "created_at": self._now(), "tenant_id": tenant_id, "thread_id": thread_id, "project_id": project_id, "blocked": not safe.get("ok")}
+    def stop_autopilot(self) -> Dict[str, Any]:
+        result = self._pc_autopilot().stop()
+        return {"ok": True, "mode": "god_mode_home_stop_autopilot", "result": result, "dashboard": self.build_dashboard()}
 
-        def mutate(payload: Dict[str, Any]) -> Dict[str, Any]:
-            payload = self._normalize_store(payload)
-            payload["chat_events"].append(event)
-            payload["chat_events"] = payload["chat_events"][-300:]
-            return payload
+    def approve_next(self, tenant_id: str = "owner-andre", operator_note: str = "Approved from God Mode Home") -> Dict[str, Any]:
+        pending = self._pending_approvals(tenant_id=tenant_id)
+        cards = pending.get("cards", [])
+        if not cards:
+            return {"ok": False, "mode": "god_mode_home_approve_next", "error": "no_pending_approval", "dashboard": self.build_dashboard(tenant_id)}
+        card = cards[-1]
+        decision = mobile_approval_cockpit_v2_service.decide_card(card_id=card["card_id"], decision="approved", operator_note=operator_note, tenant_id=tenant_id)
+        return {"ok": decision.get("ok", False), "mode": "god_mode_home_approve_next", "decision": decision, "dashboard": self.build_dashboard(tenant_id)}
 
-        GOD_MODE_HOME_STORE.update(mutate)
-        return {"ok": True, "mode": "god_mode_home_chat", "thread_id": thread_id, "reply": reply, "suggested_next_steps": suggested, "event": event, "thread": operator_conversation_thread_service.get_thread(thread_id)}
-
-    def _chat_intent(self, text: str) -> str:
-        lowered = text.lower()
-        if any(word in lowered for word in ["dinheiro", "ganhar", "vender", "receita", "monetizar"]):
-            return "money"
-        if any(word in lowered for word in ["continuar", "avança", "proxima", "próxima", "fase"]):
-            return "continue"
-        if any(word in lowered for word in ["memória", "memoria", "lembrar", "obsidian"]):
-            return "memory"
-        if any(word in lowered for word in ["aprovar", "aprovações", "aprovacoes", "decidir"]):
-            return "approvals"
-        return "home"
-
-    def _intent_to_action(self, intent: str, project_id: str, tenant_id: str) -> Dict[str, Any]:
-        if intent == "money":
-            result = money_command_center_service.top_project()
-            top = result.get("top_project", {}) if result.get("ok") else {}
-            return {"reply": f"O caminho mais curto para dinheiro agora é {top.get('name', 'ver Money Command Center')}. Posso criar o cartão de aprovação do sprint.", "suggested_next_steps": ["Criar próximo passo para dinheiro", "Abrir Money Command Center"]}
-        if intent == "continue":
-            return {"reply": "Vou continuar por fase pequena e segura. O botão certo é Continuar God Mode.", "suggested_next_steps": ["Continuar God Mode", "Abrir Mission Control"]}
-        if intent == "memory":
-            return {"reply": f"Posso rever a memória AndreOS de {project_id} e transformar lacunas em próximos passos.", "suggested_next_steps": ["Rever memória", "Abrir Memória"]}
-        if intent == "approvals":
-            dashboard = mobile_approval_cockpit_v2_service.build_dashboard(tenant_id=tenant_id)
-            return {"reply": f"Tens {dashboard.get('pending_approval_count', 0)} aprovações pendentes.", "suggested_next_steps": ["Abrir aprovações", "Abrir chat corrido"]}
-        dashboard = self.build_dashboard(tenant_id=tenant_id)
-        return {"reply": dashboard.get("operator_message", "Estou pronto. Usa dinheiro, continuar, memória ou aprovações."), "suggested_next_steps": [dashboard.get("next_action", {}).get("button_label", "Abrir Home"), "Abrir chat corrido"]}
+    def chat(self, message: str, tenant_id: str = "owner-andre", requested_project: str | None = None) -> Dict[str, Any]:
+        result = self._chat_bridge().submit_chat_command(message=message, tenant_id=tenant_id, requested_project=requested_project, auto_run=True)
+        return {"ok": True, "mode": "god_mode_home_chat", "result": result, "dashboard": self.build_dashboard(tenant_id)}
 
     def driving_mode(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
         dashboard = self.build_dashboard(tenant_id=tenant_id)
-        next_action = dashboard.get("next_action", {})
-        return {"ok": True, "mode": "god_mode_home_driving_mode", "speakable": [dashboard.get("operator_message", "Sem próxima ação."), f"Botão recomendado: {next_action.get('button_label', 'abrir painel')}.", "No APK, continua pela conversa corrida; evita escrever segredos."], "safe_buttons": [dashboard.get("next_action"), *dashboard.get("open_buttons", [])[:3]]}
-
-    def get_package(self) -> Dict[str, Any]:
-        return {"ok": True, "mode": "god_mode_home_package", "package": {"status": self.get_status(), "dashboard": self.build_dashboard()}}
+        next_task = dashboard.get("next_task", {})
+        return {"ok": True, "mode": "god_mode_home_driving_mode", "speakable": [dashboard.get("operator_message", "Pronto."), f"Próxima ação: {next_task.get('label', 'dar ordem no chat')}", "Não escrevas dados sensíveis no chat."], "safe_buttons": [next_task, *dashboard.get("quick_actions", [])[:4]]}
 
 
 god_mode_home_service = GodModeHomeService()
