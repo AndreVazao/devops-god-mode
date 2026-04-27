@@ -4,13 +4,9 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List
 from uuid import uuid4
 
-from app.services.chat_autopilot_supervisor_service import chat_autopilot_supervisor_service
 from app.services.memory_core_service import memory_core_service
 from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
-from app.services.operator_chat_real_work_bridge_service import operator_chat_real_work_bridge_service
 from app.services.operator_priority_service import operator_priority_service
-from app.services.pc_autopilot_loop_service import pc_autopilot_loop_service
-from app.services.real_work_command_pipeline_service import real_work_command_pipeline_service
 
 
 class GodModeHomeService:
@@ -31,16 +27,36 @@ class GodModeHomeService:
         except Exception as exc:
             return {"ok": False, "mode": label, "error": exc.__class__.__name__, "detail": str(exc)[:300]}
 
+    def _chat_bridge(self):
+        from app.services.operator_chat_real_work_bridge_service import operator_chat_real_work_bridge_service
+
+        return operator_chat_real_work_bridge_service
+
+    def _chat_autopilot(self):
+        from app.services.chat_autopilot_supervisor_service import chat_autopilot_supervisor_service
+
+        return chat_autopilot_supervisor_service
+
+    def _pc_autopilot(self):
+        from app.services.pc_autopilot_loop_service import pc_autopilot_loop_service
+
+        return pc_autopilot_loop_service
+
+    def _real_work(self):
+        from app.services.real_work_command_pipeline_service import real_work_command_pipeline_service
+
+        return real_work_command_pipeline_service
+
     def _pending_approvals(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
         cards = mobile_approval_cockpit_v2_service.list_cards(tenant_id=tenant_id, status="pending_approval", limit=50)
         return {"ok": cards.get("ok", False), "count": cards.get("card_count", 0), "cards": cards.get("cards", [])}
 
     def _latest_result(self) -> Dict[str, Any]:
         return {
-            "chat": self._safe("chat_latest", operator_chat_real_work_bridge_service.latest).get("report"),
-            "real_work": self._safe("real_work_latest", real_work_command_pipeline_service.latest).get("report"),
-            "chat_autopilot": self._safe("chat_autopilot_latest", chat_autopilot_supervisor_service.latest).get("report"),
-            "pc_autopilot": self._safe("pc_autopilot_latest", pc_autopilot_loop_service.latest).get("cycle"),
+            "chat": self._safe("chat_latest", self._chat_bridge().latest).get("report"),
+            "real_work": self._safe("real_work_latest", self._real_work().latest).get("report"),
+            "chat_autopilot": self._safe("chat_autopilot_latest", self._chat_autopilot().latest).get("report"),
+            "pc_autopilot": self._safe("pc_autopilot_latest", self._pc_autopilot().latest).get("cycle"),
         }
 
     def _traffic_light(self, dashboard: Dict[str, Any]) -> Dict[str, str]:
@@ -80,7 +96,7 @@ class GodModeHomeService:
         priority = self._safe("operator_priority", operator_priority_service.get_status)
         active_project = priority.get("active_project") or "GOD_MODE"
         memory = self._safe("memory_context", lambda: memory_core_service.compact_context(active_project, max_chars=1600))
-        pc_raw = self._safe("pc_autopilot", pc_autopilot_loop_service.get_status)
+        pc_raw = self._safe("pc_autopilot", self._pc_autopilot().get_status)
         dashboard = {
             "ok": True,
             "mode": "god_mode_home_dashboard",
@@ -91,10 +107,10 @@ class GodModeHomeService:
             "home_routes": ["/app/home", "/app/god-mode", "/app/god-mode-home"],
             "operator_priority": priority,
             "active_project": active_project,
-            "chat": self._safe("operator_chat_real_work", operator_chat_real_work_bridge_service.get_status),
+            "chat": self._safe("operator_chat_real_work", self._chat_bridge().get_status),
             "pc_autopilot": pc_raw,
-            "chat_autopilot": self._safe("chat_autopilot", chat_autopilot_supervisor_service.get_status),
-            "real_work": self._safe("real_work", real_work_command_pipeline_service.get_status),
+            "chat_autopilot": self._safe("chat_autopilot", self._chat_autopilot().get_status),
+            "real_work": self._safe("real_work", self._real_work().get_status),
             "approvals": self._safe("pending_approvals", lambda: self._pending_approvals(tenant_id)),
             "memory": {"ok": memory.get("ok", False), "active_project": active_project, "chars": memory.get("chars", 0), "preview": (memory.get("context") or "")[-700:]},
             "latest_result": self._latest_result(),
@@ -125,16 +141,16 @@ class GodModeHomeService:
         resolved = operator_priority_service.resolve_project(requested_project)
         project = (resolved.get("project") or {}).get("project_id") or "GOD_MODE"
         command = command_text or f"continua o projeto {project} até precisares do meu OK"
-        result = operator_chat_real_work_bridge_service.submit_chat_command(message=command, tenant_id=tenant_id, requested_project=project, auto_run=True)
+        result = self._chat_bridge().submit_chat_command(message=command, tenant_id=tenant_id, requested_project=project, auto_run=True)
         memory_core_service.write_history(project, "God Mode Home continue", f"Command: {command}")
         return {"ok": True, "mode": "god_mode_home_continue", "action_id": f"home-continue-{uuid4().hex[:12]}", "project": project, "command": command, "result": result, "dashboard": self.build_dashboard(tenant_id)}
 
     def start_autopilot(self) -> Dict[str, Any]:
-        result = pc_autopilot_loop_service.start()
+        result = self._pc_autopilot().start()
         return {"ok": True, "mode": "god_mode_home_start_autopilot", "result": result, "dashboard": self.build_dashboard()}
 
     def stop_autopilot(self) -> Dict[str, Any]:
-        result = pc_autopilot_loop_service.stop()
+        result = self._pc_autopilot().stop()
         return {"ok": True, "mode": "god_mode_home_stop_autopilot", "result": result, "dashboard": self.build_dashboard()}
 
     def approve_next(self, tenant_id: str = "owner-andre", operator_note: str = "Approved from God Mode Home") -> Dict[str, Any]:
@@ -147,7 +163,7 @@ class GodModeHomeService:
         return {"ok": decision.get("ok", False), "mode": "god_mode_home_approve_next", "decision": decision, "dashboard": self.build_dashboard(tenant_id)}
 
     def chat(self, message: str, tenant_id: str = "owner-andre", requested_project: str | None = None) -> Dict[str, Any]:
-        result = operator_chat_real_work_bridge_service.submit_chat_command(message=message, tenant_id=tenant_id, requested_project=requested_project, auto_run=True)
+        result = self._chat_bridge().submit_chat_command(message=message, tenant_id=tenant_id, requested_project=requested_project, auto_run=True)
         return {"ok": True, "mode": "god_mode_home_chat", "result": result, "dashboard": self.build_dashboard(tenant_id)}
 
     def driving_mode(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
