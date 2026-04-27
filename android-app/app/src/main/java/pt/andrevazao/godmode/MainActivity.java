@@ -42,7 +42,8 @@ public class MainActivity extends Activity {
     private static final String PREFS = "god_mode_mobile_prefs";
     private static final String PREF_BASE_URL = "base_url";
     private static final String DEFAULT_BASE_URL = "http://127.0.0.1:8000";
-    private static final String ENTRY_ROUTE = "/app/apk-start";
+    private static final String ENTRY_ROUTE = "/app/home";
+    private static final String LEGACY_START_ROUTE = "/app/apk-start";
     private static final int HEALTH_TIMEOUT_MS = 1200;
 
     private WebView webView;
@@ -80,7 +81,7 @@ public class MainActivity extends Activity {
 
         statusText = new TextView(this);
         statusText.setTextColor(Color.WHITE);
-        statusText.setText("God Mode APK · pairing/deeplink pronto");
+        statusText.setText("God Mode APK · Home principal pronta");
         statusText.setPadding(18, 16, 18, 4);
         root.addView(statusText, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -89,7 +90,7 @@ public class MainActivity extends Activity {
 
         routeText = new TextView(this);
         routeText.setTextColor(Color.LTGRAY);
-        routeText.setText("Rota: " + ENTRY_ROUTE);
+        routeText.setText("Rota principal: " + ENTRY_ROUTE);
         routeText.setPadding(18, 0, 18, 8);
         root.addView(routeText, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -110,7 +111,7 @@ public class MainActivity extends Activity {
         controls.addView(baseUrlInput, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         Button openButton = new Button(this);
-        openButton.setText("Abrir");
+        openButton.setText("Home");
         openButton.setOnClickListener(v -> loadRoute(ENTRY_ROUTE));
         controls.addView(openButton, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -123,12 +124,13 @@ public class MainActivity extends Activity {
         quickButtons.setOrientation(LinearLayout.HORIZONTAL);
         quickButtons.setPadding(12, 0, 12, 8);
         addQuickButton(quickButtons, "Auto", "auto", true, true);
-        addQuickButton(quickButtons, "Teste", "/health", true, false);
-        addQuickButton(quickButtons, "Start", "/app/apk-start", false, false);
-        addQuickButton(quickButtons, "First", "/app/first-use", false, false);
+        addQuickButton(quickButtons, "Home", "/app/home", false, false);
         addQuickButton(quickButtons, "Chat", "/app/operator-chat-sync-cards", false, false);
-        addQuickButton(quickButtons, "Readiness", "/app/install-readiness", false, false);
-        addQuickButton(quickButtons, "Drill", "/app/e2e-operational-drill", false, false);
+        addQuickButton(quickButtons, "OK", "/app/mobile-approval-cockpit-v2", false, false);
+        addQuickButton(quickButtons, "PC", "/app/pc-autopilot", false, false);
+        addQuickButton(quickButtons, "Teste", "/health", true, false);
+        addQuickButton(quickButtons, "Start", LEGACY_START_ROUTE, false, false);
+        addQuickButton(quickButtons, "First", "/app/first-use", false, false);
         quickScroll.addView(quickButtons);
         root.addView(quickScroll);
 
@@ -193,7 +195,7 @@ public class MainActivity extends Activity {
             }
             preferences.edit().putString(PREF_BASE_URL, baseUrl).apply();
             baseUrlInput.setText(baseUrl);
-            statusText.setText("Pairing aplicado: " + baseUrl);
+            statusText.setText("Pairing aplicado. A abrir Home: " + baseUrl);
             testHealth();
             return true;
         } catch (Exception exc) {
@@ -267,7 +269,7 @@ public class MainActivity extends Activity {
 
     private void autoDiscoverAndOpen(boolean silentFallback) {
         statusText.setText("A procurar God Mode no PC... · rede: " + networkStatus());
-        routeText.setText("Auto discovery: /health");
+        routeText.setText("Auto discovery: /health → /app/home");
         new Thread(() -> {
             List<String> candidates = buildDiscoveryCandidates();
             String found = null;
@@ -397,7 +399,7 @@ public class MainActivity extends Activity {
     private void testHealth() {
         String baseUrl = normalizeBaseUrl();
         String target = baseUrl + "/health";
-        routeText.setText("Teste: /health");
+        routeText.setText("Teste: /health → /app/home");
         statusText.setText("A testar backend: " + target);
         new Thread(() -> {
             String message;
