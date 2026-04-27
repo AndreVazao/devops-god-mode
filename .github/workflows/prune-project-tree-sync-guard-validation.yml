@@ -1,4 +1,4 @@
-name: AndreOS Memory Audit Validation
+name: Real Operator Rehearsal Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase90-*'
+      - 'phase91-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  andreos-memory-audit-validation:
+  real-operator-rehearsal-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate AndreOS Memory Audit
+      - name: Validate Real Operator Rehearsal
         env:
           PYTHONPATH: backend
         run: |
@@ -48,82 +48,81 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.andreos_memory_audit_service import andreos_memory_audit_service
-          from app.services.memory_core_service import PROJECT_FILES, memory_core_service
+          from app.services.real_operator_rehearsal_service import real_operator_rehearsal_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/andreos-memory-audit/status",
-              "/api/andreos-memory-audit/package",
-              "/api/andreos-memory-audit/audit",
+              "/api/real-operator-rehearsal/status",
+              "/api/real-operator-rehearsal/package",
+              "/api/real-operator-rehearsal/run",
+              "/api/daily-command-router/route",
+              "/api/god-mode-home/dashboard",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          audit = andreos_memory_audit_service.build_audit(run_rehearsal=True)
-          assert audit["ok"] is True
-          assert audit["mode"] == "andreos_memory_audit"
-          assert audit["status"] == "ready", audit["failed_checks"]
-          assert audit["score"] == 100
-          assert not audit["failed_checks"]
-          assert len(audit["projects"]) >= 9
-          assert audit["secret_probe"]["blocked"] is True
-          assert audit["secret_probe"]["safe_write_ok"] is True
-          assert audit["context_probe"]["ok"] is True
-          assert audit["context_probe"]["chars"] > 0
-          assert audit["obsidian_probe"]["ok"] is True
-          assert audit["obsidian_probe"]["open_uri"].startswith("obsidian://open?")
-          assert audit["rehearsal"]["ok"] is True
-          assert audit["rehearsal"]["context_chars"] > 0
-          assert audit["operator_next"]["route"] == "/app/home"
+          rehearsal = real_operator_rehearsal_service.run(tenant_id="owner-andre", requested_project="GOD_MODE")
+          assert rehearsal["ok"] is True
+          assert rehearsal["mode"] == "real_operator_rehearsal"
+          assert rehearsal["status"] == "ready", rehearsal["failed_checks"]
+          assert rehearsal["score"] == 100
+          assert not rehearsal["failed_checks"]
 
-          project_names = {project["project"] for project in audit["projects"]}
-          for expected in ["GOD_MODE", "PROVENTIL", "BOT_FACTORY", "BARIBUDOS_STUDIO", "BARIBUDOS_STUDIO_WEBSITE"]:
-              assert expected in project_names, f"Missing project audit: {expected}"
-          for project in audit["projects"]:
-              assert project["file_count"] == len(PROJECT_FILES), project
-              assert not project["missing_files"], project
-              assert project["obsidian_master"].startswith("obsidian://open?")
+          flow = rehearsal["flow"]
+          assert flow["home_before"]["ok"] is True
+          assert flow["home_after"]["ok"] is True
+          assert flow["route_result"]["ok"] is True
+          assert flow["route_result"]["command_id"] == "continue_active_project"
+          assert flow["route_result"]["project"] == "GOD_MODE"
+          assert flow["route_result"]["job_id"]
+          assert "autopilot_stop_reason" in flow["route_result"]
+          assert flow["chat_latest"]["job_id"] == flow["route_result"]["job_id"]
+          assert flow["memory_status"]["status"] == "ready"
+          assert flow["memory_status"]["score"] == 100
+          assert flow["artifacts_status"]["status"] == "ready"
+          assert flow["artifacts_status"]["artifact_count"] == 2
+          assert flow["build_probe"]["ok"] is True
+          for item in flow["build_probe"]["checks"]:
+              assert item["exists"] is True, item
+              assert item["mentions_upload_artifact"] is True, item
+              assert item["mentions_placeholder"] is False, item
+              assert item["size_bytes"] > 200, item
 
-          status = andreos_memory_audit_service.get_status()
+          status = real_operator_rehearsal_service.get_status()
           assert status["ok"] is True
           assert status["status"] == "ready"
           assert status["score"] == 100
           assert status["failed_count"] == 0
 
-          package = andreos_memory_audit_service.get_package()
+          package = real_operator_rehearsal_service.get_package()
           assert package["ok"] is True
-          assert package["package"]["audit"]["status"] == "ready"
+          assert package["package"]["rehearsal"]["status"] == "ready"
 
-          memory_status = memory_core_service.get_status()
-          assert memory_status["ok"] is True
-          assert memory_status["vault_root"].endswith("AndreOS")
-
-          docs = Path("docs/frontend/andreos-memory-audit.md").read_text(encoding="utf-8")
-          for marker in ["/api/andreos-memory-audit/audit", "BOT_FACTORY", "ULTIMA_SESSAO.md", "segredos", "ready"]:
+          docs = Path("docs/frontend/real-operator-rehearsal.md").read_text(encoding="utf-8")
+          for marker in ["/api/real-operator-rehearsal/run", "Home → Modo Fácil", "Real Work Pipeline", "Artifacts", "Limite honesto"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
-          source = Path("backend/app/services/andreos_memory_audit_service.py").read_text(encoding="utf-8")
-          for marker in ["AndreOSMemoryAuditService", "EXPECTED_PROJECTS", "_secret_guard_probe", "_rehearsal", "obsidian://open"]:
+          source = Path("backend/app/services/real_operator_rehearsal_service.py").read_text(encoding="utf-8")
+          for marker in ["RealOperatorRehearsalService", "chat_bridge_job", "build_workflows_real", "operator_next"]:
               assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "andreos_memory_audit.py",
-              "andreos_memory_audit_service.py",
-              "andreos-memory-audit.md",
+              "real_operator_rehearsal.py",
+              "real_operator_rehearsal_service.py",
+              "real-operator-rehearsal.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("andreos memory audit validation passed")
+          print("real operator rehearsal validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## AndreOS Memory Audit Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Real Operator Rehearsal Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- AndreOS structure and project files were audited.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Secret guard, compact context and Obsidian links were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Safe rehearsal wrote decision, history, backlog and last session.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home -> router -> chat -> real work -> autopilot was rehearsed.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Feedback, approvals, memory and artifacts were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK/EXE workflows were checked for real upload-artifact usage.' >> "$GITHUB_STEP_SUMMARY"
