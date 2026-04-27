@@ -19,16 +19,18 @@ class ArtifactsCenterService:
         workflow_checks = self._workflow_checks()
         ready_count = sum(1 for item in workflow_checks if item["present"])
         missing = [item for item in workflow_checks if not item["present"]]
+        missing_required = [item for item in missing if item.get("required", False)]
         return {
             "ok": True,
             "mode": "artifacts_center_dashboard",
-            "status": "ready" if not missing else "missing_workflows",
+            "status": "ready" if not missing_required else "missing_required_workflows",
             "repo_url": self.REPO_URL,
             "actions_url": f"{self.REPO_URL}/actions",
             "latest_artifacts_url": f"{self.REPO_URL}/actions?query=branch%3Amain",
             "artifact_count": len(artifacts),
             "ready_workflow_count": ready_count,
             "missing_workflows": missing,
+            "missing_required_workflows": missing_required,
             "artifacts": artifacts,
             "install_order": [
                 {"step": 1, "label": "Abrir GitHub Actions", "url": f"{self.REPO_URL}/actions"},
@@ -46,18 +48,21 @@ class ArtifactsCenterService:
                 "id": "apk_build",
                 "label": "Android APK Build",
                 "path": ".github/workflows/android-real-build-progressive.yml",
+                "required": True,
                 "present": Path(".github/workflows/android-real-build-progressive.yml").exists(),
             },
             {
                 "id": "windows_exe_build",
                 "label": "Windows EXE Build",
                 "path": ".github/workflows/windows-exe-build.yml",
+                "required": True,
                 "present": Path(".github/workflows/windows-exe-build.yml").exists(),
             },
             {
                 "id": "universal_total_test",
                 "label": "Universal Total Test",
                 "path": ".github/workflows/universal-total-test.yml",
+                "required": False,
                 "present": Path(".github/workflows/universal-total-test.yml").exists(),
             },
         ]
