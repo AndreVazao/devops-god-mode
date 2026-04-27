@@ -1,4 +1,4 @@
-name: Artifacts Center Validation
+name: Home System Health Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase84-*'
+      - 'phase85-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  artifacts-center-validation:
+  home-system-health-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Artifacts Center
+      - name: Validate Home System Health
         env:
           PYTHONPATH: backend
         run: |
@@ -46,16 +46,16 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.artifacts_center_service import artifacts_center_service
+          from app.services.home_system_health_service import home_system_health_service
           from app.services.god_mode_home_service import god_mode_home_service
           from app.services.operator_priority_service import operator_priority_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/artifacts-center/status",
-              "/api/artifacts-center/package",
-              "/api/artifacts-center/dashboard",
+              "/api/home-system-health/status",
+              "/api/home-system-health/package",
+              "/api/home-system-health/snapshot",
               "/api/god-mode-home/dashboard",
               "/app/home",
           }
@@ -65,69 +65,67 @@ jobs:
           operator_priority_service.set_order(
               ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
               active_project="GOD_MODE",
-              note="artifacts center validation order",
+              note="home system health validation order",
           )
 
-          dashboard = artifacts_center_service.build_dashboard()
-          assert dashboard["ok"] is True
-          assert dashboard["mode"] == "artifacts_center_dashboard"
-          assert dashboard["status"] == "ready"
-          assert dashboard["artifact_count"] == 2
-          assert dashboard["actions_url"].endswith("/actions")
-          assert dashboard["latest_artifacts_url"].endswith("branch%3Amain")
-          assert any(item["expected_artifact_name"] == "godmode-android-webview-apk" for item in dashboard["artifacts"])
-          assert any(item["expected_file"] == "GodModeMobile-debug.apk" for item in dashboard["artifacts"])
-          assert any(item["id"] == "exe" for item in dashboard["artifacts"])
-          assert any(step["artifact"] == "godmode-android-webview-apk" for step in dashboard["install_order"] if step.get("artifact"))
+          snapshot = home_system_health_service.build_snapshot(tenant_id="owner-andre")
+          assert snapshot["ok"] is True
+          assert snapshot["mode"] == "home_system_health_snapshot"
+          assert snapshot["health_score"] >= 70
+          assert snapshot["status"] in {"healthy", "attention", "blocked"}
+          assert snapshot["traffic_light"]["color"] in {"green", "yellow", "red", "blue"}
+          assert snapshot["next_action"]["label"]
+          assert len(snapshot["signals"]) >= 7
+          assert "home" in snapshot["subsystems"]
+          assert "artifacts_center" in snapshot["subsystems"]
+          assert any(item["id"] == "home" and item["ok"] for item in snapshot["signals"])
+          assert any(item["id"] == "artifacts" and item["ok"] for item in snapshot["signals"])
+          assert any(item["id"] == "priority" and item["ok"] for item in snapshot["signals"])
 
-          status = artifacts_center_service.get_status()
+          status = home_system_health_service.get_status(tenant_id="owner-andre")
           assert status["ok"] is True
-          assert status["artifact_count"] == 2
-          assert status["ready_workflow_count"] >= 2
+          assert status["health_score"] == snapshot["health_score"]
+          assert status["blocker_count"] == len(snapshot["blockers"])
 
-          package = artifacts_center_service.get_package()
+          package = home_system_health_service.get_package(tenant_id="owner-andre")
           assert package["ok"] is True
-          assert package["package"]["dashboard"]["status"] == "ready"
+          assert package["package"]["snapshot"]["health_score"] == snapshot["health_score"]
 
           home = god_mode_home_service.build_dashboard(tenant_id="owner-andre")
           assert home["ok"] is True
-          assert "artifacts_center" in home
-          assert home["artifacts_center"]["ok"] is True
-          assert home["artifacts_center"]["artifact_count"] == 2
-          assert any(item.get("endpoint") == "/api/artifacts-center/dashboard" for item in home["quick_actions"])
+          assert "home_system_health" in home
+          assert home["home_system_health"]["ok"] is True
+          assert home["home_system_health"]["health_score"] >= 70
+          assert any(item.get("endpoint") == "/api/home-system-health/snapshot" for item in home["quick_actions"])
 
           driving = god_mode_home_service.driving_mode(tenant_id="owner-andre")
           assert driving["ok"] is True
-          assert any("Artifacts" in item for item in driving["speakable"])
+          assert any("Saúde" in item for item in driving["speakable"])
 
-          docs = Path("docs/frontend/artifacts-center.md").read_text(encoding="utf-8")
-          for marker in ["/api/artifacts-center/dashboard", "GodModeMobile-debug.apk", "godmode-android-webview-apk", "GodMode.exe"]:
+          docs = Path("docs/frontend/home-system-health.md").read_text(encoding="utf-8")
+          for marker in ["/api/home-system-health/snapshot", "healthy", "attention", "blocked", "score de saúde"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
-          frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
-          for marker in ["APK/EXE", "/api/artifacts-center/dashboard", "artifacts_center"]:
-              assert marker in frontend, f"Missing frontend marker: {marker}"
-
-          source = Path("backend/app/services/artifacts_center_service.py").read_text(encoding="utf-8")
-          for marker in ["ArtifactsCenterService", "godmode-android-webview-apk", "windows-exe-real-build.yml", "Android APK Build"]:
+          source = Path("backend/app/services/home_system_health_service.py").read_text(encoding="utf-8")
+          for marker in ["HomeSystemHealthService", "health_score", "traffic_light", "next_action", "artifacts"]:
               assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "artifacts_center.py",
-              "artifacts_center_service.py",
-              "artifacts-center.md",
+              "home_system_health.py",
+              "home_system_health_service.py",
+              "home-system-health.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("artifacts center validation passed")
+          print("home system health validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Artifacts Center Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Home System Health Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Artifacts Center API was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Home now exposes APK/EXE guidance.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Canonical APK/EXE workflows and expected artifact names are covered.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home system health snapshot API was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home now exposes health score and action.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Health covers Home, readiness, install guide, artifacts, PC autopilot, chat and priority.' >> "$GITHUB_STEP_SUMMARY"
