@@ -1,4 +1,4 @@
-name: Home Operator UX Validation
+name: Daily Command Router Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase86-*'
+      - 'phase87-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  home-operator-ux-validation:
+  daily-command-router-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Home Operator UX
+      - name: Validate Daily Command Router
         env:
           PYTHONPATH: backend
         run: |
@@ -46,17 +46,18 @@ jobs:
           from pathlib import Path
 
           from main import app
+          from app.services.daily_command_router_service import daily_command_router_service
           from app.services.home_operator_ux_service import home_operator_ux_service
-          from app.services.god_mode_home_service import god_mode_home_service
           from app.services.operator_priority_service import operator_priority_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/home-operator-ux/status",
-              "/api/home-operator-ux/package",
+              "/api/daily-command-router/status",
+              "/api/daily-command-router/package",
+              "/api/daily-command-router/commands",
+              "/api/daily-command-router/route",
               "/api/home-operator-ux/panel",
-              "/api/god-mode-home/dashboard",
               "/app/home",
           }
           missing = sorted(required - route_paths)
@@ -65,67 +66,89 @@ jobs:
           operator_priority_service.set_order(
               ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
               active_project="GOD_MODE",
-              note="home operator ux validation order",
+              note="daily command router validation order",
           )
+
+          status = daily_command_router_service.get_status()
+          assert status["ok"] is True
+          assert status["command_count"] >= 6
+          assert "continue_active_project" in status["command_ids"]
+          assert "fix_blockers" in status["command_ids"]
+          assert "prepare_install" in status["command_ids"]
+
+          commands = daily_command_router_service.available_commands()
+          assert commands["ok"] is True
+          assert any(cmd["id"] == "show_artifacts" for cmd in commands["commands"])
 
           panel = home_operator_ux_service.build_panel(tenant_id="owner-andre")
           assert panel["ok"] is True
-          assert panel["mode"] == "home_operator_ux_panel"
-          assert panel["active_project"] == "GOD_MODE"
-          assert panel["headline"]
-          assert panel["primary_action"]["label"]
-          assert panel["safe_buttons"]
-          assert len(panel["safe_buttons"]) >= 4
-          assert panel["quick_commands"]
-          assert len(panel["quick_commands"]) >= 4
-          assert panel["driving_safe"] is True
-          assert panel["signals"]["money_priority_enabled"] is False
-          assert any(cmd["id"] == "continue_active_project" for cmd in panel["quick_commands"])
-          assert any("dados sensíveis" in rule for rule in panel["operator_rules"])
+          assert panel["daily_command_route_endpoint"] == "/api/daily-command-router/route"
+          assert panel["primary_action"]["endpoint"] == "/api/daily-command-router/route"
+          assert panel["primary_action"]["payload"]["command_id"] == "continue_active_project"
+          assert all(cmd["route_endpoint"] == "/api/daily-command-router/route" for cmd in panel["quick_commands"])
 
-          status = home_operator_ux_service.get_status(tenant_id="owner-andre")
-          assert status["ok"] is True
-          assert status["active_project"] == "GOD_MODE"
-          assert status["safe_button_count"] >= 4
-          assert status["quick_command_count"] >= 4
-          assert status["driving_safe"] is True
+          routed = daily_command_router_service.route(
+              command_id="continue_active_project",
+              tenant_id="owner-andre",
+              requested_project=None,
+          )
+          assert routed["ok"] is True
+          assert routed["kind"] == "chat_command"
+          assert routed["project"] == "GOD_MODE"
+          assert routed["result"]["report"]["job_id"]
+          assert routed["operator_next"]["label"]
 
-          package = home_operator_ux_service.get_package(tenant_id="owner-andre")
-          assert package["ok"] is True
-          assert package["package"]["panel"]["active_project"] == "GOD_MODE"
+          blockers = daily_command_router_service.route(
+              command_id="fix_blockers",
+              tenant_id="owner-andre",
+              requested_project="PROVENTIL",
+          )
+          assert blockers["ok"] is True
+          assert blockers["project"] == "PROVENTIL"
+          assert "blockers" in blockers["message"]
 
-          home = god_mode_home_service.build_dashboard(tenant_id="owner-andre")
-          assert home["ok"] is True
-          assert any(item.get("endpoint") == "/api/home-operator-ux/panel" for item in home["quick_actions"])
+          install = daily_command_router_service.route(command_id="prepare_install", tenant_id="owner-andre")
+          assert install["ok"] is True
+          assert install["kind"] == "read_endpoint"
+          assert install["endpoint"] == "/api/install-first-run/guide"
+          assert install["result"]["steps"]
 
-          frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
-          for marker in ["Modo fácil", "/api/home-operator-ux/panel", "easy"]:
-              assert marker in frontend, f"Missing frontend marker: {marker}"
+          health = daily_command_router_service.route(command_id="show_health", tenant_id="owner-andre")
+          assert health["ok"] is True
+          assert health["result"]["health_score"] >= 70
 
-          docs = Path("docs/frontend/home-operator-ux.md").read_text(encoding="utf-8")
-          for marker in ["/api/home-operator-ux/panel", "Modo fácil", "comandos rápidos", "money_priority_enabled=false"]:
+          artifacts = daily_command_router_service.route(command_id="show_artifacts", tenant_id="owner-andre")
+          assert artifacts["ok"] is True
+          assert artifacts["result"]["artifact_count"] == 2
+
+          unknown = daily_command_router_service.route(command_id="does_not_exist", tenant_id="owner-andre")
+          assert unknown["ok"] is False
+          assert unknown["error"] == "unknown_command_id"
+
+          docs = Path("docs/frontend/daily-command-router.md").read_text(encoding="utf-8")
+          for marker in ["/api/daily-command-router/route", "continue_active_project", "fix_blockers", "show_artifacts"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
-          source = Path("backend/app/services/home_operator_ux_service.py").read_text(encoding="utf-8")
-          for marker in ["HomeOperatorUxService", "primary_action", "safe_buttons", "quick_commands", "driving_safe"]:
+          source = Path("backend/app/services/daily_command_router_service.py").read_text(encoding="utf-8")
+          for marker in ["DailyCommandRouterService", "COMMANDS", "operator_next", "unknown_command_id"]:
               assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "home_operator_ux.py",
-              "home_operator_ux_service.py",
-              "home-operator-ux.md",
+              "daily_command_router.py",
+              "daily_command_router_service.py",
+              "daily-command-router.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("home operator ux validation passed")
+          print("daily command router validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Home Operator UX Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Daily Command Router Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Home operator UX API was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Home now exposes Modo fácil.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Panel includes primary action, safe buttons and quick commands.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Daily command router API was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Modo fácil commands now route through stable command IDs.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Continue, blockers, install, health and artifacts commands are covered.' >> "$GITHUB_STEP_SUMMARY"
