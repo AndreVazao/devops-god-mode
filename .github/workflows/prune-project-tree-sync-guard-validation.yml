@@ -1,4 +1,4 @@
-name: Ready To Use Home Check Validation
+name: Install First Run Guide Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase82-*'
+      - 'phase83-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  ready-to-use-home-check-validation:
+  install-first-run-guide-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Ready To Use Home Check
+      - name: Validate Install First Run Guide
         env:
           PYTHONPATH: backend
         run: |
@@ -47,15 +47,15 @@ jobs:
 
           from main import app
           from app.services.god_mode_home_service import god_mode_home_service
-          from app.services.ready_to_use_home_check_service import ready_to_use_home_check_service
+          from app.services.install_first_run_guide_service import install_first_run_guide_service
           from app.services.operator_priority_service import operator_priority_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/ready-to-use/status",
-              "/api/ready-to-use/package",
-              "/api/ready-to-use/checklist",
+              "/api/install-first-run/status",
+              "/api/install-first-run/package",
+              "/api/install-first-run/guide",
               "/api/god-mode-home/dashboard",
               "/app/home",
           }
@@ -65,77 +65,72 @@ jobs:
           operator_priority_service.set_order(
               ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
               active_project="GOD_MODE",
-              note="ready to use validation order",
+              note="install first run validation order",
           )
 
-          checklist = ready_to_use_home_check_service.build_checklist(tenant_id="owner-andre")
-          assert checklist["ok"] is True
-          assert checklist["mode"] == "ready_to_use_home_check"
-          assert checklist["status"] in {"ready", "almost_ready", "not_ready"}
-          assert checklist["readiness_score"] >= 75
-          assert checklist["passed_count"] >= 7
-          assert checklist["failed_count"] >= 0
-          assert checklist["checks"]
-          assert checklist["next_action"]["label"]
-          assert checklist["home_summary"]["apk_home_entry"] is True
-          assert checklist["home_summary"]["home_route_present"] is True
-          assert any(item["id"] == "home_route" and item["ok"] for item in checklist["checks"])
-          assert any(item["id"] == "chat_pipeline" and item["ok"] for item in checklist["checks"])
-          assert any(item["id"] == "operator_priority" and item["ok"] for item in checklist["checks"])
-          assert any(item["id"] == "pc_autopilot" and item["ok"] for item in checklist["checks"])
+          guide = install_first_run_guide_service.build_guide(tenant_id="owner-andre")
+          assert guide["ok"] is True
+          assert guide["mode"] == "install_first_run_guide"
+          assert guide["readiness_score"] >= 75
+          assert guide["steps"]
+          assert len(guide["steps"]) == 8
+          assert guide["current_step"]
+          assert any(step["title"] == "Abrir APK" for step in guide["steps"])
+          assert any(step["title"] == "Ligar APK ao PC" for step in guide["steps"])
+          assert any(step["title"] == "Dar primeiro comando" for step in guide["steps"])
+          assert any(item["route"] == "/app/home" for item in guide["primary_routes"] if item.get("route"))
+          assert any(item["route"] == "/app/pc-autopilot" for item in guide["primary_routes"] if item.get("route"))
+          assert any("Não escrever dados sensíveis" in item for item in guide["safe_operator_rules"])
 
-          status = ready_to_use_home_check_service.get_status(tenant_id="owner-andre")
+          status = install_first_run_guide_service.get_status(tenant_id="owner-andre")
           assert status["ok"] is True
-          assert status["readiness_score"] == checklist["readiness_score"]
-          assert status["next_action"]["label"]
+          assert status["readiness_score"] == guide["readiness_score"]
+          assert status["done_count"] == guide["done_count"]
+          assert status["current_step"]
 
-          package = ready_to_use_home_check_service.get_package(tenant_id="owner-andre")
+          package = install_first_run_guide_service.get_package(tenant_id="owner-andre")
           assert package["ok"] is True
-          assert package["package"]["checklist"]["readiness_score"] == checklist["readiness_score"]
+          assert package["package"]["guide"]["done_count"] == guide["done_count"]
 
           home = god_mode_home_service.build_dashboard(tenant_id="owner-andre")
           assert home["ok"] is True
-          assert "ready_to_use" in home
-          assert home["ready_to_use"]["ok"] is True
-          assert home["ready_to_use"]["readiness_score"] >= 75
-          assert any(item.get("endpoint") == "/api/ready-to-use/checklist" for item in home["quick_actions"])
-
-          home_status = god_mode_home_service.get_status(tenant_id="owner-andre")
-          assert home_status["ok"] is True
-          assert "ready_to_use" in home_status
+          assert "install_first_run" in home
+          assert home["install_first_run"]["ok"] is True
+          assert home["install_first_run"]["readiness_score"] >= 75
+          assert any(item.get("endpoint") == "/api/install-first-run/guide" for item in home["quick_actions"])
 
           driving = god_mode_home_service.driving_mode(tenant_id="owner-andre")
           assert driving["ok"] is True
-          assert any("Prontidão" in item for item in driving["speakable"])
+          assert any("Instalação" in item for item in driving["speakable"])
 
-          docs = Path("docs/frontend/ready-to-use-home-check.md").read_text(encoding="utf-8")
-          for marker in ["/api/ready-to-use/checklist", "ready", "almost_ready", "not_ready", "Pronto para usar"]:
+          docs = Path("docs/frontend/install-first-run-guide.md").read_text(encoding="utf-8")
+          for marker in ["/api/install-first-run/guide", "Instalar/abrir backend no PC", "Ligar APK ao PC", "Dar primeiro comando"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
           frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
-          for marker in ["Pronto para usar", "/api/ready-to-use/checklist", "readiness_score"]:
+          for marker in ["Instalar/1º arranque", "/api/install-first-run/guide", "install_first_run"]:
               assert marker in frontend, f"Missing frontend marker: {marker}"
 
-          source = Path("backend/app/services/ready_to_use_home_check_service.py").read_text(encoding="utf-8")
-          for marker in ["ReadyToUseHomeCheckService", "apk_home_entry", "home_backend_route_present", "readiness_score"]:
+          source = Path("backend/app/services/install_first_run_guide_service.py").read_text(encoding="utf-8")
+          for marker in ["InstallFirstRunGuideService", "Confirmar builds", "Ligar PC Autopilot", "safe_operator_rules"]:
               assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "ready_to_use_home_check.py",
-              "ready_to_use_home_check_service.py",
-              "ready-to-use-home-check.md",
+              "install_first_run_guide.py",
+              "install_first_run_guide_service.py",
+              "install-first-run-guide.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("ready to use home check validation passed")
+          print("install first run guide validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Ready To Use Home Check Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Install First Run Guide Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Home now includes practical readiness score.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Ready-to-use checklist API was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK/Home/PC Autopilot/operator priority checks are covered.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Install and first-run guide API was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home now exposes install/first-run status and action.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Guide covers PC, APK, pairing, autopilot, first command and approvals.' >> "$GITHUB_STEP_SUMMARY"
