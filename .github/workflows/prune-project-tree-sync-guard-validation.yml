@@ -72,7 +72,7 @@ jobs:
           assert dashboard["ok"] is True
           assert dashboard["mode"] == "artifacts_center_dashboard"
           assert dashboard["status"] == "ready"
-          assert dashboard["artifact_count"] if "artifact_count" in dashboard else len(dashboard["artifacts"]) == 2
+          assert dashboard["artifact_count"] == 2
           assert dashboard["actions_url"].endswith("/actions")
           assert dashboard["latest_artifacts_url"].endswith("branch%3Amain")
           assert any(item["expected_artifact_name"] == "godmode-android-webview-apk" for item in dashboard["artifacts"])
@@ -109,7 +109,7 @@ jobs:
               assert marker in frontend, f"Missing frontend marker: {marker}"
 
           source = Path("backend/app/services/artifacts_center_service.py").read_text(encoding="utf-8")
-          for marker in ["ArtifactsCenterService", "godmode-android-webview-apk", "windows-exe-build.yml", "Android APK Build"]:
+          for marker in ["ArtifactsCenterService", "godmode-android-webview-apk", "windows-exe-real-build.yml", "Android APK Build"]:
               assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
