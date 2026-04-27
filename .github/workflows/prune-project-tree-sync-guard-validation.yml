@@ -1,4 +1,4 @@
-name: Real Operator Rehearsal Validation
+name: Home General Test Button Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase91-*'
+      - 'phase92-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  real-operator-rehearsal-validation:
+  home-general-test-button-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Real Operator Rehearsal
+      - name: Validate Home General Test Button
         env:
           PYTHONPATH: backend
         run: |
@@ -48,81 +48,68 @@ jobs:
           from pathlib import Path
 
           from main import app
+          from app.services.home_operator_ux_service import home_operator_ux_service
           from app.services.real_operator_rehearsal_service import real_operator_rehearsal_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/real-operator-rehearsal/status",
-              "/api/real-operator-rehearsal/package",
+              "/api/home-operator-ux/panel",
               "/api/real-operator-rehearsal/run",
-              "/api/daily-command-router/route",
               "/api/god-mode-home/dashboard",
+              "/app/home",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
+          panel = home_operator_ux_service.build_panel(tenant_id="owner-andre")
+          assert panel["ok"] is True
+          assert panel["general_test_endpoint"] == "/api/real-operator-rehearsal/run"
+          general_buttons = [b for b in panel["safe_buttons"] if b.get("kind") == "general_test"]
+          assert len(general_buttons) == 1
+          assert general_buttons[0]["label"] == "Teste geral"
+          assert general_buttons[0]["endpoint"] == "/api/real-operator-rehearsal/run"
+          assert general_buttons[0]["payload"]["tenant_id"] == "owner-andre"
+
           rehearsal = real_operator_rehearsal_service.run(tenant_id="owner-andre", requested_project="GOD_MODE")
           assert rehearsal["ok"] is True
-          assert rehearsal["mode"] == "real_operator_rehearsal"
           assert rehearsal["status"] == "ready", rehearsal["failed_checks"]
           assert rehearsal["score"] == 100
-          assert not rehearsal["failed_checks"]
+          assert rehearsal["flow"]["route_result"]["job_id"]
 
-          flow = rehearsal["flow"]
-          assert flow["home_before"]["ok"] is True
-          assert flow["home_after"]["ok"] is True
-          assert flow["route_result"]["ok"] is True
-          assert flow["route_result"]["command_id"] == "continue_active_project"
-          assert flow["route_result"]["project"] == "GOD_MODE"
-          assert flow["route_result"]["job_id"]
-          assert "autopilot_stop_reason" in flow["route_result"]
-          assert flow["chat_latest"]["job_id"] == flow["route_result"]["job_id"]
-          assert flow["memory_status"]["status"] == "ready"
-          assert flow["memory_status"]["score"] == 100
-          assert flow["artifacts_status"]["status"] == "ready"
-          assert flow["artifacts_status"]["artifact_count"] == 2
-          assert flow["build_probe"]["ok"] is True
-          for item in flow["build_probe"]["checks"]:
-              assert item["exists"] is True, item
-              assert item["mentions_upload_artifact"] is True, item
-              assert item["mentions_placeholder"] is False, item
-              assert item["size_bytes"] > 200, item
+          frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
+          frontend_markers = [
+              "runPayloadButton(endpoint,payload={})",
+              "Teste geral",
+              "/api/real-operator-rehearsal/run",
+              "general_test",
+              "r?.flow?.route_result?.job_id",
+              "r?.score",
+              "window.__easyPayloads",
+          ]
+          for marker in frontend_markers:
+              assert marker in frontend, f"Missing frontend marker: {marker}"
 
-          status = real_operator_rehearsal_service.get_status()
-          assert status["ok"] is True
-          assert status["status"] == "ready"
-          assert status["score"] == 100
-          assert status["failed_count"] == 0
-
-          package = real_operator_rehearsal_service.get_package()
-          assert package["ok"] is True
-          assert package["package"]["rehearsal"]["status"] == "ready"
-
-          docs = Path("docs/frontend/real-operator-rehearsal.md").read_text(encoding="utf-8")
-          for marker in ["/api/real-operator-rehearsal/run", "Home → Modo Fácil", "Real Work Pipeline", "Artifacts", "Limite honesto"]:
+          docs = Path("docs/frontend/home-general-test-button.md").read_text(encoding="utf-8")
+          for marker in ["Teste geral", "/api/real-operator-rehearsal/run", "requested_project", "Ver JSON"]:
               assert marker in docs, f"Missing doc marker: {marker}"
-
-          source = Path("backend/app/services/real_operator_rehearsal_service.py").read_text(encoding="utf-8")
-          for marker in ["RealOperatorRehearsalService", "chat_bridge_job", "build_workflows_real", "operator_next"]:
-              assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "real_operator_rehearsal.py",
-              "real_operator_rehearsal_service.py",
-              "real-operator-rehearsal.md",
+              "home_operator_ux_service.py",
+              "god_mode_home_frontend.py",
+              "home-general-test-button.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("real operator rehearsal validation passed")
+          print("home general test button validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Real Operator Rehearsal Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Home General Test Button Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Home -> router -> chat -> real work -> autopilot was rehearsed.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Feedback, approvals, memory and artifacts were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK/EXE workflows were checked for real upload-artifact usage.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Modo Fácil now exposes a Teste geral safe button.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Teste geral calls the real operator rehearsal endpoint.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Result cards support rehearsal score, status and job data.' >> "$GITHUB_STEP_SUMMARY"

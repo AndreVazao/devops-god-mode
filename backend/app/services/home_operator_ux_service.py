@@ -54,6 +54,7 @@ class HomeOperatorUxService:
             "safe_buttons": self._safe_buttons(primary_action),
             "quick_commands": self._quick_commands(active_project),
             "daily_command_route_endpoint": "/api/daily-command-router/route",
+            "general_test_endpoint": "/api/real-operator-rehearsal/run",
             "driving_safe": True,
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
@@ -93,6 +94,7 @@ class HomeOperatorUxService:
     def _safe_buttons(self, primary_action: Dict[str, Any]) -> List[Dict[str, Any]]:
         buttons = [
             primary_action,
+            {"kind": "general_test", "label": "Teste geral", "endpoint": "/api/real-operator-rehearsal/run", "payload": {"tenant_id": "owner-andre"}, "priority": "critical"},
             {"kind": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards", "priority": "critical"},
             {"kind": "approve", "label": "Aprovar próximo", "endpoint": "/api/god-mode-home/approve-next", "priority": "high"},
             {"kind": "health", "label": "Saúde", "endpoint": "/api/daily-command-router/route", "payload": {"command_id": "show_health"}, "priority": "high"},
@@ -102,7 +104,7 @@ class HomeOperatorUxService:
         seen = set()
         unique = []
         for button in buttons:
-            key = button.get("endpoint") or button.get("route") or button.get("label")
+            key = f"{button.get('endpoint') or button.get('route') or button.get('label')}::{button.get('kind')}"
             if key in seen:
                 continue
             seen.add(key)
@@ -149,6 +151,7 @@ class HomeOperatorUxService:
             "safe_button_count": len(panel["safe_buttons"]),
             "quick_command_count": len(panel["quick_commands"]),
             "daily_command_route_endpoint": panel["daily_command_route_endpoint"],
+            "general_test_endpoint": panel["general_test_endpoint"],
             "driving_safe": panel["driving_safe"],
         }
 
