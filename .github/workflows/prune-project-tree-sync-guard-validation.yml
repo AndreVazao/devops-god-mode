@@ -1,4 +1,4 @@
-name: PC Autopilot Loop Validation
+name: Unified God Mode Home Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase79-*'
+      - 'phase80-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  pc-autopilot-loop-validation:
+  unified-god-mode-home-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate PC Autopilot Loop
+      - name: Validate Unified God Mode Home
         env:
           PYTHONPATH: backend
         run: |
@@ -46,115 +46,133 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.pc_autopilot_loop_service import pc_autopilot_loop_service
-          from app.services.operator_chat_real_work_bridge_service import operator_chat_real_work_bridge_service
+          from app.services.god_mode_home_service import god_mode_home_service
           from app.services.operator_priority_service import operator_priority_service
+          from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
           required = {
-              "/api/pc-autopilot/status",
-              "/api/pc-autopilot/package",
-              "/api/pc-autopilot/latest",
-              "/api/pc-autopilot/dashboard",
-              "/api/pc-autopilot/configure",
-              "/api/pc-autopilot/cycle",
-              "/api/pc-autopilot/start",
-              "/api/pc-autopilot/stop",
-              "/app/pc-autopilot",
-              "/app/autopilot-loop",
+              "/api/god-mode-home/status",
+              "/api/god-mode-home/package",
+              "/api/god-mode-home/dashboard",
+              "/api/god-mode-home/driving-mode",
+              "/api/god-mode-home/continue",
+              "/api/god-mode-home/chat",
+              "/api/god-mode-home/start-autopilot",
+              "/api/god-mode-home/stop-autopilot",
+              "/api/god-mode-home/approve-next",
+              "/app/home",
+              "/app/god-mode",
+              "/app/god-mode-home",
           }
           missing = sorted(required - route_paths)
           assert not missing, f"Missing routes: {missing}"
 
-          status = pc_autopilot_loop_service.get_status()
-          assert status["ok"] is True
-          assert status["apk_disconnect_safe"] is True
-          assert status["approval_bypass"] is False
-          assert status["settings"]["enabled"] is False
-          assert status["settings"]["run_when_apk_disconnected"] is True
-          assert status["settings"]["approval_bypass"] is False
-
-          configured = pc_autopilot_loop_service.configure(
-              enabled=False,
-              interval_seconds=5,
-              max_rounds_per_cycle=2,
-              max_jobs_per_round=2,
-          )
-          assert configured["ok"] is True
-          assert configured["settings"]["interval_seconds"] == 5
-          assert configured["settings"]["max_rounds_per_cycle"] == 2
-          assert configured["settings"]["max_jobs_per_round"] == 2
-          assert configured["settings"]["approval_bypass"] is False
-
           operator_priority_service.set_order(
               ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
               active_project="GOD_MODE",
-              note="pc autopilot validation order",
+              note="home cockpit validation order",
           )
-          result = operator_chat_real_work_bridge_service.submit_chat_command(
+
+          dashboard = god_mode_home_service.build_dashboard(tenant_id="owner-andre")
+          assert dashboard["ok"] is True
+          assert dashboard["mode"] == "god_mode_home_dashboard"
+          assert dashboard["money_priority_enabled"] is False
+          assert dashboard["active_project"] == "GOD_MODE"
+          assert "/app/home" in dashboard["home_routes"]
+          assert "/app/god-mode" in dashboard["home_routes"]
+          assert dashboard["traffic_light"]["color"] in {"blue", "green", "yellow", "red"}
+          assert dashboard["next_task"]["label"]
+          assert any(item.get("endpoint") == "/api/god-mode-home/continue" for item in dashboard["quick_actions"])
+          assert any(item.get("endpoint") == "/api/god-mode-home/start-autopilot" for item in dashboard["quick_actions"])
+          assert any(item.get("endpoint") == "/api/god-mode-home/stop-autopilot" for item in dashboard["quick_actions"])
+          assert any(item.get("endpoint") == "/api/god-mode-home/approve-next" for item in dashboard["quick_actions"])
+          assert any(item.get("route") == "/app/mobile-approval-cockpit-v2" for item in dashboard["quick_actions"])
+
+          status = god_mode_home_service.get_status(tenant_id="owner-andre")
+          assert status["ok"] is True
+          assert status["money_priority_enabled"] is False
+          assert status["active_project"] == "GOD_MODE"
+          assert status["pending_approval_count"] >= 0
+
+          chat = god_mode_home_service.chat(
               message="continua o God Mode até precisares do meu OK",
               tenant_id="owner-andre",
               requested_project=None,
-              auto_run=False,
           )
-          assert result["ok"] is True
-          assert result["report"]["job_id"]
+          assert chat["ok"] is True
+          assert chat["result"]["report"]["resolved_project_id"] == "GOD_MODE"
+          assert chat["result"]["report"]["job_id"]
 
-          cycle = pc_autopilot_loop_service.run_cycle(reason="validation_cycle")
-          assert cycle["ok"] is True
-          assert cycle["cycle"]["cycle_id"].startswith("pc-autopilot-cycle-")
-          assert cycle["cycle"]["approval_bypass"] is False
-          assert cycle["cycle"]["stop_reason"] in {"idle_no_jobs_processed", "blocked_waiting_operator", "failed_needs_review", "budget_exhausted"}
-          assert "supervisor" in cycle
+          continuation = god_mode_home_service.continue_work(
+              tenant_id="owner-andre",
+              requested_project=None,
+          )
+          assert continuation["ok"] is True
+          assert continuation["project"] == "GOD_MODE"
+          assert continuation["result"]["report"]["job_id"]
 
-          latest = pc_autopilot_loop_service.latest()
-          assert latest["ok"] is True
-          assert latest["cycle"]["cycle_id"] == cycle["cycle"]["cycle_id"]
-
-          dashboard = pc_autopilot_loop_service.build_dashboard()
-          assert dashboard["ok"] is True
-          assert dashboard["status"]["ok"] is True
-          assert any(button.get("endpoint") == "/api/pc-autopilot/start" for button in dashboard["buttons"])
-          assert any(button.get("route") == "/app/mobile-approval-cockpit-v2" for button in dashboard["buttons"])
-
-          start = pc_autopilot_loop_service.start()
+          start = god_mode_home_service.start_autopilot()
           assert start["ok"] is True
-          assert start["status"] in {"started", "already_running"}
-          stop = pc_autopilot_loop_service.stop()
+          assert start["result"]["ok"] is True
+          stop = god_mode_home_service.stop_autopilot()
           assert stop["ok"] is True
-          assert stop["status"] == "stopping"
+          assert stop["result"]["ok"] is True
 
-          docs = Path("docs/frontend/pc-autopilot-loop.md").read_text(encoding="utf-8")
-          for marker in ["/api/pc-autopilot/start", "desligado por defeito", "não contorna aprovações", "APK esteja fechado"]:
+          approval_card = mobile_approval_cockpit_v2_service.create_card(
+              title="Home validation approval",
+              body="Approve from unified home validation.",
+              card_type="operator_command",
+              project_id="GOD_MODE",
+              tenant_id="owner-andre",
+              priority="high",
+              requires_approval=True,
+          )
+          assert approval_card["ok"] is True
+          approval = god_mode_home_service.approve_next(tenant_id="owner-andre", operator_note="validation approve")
+          assert approval["ok"] is True
+          assert approval["decision"]["card"]["status"] == "approved"
+
+          driving = god_mode_home_service.driving_mode(tenant_id="owner-andre")
+          assert driving["ok"] is True
+          assert driving["speakable"]
+          assert driving["safe_buttons"]
+
+          package = god_mode_home_service.get_package(tenant_id="owner-andre")
+          assert package["ok"] is True
+          assert package["package"]["status"]["ok"] is True
+          assert package["package"]["dashboard"]["ok"] is True
+
+          docs = Path("docs/frontend/god-mode-home.md").read_text(encoding="utf-8")
+          for marker in ["/app/home", "/api/god-mode-home/continue", "money_priority_enabled=false", "PC Autopilot", "Aprovar próximo"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
-          frontend = Path("backend/app/routes/pc_autopilot_loop_frontend.py").read_text(encoding="utf-8")
-          for marker in ["/api/pc-autopilot/start", "Ciclo agora", "Aprovações", "APK esteja fechado"]:
+          frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
+          for marker in ["/api/god-mode-home/continue", "Ligar PC Autopilot", "Aprovar próximo", "Chat rápido"]:
               assert marker in frontend, f"Missing frontend marker: {marker}"
 
-          source = Path("backend/app/services/pc_autopilot_loop_service.py").read_text(encoding="utf-8")
-          for marker in ["threading.Thread", "daemon=True", "approval_bypass", "run_when_apk_disconnected", "run_cycle"]:
+          source = Path("backend/app/services/god_mode_home_service.py").read_text(encoding="utf-8")
+          for marker in ["money_priority_enabled", "operator_priority_service", "pc_autopilot_loop_service", "approve_next", "continue_work"]:
               assert marker in source, f"Missing source marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "pc_autopilot_loop.py",
-              "pc_autopilot_loop_frontend.py",
-              "pc_autopilot_loop_service.py",
-              "pc-autopilot-loop.md",
+              "god_mode_home.py",
+              "god_mode_home_frontend.py",
+              "god_mode_home_service.py",
+              "god-mode-home.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          assert Path("data/pc_autopilot_loop.json").exists()
-          print("pc autopilot loop validation passed")
+          print("unified God Mode home validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## PC Autopilot Loop Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Unified God Mode Home Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- PC autopilot loop API and cockpit were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Loop can run cycles while APK is disconnected.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Approval bypass is explicitly disabled.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Unified mobile home cockpit was validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home aggregates chat, priority, approvals, memory and PC autopilot.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Money priority is explicitly disabled.' >> "$GITHUB_STEP_SUMMARY"
