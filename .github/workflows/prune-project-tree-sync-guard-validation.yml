@@ -1,4 +1,4 @@
-name: Unified God Mode Home Validation
+name: APK Home Entry Validation
 
 on:
   workflow_dispatch:
@@ -6,9 +6,9 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase80-*'
+      - 'phase81-*'
     paths:
-      - 'backend/**'
+      - 'android-app/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
@@ -16,13 +16,13 @@ on:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - 'android-app/**'
       - 'docs/**'
       - 'PROJECT_TREE.txt'
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  unified-god-mode-home-validation:
+  apk-home-entry-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,141 +38,64 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Unified God Mode Home
+      - name: Validate APK Home Entry
         env:
           PYTHONPATH: backend
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          from main import app
-          from app.services.god_mode_home_service import god_mode_home_service
-          from app.services.operator_priority_service import operator_priority_service
-          from app.services.mobile_approval_cockpit_v2_service import mobile_approval_cockpit_v2_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
-          route_paths = {route.path for route in app.routes}
-          required = {
-              "/api/god-mode-home/status",
-              "/api/god-mode-home/package",
-              "/api/god-mode-home/dashboard",
-              "/api/god-mode-home/driving-mode",
-              "/api/god-mode-home/continue",
-              "/api/god-mode-home/chat",
-              "/api/god-mode-home/start-autopilot",
-              "/api/god-mode-home/stop-autopilot",
-              "/api/god-mode-home/approve-next",
-              "/app/home",
-              "/app/god-mode",
-              "/app/god-mode-home",
-          }
-          missing = sorted(required - route_paths)
-          assert not missing, f"Missing routes: {missing}"
+          main_activity = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java").read_text(encoding="utf-8")
+          docs = Path("docs/frontend/android-webview-shell.md").read_text(encoding="utf-8")
 
-          operator_priority_service.set_order(
-              ["GOD_MODE", "PROVENTIL", "BARIBUDOS_STUDIO"],
-              active_project="GOD_MODE",
-              note="home cockpit validation order",
-          )
+          required_activity = [
+              'private static final String ENTRY_ROUTE = "/app/home";',
+              'private static final String LEGACY_START_ROUTE = "/app/apk-start";',
+              'God Mode APK · Home principal pronta',
+              'Rota principal: ',
+              'openButton.setText("Home")',
+              'addQuickButton(quickButtons, "Home", "/app/home", false, false)',
+              'addQuickButton(quickButtons, "OK", "/app/mobile-approval-cockpit-v2", false, false)',
+              'addQuickButton(quickButtons, "PC", "/app/pc-autopilot", false, false)',
+              'Auto discovery: /health → /app/home',
+              'Teste: /health → /app/home',
+              'loadRoute(ENTRY_ROUTE)',
+          ]
+          missing_activity = [marker for marker in required_activity if marker not in main_activity]
+          assert not missing_activity, f"MainActivity missing markers: {missing_activity}"
 
-          dashboard = god_mode_home_service.build_dashboard(tenant_id="owner-andre")
-          assert dashboard["ok"] is True
-          assert dashboard["mode"] == "god_mode_home_dashboard"
-          assert dashboard["money_priority_enabled"] is False
-          assert dashboard["active_project"] == "GOD_MODE"
-          assert "/app/home" in dashboard["home_routes"]
-          assert "/app/god-mode" in dashboard["home_routes"]
-          assert dashboard["traffic_light"]["color"] in {"blue", "green", "yellow", "red"}
-          assert dashboard["next_task"]["label"]
-          assert any(item.get("endpoint") == "/api/god-mode-home/continue" for item in dashboard["quick_actions"])
-          assert any(item.get("endpoint") == "/api/god-mode-home/start-autopilot" for item in dashboard["quick_actions"])
-          assert any(item.get("endpoint") == "/api/god-mode-home/stop-autopilot" for item in dashboard["quick_actions"])
-          assert any(item.get("endpoint") == "/api/god-mode-home/approve-next" for item in dashboard["quick_actions"])
-          assert any(item.get("route") == "/app/mobile-approval-cockpit-v2" for item in dashboard["quick_actions"])
+          assert main_activity.count('loadRoute(ENTRY_ROUTE)') >= 4
+          assert 'ENTRY_ROUTE = "/app/apk-start"' not in main_activity
 
-          status = god_mode_home_service.get_status(tenant_id="owner-andre")
-          assert status["ok"] is True
-          assert status["money_priority_enabled"] is False
-          assert status["active_project"] == "GOD_MODE"
-          assert status["pending_approval_count"] >= 0
-
-          chat = god_mode_home_service.chat(
-              message="continua o God Mode até precisares do meu OK",
-              tenant_id="owner-andre",
-              requested_project=None,
-          )
-          assert chat["ok"] is True
-          assert chat["result"]["report"]["resolved_project_id"] == "GOD_MODE"
-          assert chat["result"]["report"]["job_id"]
-
-          continuation = god_mode_home_service.continue_work(
-              tenant_id="owner-andre",
-              requested_project=None,
-          )
-          assert continuation["ok"] is True
-          assert continuation["project"] == "GOD_MODE"
-          assert continuation["result"]["report"]["job_id"]
-
-          start = god_mode_home_service.start_autopilot()
-          assert start["ok"] is True
-          assert start["result"]["ok"] is True
-          stop = god_mode_home_service.stop_autopilot()
-          assert stop["ok"] is True
-          assert stop["result"]["ok"] is True
-
-          approval_card = mobile_approval_cockpit_v2_service.create_card(
-              title="Home validation approval",
-              body="Approve from unified home validation.",
-              card_type="operator_command",
-              project_id="GOD_MODE",
-              tenant_id="owner-andre",
-              priority="high",
-              requires_approval=True,
-          )
-          assert approval_card["ok"] is True
-          approval = god_mode_home_service.approve_next(tenant_id="owner-andre", operator_note="validation approve")
-          assert approval["ok"] is True
-          assert approval["decision"]["card"]["status"] == "approved"
-
-          driving = god_mode_home_service.driving_mode(tenant_id="owner-andre")
-          assert driving["ok"] is True
-          assert driving["speakable"]
-          assert driving["safe_buttons"]
-
-          package = god_mode_home_service.get_package(tenant_id="owner-andre")
-          assert package["ok"] is True
-          assert package["package"]["status"]["ok"] is True
-          assert package["package"]["dashboard"]["ok"] is True
-
-          docs = Path("docs/frontend/god-mode-home.md").read_text(encoding="utf-8")
-          for marker in ["/app/home", "/api/god-mode-home/continue", "money_priority_enabled=false", "PC Autopilot", "Aprovar próximo"]:
-              assert marker in docs, f"Missing doc marker: {marker}"
-
-          frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
-          for marker in ["/api/god-mode-home/continue", "Ligar PC Autopilot", "Aprovar próximo", "Chat rápido"]:
-              assert marker in frontend, f"Missing frontend marker: {marker}"
-
-          source = Path("backend/app/services/god_mode_home_service.py").read_text(encoding="utf-8")
-          for marker in ["money_priority_enabled", "operator_priority_service", "pc_autopilot_loop_service", "approve_next", "continue_work"]:
-              assert marker in source, f"Missing source marker: {marker}"
+          required_docs = [
+              "`/app/home`",
+              "fallback legado",
+              "Entrada principal",
+              "Phase 81",
+              "se responder, abre `/app/home`",
+              "Home, Chat, OK/Aprovações, PC Autopilot",
+          ]
+          missing_docs = [marker for marker in required_docs if marker not in docs]
+          assert not missing_docs, f"Android docs missing markers: {missing_docs}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
           required_tree_entries = [
-              "god_mode_home.py",
-              "god_mode_home_frontend.py",
-              "god_mode_home_service.py",
-              "god-mode-home.md",
+              "android-app",
+              "MainActivity.java",
+              "android-webview-shell.md",
           ]
           missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
           assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
 
-          print("unified God Mode home validation passed")
+          print("APK home entry validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Unified God Mode Home Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## APK Home Entry Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Unified mobile home cockpit was validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Home aggregates chat, priority, approvals, memory and PC autopilot.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Money priority is explicitly disabled.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK now opens /app/home as the primary entry.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Pairing, health checks and auto discovery land on Home.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Legacy /app/apk-start remains as fallback button.' >> "$GITHUB_STEP_SUMMARY"
