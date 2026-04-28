@@ -113,6 +113,7 @@ class GodModeHomeService:
             {"id": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards", "priority": "critical"},
             {"id": "continue", "label": "Continuar", "endpoint": "/api/god-mode-home/continue", "priority": "critical"},
             {"id": "easy", "label": "Modo fácil", "endpoint": "/api/home-operator-ux/panel", "priority": "critical"},
+            {"id": "install_readiness_final", "label": "Instalação final", "endpoint": "/api/install-readiness-final/check", "priority": "critical"},
             {"id": "health", "label": "Saúde", "endpoint": "/api/home-system-health/snapshot", "priority": "critical"},
             {"id": "install", "label": "Instalar/1º arranque", "endpoint": "/api/install-first-run/guide", "priority": "critical"},
             {"id": "artifacts", "label": "APK/EXE", "endpoint": "/api/artifacts-center/dashboard", "priority": "critical"},
