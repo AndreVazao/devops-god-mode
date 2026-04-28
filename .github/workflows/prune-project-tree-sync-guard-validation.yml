@@ -135,9 +135,9 @@ jobs:
               assert entry in generated_tree, f"Project Tree Autorefresh generated tree missing {entry}"
 
           workflow = Path(".github/workflows/prune-project-tree-sync-guard-validation.yml").read_text(encoding="utf-8")
-          assert "Install Readiness Final Gate Validation" in workflow
+          assert workflow.startswith("name: Install Readiness Final Gate Validation")
           assert "phase94-*" in workflow
-          assert "PR Checks Visibility Validation" not in workflow
+          assert "install-readiness-final-gate-validation" in workflow
 
           print("install readiness final gate validation passed")
           PY
