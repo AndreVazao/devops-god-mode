@@ -10,11 +10,26 @@ async def status(tenant_id: str = "owner-andre"):
     return install_first_run_guide_service.get_status(tenant_id=tenant_id)
 
 
+@router.post('/status')
+async def post_status(tenant_id: str = "owner-andre"):
+    return install_first_run_guide_service.get_status(tenant_id=tenant_id)
+
+
 @router.get('/package')
 async def package(tenant_id: str = "owner-andre"):
     return install_first_run_guide_service.get_package(tenant_id=tenant_id)
 
 
+@router.post('/package')
+async def post_package(tenant_id: str = "owner-andre"):
+    return install_first_run_guide_service.get_package(tenant_id=tenant_id)
+
+
 @router.get('/guide')
 async def guide(tenant_id: str = "owner-andre"):
+    return install_first_run_guide_service.build_guide(tenant_id=tenant_id)
+
+
+@router.post('/guide')
+async def post_guide(tenant_id: str = "owner-andre"):
     return install_first_run_guide_service.build_guide(tenant_id=tenant_id)
