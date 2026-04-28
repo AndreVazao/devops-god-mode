@@ -10,11 +10,26 @@ async def status(tenant_id: str = "owner-andre"):
     return ready_to_use_home_check_service.get_status(tenant_id=tenant_id)
 
 
+@router.post('/status')
+async def post_status(tenant_id: str = "owner-andre"):
+    return ready_to_use_home_check_service.get_status(tenant_id=tenant_id)
+
+
 @router.get('/package')
 async def package(tenant_id: str = "owner-andre"):
     return ready_to_use_home_check_service.get_package(tenant_id=tenant_id)
 
 
+@router.post('/package')
+async def post_package(tenant_id: str = "owner-andre"):
+    return ready_to_use_home_check_service.get_package(tenant_id=tenant_id)
+
+
 @router.get('/checklist')
 async def checklist(tenant_id: str = "owner-andre"):
+    return ready_to_use_home_check_service.build_checklist(tenant_id=tenant_id)
+
+
+@router.post('/checklist')
+async def post_checklist(tenant_id: str = "owner-andre"):
     return ready_to_use_home_check_service.build_checklist(tenant_id=tenant_id)
