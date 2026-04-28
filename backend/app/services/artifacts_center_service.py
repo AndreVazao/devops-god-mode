@@ -32,6 +32,8 @@ class ArtifactsCenterService:
             "missing_workflows": missing,
             "missing_required_workflows": missing_required,
             "artifacts": artifacts,
+            "download_shortcuts": self._download_shortcuts(),
+            "mobile_download_steps": self._mobile_download_steps(),
             "install_order": [
                 {"step": 1, "label": "Abrir GitHub Actions", "url": f"{self.REPO_URL}/actions"},
                 {"step": 2, "label": "Abrir último run verde em main", "url": f"{self.REPO_URL}/actions?query=branch%3Amain"},
@@ -67,6 +69,44 @@ class ArtifactsCenterService:
             },
         ]
 
+    def _download_shortcuts(self) -> List[Dict[str, Any]]:
+        return [
+            {
+                "id": "latest_main_runs",
+                "label": "Últimos builds em main",
+                "url": f"{self.REPO_URL}/actions?query=branch%3Amain",
+                "priority": "critical",
+                "instruction": "Abrir do telemóvel, escolher o último run verde e descarregar os artifacts no fundo da página.",
+            },
+            {
+                "id": "apk_workflow_runs",
+                "label": "APK Android",
+                "url": f"{self.REPO_URL}/actions/workflows/android-real-build-progressive.yml?query=branch%3Amain",
+                "artifact_name": "godmode-android-webview-apk",
+                "expected_file": "GodModeMobile-debug.apk",
+                "priority": "critical",
+                "instruction": "Abrir último run verde do APK e descarregar GodModeMobile-debug.apk.",
+            },
+            {
+                "id": "exe_workflow_runs",
+                "label": "EXE Windows",
+                "url": f"{self.REPO_URL}/actions/workflows/windows-exe-real-build.yml?query=branch%3Amain",
+                "artifact_name": "godmode-windows-exe",
+                "expected_file": "GodModeDesktop.exe",
+                "priority": "critical",
+                "instruction": "Abrir último run verde do EXE e descarregar GodModeDesktop.exe.",
+            },
+        ]
+
+    def _mobile_download_steps(self) -> List[Dict[str, Any]]:
+        return [
+            {"step": 1, "title": "Abrir Instalar agora", "endpoint": "/api/first-real-install-launcher/plan"},
+            {"step": 2, "title": "Abrir APK/EXE", "endpoint": "/api/artifacts-center/dashboard"},
+            {"step": 3, "title": "Carregar em Últimos builds em main", "url": f"{self.REPO_URL}/actions?query=branch%3Amain"},
+            {"step": 4, "title": "Abrir último run verde", "note": "Preferir runs em main, não branches antigas."},
+            {"step": 5, "title": "Descarregar artifacts", "files": ["GodModeDesktop.exe", "GodModeMobile-debug.apk"]},
+        ]
+
     def _artifact_targets(self) -> List[Dict[str, Any]]:
         return [
             {
@@ -76,6 +116,7 @@ class ArtifactsCenterService:
                 "expected_file": "GodModeMobile-debug.apk",
                 "workflow": "Android APK Build",
                 "workflow_path": ".github/workflows/android-real-build-progressive.yml",
+                "workflow_runs_url": f"{self.REPO_URL}/actions/workflows/android-real-build-progressive.yml?query=branch%3Amain",
                 "install_target": "Telemóvel Android",
                 "next_step": "Instalar APK e abrir; deve entrar em /app/home.",
             },
@@ -86,6 +127,7 @@ class ArtifactsCenterService:
                 "expected_file": "GodModeDesktop.exe",
                 "workflow": "Windows EXE Build",
                 "workflow_path": ".github/workflows/windows-exe-real-build.yml",
+                "workflow_runs_url": f"{self.REPO_URL}/actions/workflows/windows-exe-real-build.yml?query=branch%3Amain",
                 "install_target": "PC Windows",
                 "next_step": "Abrir no PC para servir o backend local.",
             },
@@ -100,6 +142,7 @@ class ArtifactsCenterService:
             "artifact_count": dashboard["artifact_count"],
             "ready_workflow_count": dashboard["ready_workflow_count"],
             "actions_url": dashboard["actions_url"],
+            "download_shortcut_count": len(dashboard["download_shortcuts"]),
         }
 
     def get_package(self) -> Dict[str, Any]:
