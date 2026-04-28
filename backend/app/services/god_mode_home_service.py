@@ -111,6 +111,7 @@ class GodModeHomeService:
     def _quick_actions(self) -> List[Dict[str, str]]:
         return [
             {"id": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards", "priority": "critical"},
+            {"id": "pc_link_helper", "label": "Ligar ao PC", "endpoint": "/api/pc-link-helper/panel", "priority": "critical"},
             {"id": "home_command_wizard", "label": "Próxima ordem", "endpoint": "/api/home-command-wizard/panel", "priority": "critical"},
             {"id": "first_real_install_launcher", "label": "Instalar agora", "endpoint": "/api/first-real-install-launcher/plan", "priority": "critical"},
             {"id": "continue", "label": "Continuar", "endpoint": "/api/god-mode-home/continue", "priority": "critical"},
