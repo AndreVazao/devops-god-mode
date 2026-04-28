@@ -111,6 +111,7 @@ class GodModeHomeService:
     def _quick_actions(self) -> List[Dict[str, str]]:
         return [
             {"id": "chat", "label": "Chat", "route": "/app/operator-chat-sync-cards", "priority": "critical"},
+            {"id": "first_real_install_launcher", "label": "Instalar agora", "endpoint": "/api/first-real-install-launcher/plan", "priority": "critical"},
             {"id": "continue", "label": "Continuar", "endpoint": "/api/god-mode-home/continue", "priority": "critical"},
             {"id": "easy", "label": "Modo fácil", "endpoint": "/api/home-operator-ux/panel", "priority": "critical"},
             {"id": "install_readiness_final", "label": "Instalação final", "endpoint": "/api/install-readiness-final/check", "priority": "critical"},
