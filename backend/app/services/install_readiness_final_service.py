@@ -81,7 +81,7 @@ class InstallReadinessFinalGateService:
             self._check("apk_artifact_not_placeholder", "APK artifact esperado não é placeholder", workflow_probe.get("apk", {}).get("ok") is True, workflow_probe.get("apk")),
             self._check("exe_artifact_not_placeholder", "EXE artifact esperado não é placeholder", workflow_probe.get("exe", {}).get("ok") is True, workflow_probe.get("exe")),
             self._check("project_tree_autorefresh_sees_new_files", "Project Tree Autorefresh vê ficheiros novos", tree_probe.get("ok") is True, tree_probe),
-            self._check("no_secrets_in_memory", "Não há secrets graváveis na memória", self._memory_secret_guard_ok(memory), memory.get("secret_probe")),
+            self._check("no_secret_text_written", "Guarda de memória sensível está ativa", self._memory_secret_guard_ok(memory), memory.get("secret_probe")),
             self._check("main_routes_exist", "Rotas principais existem", route_probe.get("ok") is True, route_probe),
             self._check("general_test_button_visible", "Botão Teste geral aparece no Modo Fácil", bool(self._button(panel, "general_test")), self._button(panel, "general_test")),
             self._check("home_result_card_ready", "Home consegue apresentar resultado em cartão", frontend_probe.get("result_card_ready") is True, frontend_probe),
@@ -209,9 +209,8 @@ class InstallReadinessFinalGateService:
             "resultCard",
             "Ver JSON",
             "runPayloadButton(endpoint,payload={})",
-            "/api/install-readiness-final/check",
-            "install_readiness_final",
-            "Instalação final",
+            "r?.score",
+            "r?.flow?.route_result?.job_id",
         ]
         missing = [marker for marker in markers if marker not in text]
         return {"ok": path.exists() and not missing, "result_card_ready": path.exists() and not missing, "path": str(path), "missing_markers": missing}
