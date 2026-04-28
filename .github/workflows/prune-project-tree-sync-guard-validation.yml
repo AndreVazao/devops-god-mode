@@ -1,4 +1,4 @@
-name: Home General Test Button Validation
+name: Install Readiness Final Gate Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase92-*'
+      - 'phase93-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -24,7 +24,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  home-general-test-button-validation:
+  install-readiness-final-gate-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate Home General Test Button
+      - name: Validate Install Readiness Final Gate
         env:
           PYTHONPATH: backend
         run: |
@@ -48,68 +48,100 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.home_operator_ux_service import home_operator_ux_service
-          from app.services.real_operator_rehearsal_service import real_operator_rehearsal_service
+          from app.services.artifacts_center_service import artifacts_center_service
+          from app.services.install_readiness_final_service import install_readiness_final_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
-          required = {
+          required_routes = {
+              "/api/install-readiness-final/status",
+              "/api/install-readiness-final/check",
+              "/api/install-readiness-final/package",
               "/api/home-operator-ux/panel",
               "/api/real-operator-rehearsal/run",
+              "/api/andreos-memory-audit/audit",
+              "/api/artifacts-center/dashboard",
+              "/api/daily-command-router/route",
               "/api/god-mode-home/dashboard",
               "/app/home",
           }
-          missing = sorted(required - route_paths)
-          assert not missing, f"Missing routes: {missing}"
+          missing_routes = sorted(required_routes - route_paths)
+          assert not missing_routes, f"Missing routes: {missing_routes}"
 
-          panel = home_operator_ux_service.build_panel(tenant_id="owner-andre")
-          assert panel["ok"] is True
-          assert panel["general_test_endpoint"] == "/api/real-operator-rehearsal/run"
-          general_buttons = [b for b in panel["safe_buttons"] if b.get("kind") == "general_test"]
-          assert len(general_buttons) == 1
-          assert general_buttons[0]["label"] == "Teste geral"
-          assert general_buttons[0]["endpoint"] == "/api/real-operator-rehearsal/run"
-          assert general_buttons[0]["payload"]["tenant_id"] == "owner-andre"
+          check = install_readiness_final_service.build_check(
+              tenant_id="owner-andre",
+              requested_project="GOD_MODE",
+              run_deep=True,
+          )
+          assert check["mode"] == "install_readiness_final_gate"
+          assert check["status"] == "ready_to_install", check["failed_checks"]
+          assert check["ready_to_install"] is True
+          assert check["score"] == 100
+          assert not check["failed_checks"]
 
-          rehearsal = real_operator_rehearsal_service.run(tenant_id="owner-andre", requested_project="GOD_MODE")
-          assert rehearsal["ok"] is True
-          assert rehearsal["status"] == "ready", rehearsal["failed_checks"]
-          assert rehearsal["score"] == 100
-          assert rehearsal["flow"]["route_result"]["job_id"]
+          check_ids = {item["id"] for item in check["checks"]}
+          required_check_ids = {
+              "home_responds",
+              "easy_mode_exists",
+              "general_test_exists_and_passes",
+              "andreos_memory_audit_passes",
+              "real_operator_rehearsal_passes",
+              "artifacts_center_points_to_apk_exe",
+              "apk_exe_workflows_exist",
+              "apk_artifact_not_placeholder",
+              "exe_artifact_not_placeholder",
+              "project_tree_autorefresh_sees_new_files",
+              "no_secret_text_written",
+              "main_routes_exist",
+              "general_test_button_visible",
+              "home_result_card_ready",
+              "backend_autonomy_contract",
+          }
+          missing_checks = sorted(required_check_ids - check_ids)
+          assert not missing_checks, f"Missing final gate checks: {missing_checks}"
 
-          frontend = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
-          frontend_markers = [
-              "runPayloadButton(endpoint,payload={})",
-              "Teste geral",
-              "/api/real-operator-rehearsal/run",
-              "general_test",
-              "r?.flow?.route_result?.job_id",
-              "r?.score",
-              "window.__easyPayloads",
-          ]
-          for marker in frontend_markers:
-              assert marker in frontend, f"Missing frontend marker: {marker}"
+          status = install_readiness_final_service.get_status(tenant_id="owner-andre")
+          assert status["mode"] == "install_readiness_final_status"
+          assert status["ready_to_install"] is True
 
-          docs = Path("docs/frontend/home-general-test-button.md").read_text(encoding="utf-8")
-          for marker in ["Teste geral", "/api/real-operator-rehearsal/run", "requested_project", "Ver JSON"]:
+          package = install_readiness_final_service.get_package(
+              tenant_id="owner-andre",
+              requested_project="GOD_MODE",
+          )
+          assert package["ok"] is True
+          assert package["package"]["check"]["ready_to_install"] is True
+
+          artifacts = artifacts_center_service.build_dashboard()
+          expected_files = {item["expected_file"] for item in artifacts["artifacts"]}
+          assert "GodModeMobile-debug.apk" in expected_files
+          assert "GodModeDesktop.exe" in expected_files
+
+          docs = Path("docs/frontend/install-readiness-final-gate.md").read_text(encoding="utf-8")
+          for marker in ["/api/install-readiness-final/check", "ready_to_install", "GodModeMobile-debug.apk", "GodModeDesktop.exe", "Modo Fácil"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
-          required_tree_entries = [
-              "home_operator_ux_service.py",
-              "god_mode_home_frontend.py",
-              "home-general-test-button.md",
-          ]
-          missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
-          assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
+          for entry in [
+              "install_readiness_final.py",
+              "install_readiness_final_service.py",
+              "install-readiness-final-gate.md",
+              "prune-project-tree-sync-guard-validation.yml",
+          ]:
+              assert entry in generated_tree, f"Project Tree Autorefresh generated tree missing {entry}"
 
-          print("home general test button validation passed")
+          workflow = Path(".github/workflows/prune-project-tree-sync-guard-validation.yml").read_text(encoding="utf-8")
+          assert "Install Readiness Final Gate Validation" in workflow
+          assert "phase93-*" in workflow
+          assert "Home General Test Button Validation" not in workflow
+
+          print("install readiness final gate validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## Home General Test Button Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Install Readiness Final Gate Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Modo Fácil now exposes a Teste geral safe button.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Teste geral calls the real operator rehearsal endpoint.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Result cards support rehearsal score, status and job data.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Final install readiness endpoints were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home, Modo Fácil, Teste geral, memory audit and real rehearsal were checked.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK/EXE workflows and expected artifact names were checked.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Project Tree Autorefresh confirms the new phase files.' >> "$GITHUB_STEP_SUMMARY"
