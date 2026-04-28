@@ -1,4 +1,4 @@
-name: First Real Install Launcher Validation
+name: Artifact Download Shortcuts Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase95-*'
+      - 'phase96-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  first-real-install-launcher-validation:
+  artifact-download-shortcuts-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate First Real Install Launcher
+      - name: Validate Artifact Download Shortcuts
         env:
           PYTHONPATH: backend
         run: |
@@ -46,59 +46,45 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.first_real_install_launcher_service import first_real_install_launcher_service
-          from app.services.god_mode_home_service import god_mode_home_service
+          from app.services.artifacts_center_service import artifacts_center_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
-          required_routes = {
-              "/api/first-real-install-launcher/status",
-              "/api/first-real-install-launcher/plan",
-              "/api/first-real-install-launcher/package",
-              "/api/install-readiness-final/check",
-              "/api/artifacts-center/dashboard",
-              "/api/god-mode-home/dashboard",
-              "/app/home",
-          }
-          missing_routes = sorted(required_routes - route_paths)
-          assert not missing_routes, f"Missing routes: {missing_routes}"
+          assert "/api/artifacts-center/dashboard" in route_paths
 
-          home = god_mode_home_service.build_dashboard(tenant_id="owner-andre")
-          actions = {item["id"]: item for item in home["quick_actions"]}
-          assert actions["first_real_install_launcher"]["label"] == "Instalar agora"
-          assert actions["first_real_install_launcher"]["endpoint"] == "/api/first-real-install-launcher/plan"
+          dashboard = artifacts_center_service.build_dashboard()
+          assert dashboard["status"] == "ready"
+          assert dashboard["artifact_count"] == 2
+          assert len(dashboard["download_shortcuts"]) == 3
+          assert len(dashboard["mobile_download_steps"]) == 5
 
-          plan = first_real_install_launcher_service.build_plan(tenant_id="owner-andre", requested_project="GOD_MODE")
-          assert plan["mode"] == "first_real_install_launcher"
-          assert plan["status"] == "ready_to_launch", plan["blockers"]
-          assert plan["primary_button"]["endpoint"] == "/api/artifacts-center/dashboard"
+          shortcuts = {item["id"]: item for item in dashboard["download_shortcuts"]}
+          assert shortcuts["latest_main_runs"]["url"].endswith("actions?query=branch%3Amain")
+          assert shortcuts["apk_workflow_runs"]["artifact_name"] == "godmode-android-webview-apk"
+          assert shortcuts["apk_workflow_runs"]["expected_file"] == "GodModeMobile-debug.apk"
+          assert shortcuts["exe_workflow_runs"]["artifact_name"] == "godmode-windows-exe"
+          assert shortcuts["exe_workflow_runs"]["expected_file"] == "GodModeDesktop.exe"
 
-          card_ids = {item["id"] for item in plan["install_cards"]}
-          assert {"pc_exe", "apk", "first_command"}.issubset(card_ids)
+          artifacts = {item["id"]: item for item in dashboard["artifacts"]}
+          assert artifacts["apk"]["workflow_runs_url"].endswith("android-real-build-progressive.yml?query=branch%3Amain")
+          assert artifacts["exe"]["workflow_runs_url"].endswith("windows-exe-real-build.yml?query=branch%3Amain")
 
-          downloads = {item["label"]: item for item in plan["download_targets"]}
-          assert downloads["GodModeDesktop.exe"]["artifact_name"] == "godmode-windows-exe"
-          assert downloads["GodModeMobile-debug.apk"]["artifact_name"] == "godmode-android-webview-apk"
-
-          docs = Path("docs/frontend/first-real-install-launcher.md").read_text(encoding="utf-8")
-          for marker in ["/api/first-real-install-launcher/plan", "Instalar agora", "GodModeDesktop.exe", "GodModeMobile-debug.apk"]:
+          docs = Path("docs/frontend/artifact-download-shortcuts.md").read_text(encoding="utf-8")
+          for marker in ["download_shortcuts", "GodModeMobile-debug.apk", "GodModeDesktop.exe"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
           generated_tree = project_tree_autorefresh_service.build_tree_text()
-          for entry in ["first_real_install_launcher.py", "first_real_install_launcher_service.py", "first-real-install-launcher.md"]:
-              assert entry in generated_tree, f"Generated tree missing {entry}"
+          assert "artifact-download-shortcuts.md" in generated_tree
 
           workflow = Path(".github/workflows/prune-project-tree-sync-guard-validation.yml").read_text(encoding="utf-8")
-          assert workflow.startswith("name: First Real Install Launcher Validation")
-          assert "phase95-*" in workflow
-          assert "first-real-install-launcher-validation" in workflow
+          assert workflow.startswith("name: Artifact Download Shortcuts Validation")
+          assert "phase96-*" in workflow
 
-          print("first real install launcher validation passed")
+          print("artifact download shortcuts validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## First Real Install Launcher Validation Summary' >> "$GITHUB_STEP_SUMMARY"
-          echo '- First real install launcher endpoints were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Home exposes Instalar agora as a quick action.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- APK and EXE targets were checked.' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Artifact Download Shortcuts Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Artifact download shortcuts were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK and EXE workflow links were checked.' >> "$GITHUB_STEP_SUMMARY"
