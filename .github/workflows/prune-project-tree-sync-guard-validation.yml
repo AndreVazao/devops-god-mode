@@ -1,4 +1,4 @@
-name: PR Checks Visibility Validation
+name: Install Readiness Final Gate Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - 'feature/**'
-      - 'phase93-*'
+      - 'phase94-*'
     paths:
       - 'backend/**'
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/prune-project-tree-sync-guard-validation.yml'
 
 jobs:
-  pr-checks-visibility-validation:
+  install-readiness-final-gate-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Validate PR Checks Visibility
+      - name: Validate Install Readiness Final Gate
         env:
           PYTHONPATH: backend
         run: |
@@ -46,69 +46,108 @@ jobs:
           from pathlib import Path
 
           from main import app
-          from app.services.pr_checks_visibility_service import pr_checks_visibility_service
+          from app.services.artifacts_center_service import artifacts_center_service
+          from app.services.god_mode_home_service import god_mode_home_service
+          from app.services.install_readiness_final_service import install_readiness_final_service
           from app.services.project_tree_autorefresh_service import project_tree_autorefresh_service
 
           route_paths = {route.path for route in app.routes}
-          required = {
-              "/api/pr-checks-visibility/status",
-              "/api/pr-checks-visibility/package",
-              "/api/pr-checks-visibility/demo",
-              "/api/pr-checks-visibility/classify",
+          required_routes = {
+              "/api/install-readiness-final/status",
+              "/api/install-readiness-final/check",
+              "/api/install-readiness-final/package",
+              "/api/home-operator-ux/panel",
+              "/api/real-operator-rehearsal/run",
+              "/api/andreos-memory-audit/audit",
+              "/api/artifacts-center/dashboard",
+              "/api/daily-command-router/route",
+              "/api/god-mode-home/dashboard",
+              "/app/home",
           }
-          missing = sorted(required - route_paths)
-          assert not missing, f"Missing routes: {missing}"
+          missing_routes = sorted(required_routes - route_paths)
+          assert not missing_routes, f"Missing routes: {missing_routes}"
 
-          base_pr = {"number": 231, "state": "open", "mergeable": True, "head_sha": "demo", "title": "Demo"}
-          green = pr_checks_visibility_service.classify(base_pr, workflow_runs=[{"name": "Universal", "conclusion": "success"}], statuses=[])
-          assert green["classification"] == "green"
-          assert green["merge_allowed"] is True
+          home = god_mode_home_service.build_dashboard(tenant_id="owner-andre")
+          actions = {item["id"]: item for item in home["quick_actions"]}
+          assert "install_readiness_final" in actions
+          assert actions["install_readiness_final"]["endpoint"] == "/api/install-readiness-final/check"
 
-          red = pr_checks_visibility_service.classify(base_pr, workflow_runs=[{"name": "APK", "conclusion": "failure"}], statuses=[])
-          assert red["classification"] == "red"
-          assert red["merge_allowed"] is False
+          check = install_readiness_final_service.build_check(
+              tenant_id="owner-andre",
+              requested_project="GOD_MODE",
+              run_deep=True,
+          )
+          assert check["mode"] == "install_readiness_final_gate"
+          assert check["status"] == "ready_to_install", check["failed_checks"]
+          assert check["ready_to_install"] is True
+          assert check["score"] == 100
+          assert not check["failed_checks"]
 
-          pending = pr_checks_visibility_service.classify(base_pr, workflow_runs=[{"name": "EXE", "status": "in_progress"}], statuses=[])
-          assert pending["classification"] == "pending"
-          assert pending["merge_allowed"] is False
+          check_ids = {item["id"] for item in check["checks"]}
+          required_check_ids = {
+              "home_responds",
+              "easy_mode_exists",
+              "general_test_exists_and_passes",
+              "andreos_memory_audit_passes",
+              "real_operator_rehearsal_passes",
+              "artifacts_center_points_to_apk_exe",
+              "apk_exe_workflows_exist",
+              "apk_artifact_not_placeholder",
+              "exe_artifact_not_placeholder",
+              "project_tree_autorefresh_sees_new_files",
+              "memory_sensitive_guard_active",
+              "main_routes_exist",
+              "general_test_button_visible",
+              "home_result_card_ready",
+              "backend_autonomy_contract",
+              "home_exposes_install_readiness",
+          }
+          missing_checks = sorted(required_check_ids - check_ids)
+          assert not missing_checks, f"Missing final gate checks: {missing_checks}"
 
-          missing_checks = pr_checks_visibility_service.classify(base_pr, workflow_runs=[], statuses=[])
-          assert missing_checks["classification"] == "no_checks_reported"
-          assert missing_checks["merge_allowed"] is False
-          assert missing_checks["operator_next"]["kind"] == "checks_missing"
+          status = install_readiness_final_service.get_status(tenant_id="owner-andre")
+          assert status["mode"] == "install_readiness_final_status"
+          assert status["ready_to_install"] is True
 
-          status = pr_checks_visibility_service.get_status()
-          assert status["ok"] is True
-          assert status["no_checks_blocks_merge"] is True
-          assert status["green_allows_merge"] is True
+          package = install_readiness_final_service.get_package(
+              tenant_id="owner-andre",
+              requested_project="GOD_MODE",
+          )
+          assert package["ok"] is True
+          assert package["package"]["check"]["ready_to_install"] is True
 
-          demo = pr_checks_visibility_service.demo_scenarios()
-          assert set(demo["scenarios"].keys()) == {"green", "red", "pending", "no_checks_reported"}
+          artifacts = artifacts_center_service.build_dashboard()
+          expected_files = {item["expected_file"] for item in artifacts["artifacts"]}
+          assert "GodModeMobile-debug.apk" in expected_files
+          assert "GodModeDesktop.exe" in expected_files
 
-          docs = Path("docs/frontend/pr-checks-visibility.md").read_text(encoding="utf-8")
-          for marker in ["no_checks_reported", "/api/pr-checks-visibility/classify", "green", "red", "pending"]:
+          docs = Path("docs/frontend/install-readiness-final-gate.md").read_text(encoding="utf-8")
+          for marker in ["/api/install-readiness-final/check", "ready_to_install", "GodModeMobile-debug.apk", "GodModeDesktop.exe", "Instalação final"]:
               assert marker in docs, f"Missing doc marker: {marker}"
 
-          source = Path("backend/app/services/pr_checks_visibility_service.py").read_text(encoding="utf-8")
-          for marker in ["PRChecksVisibilityService", "no_checks_reported", "merge_allowed", "checks_missing"]:
-              assert marker in source, f"Missing source marker: {marker}"
-
           generated_tree = project_tree_autorefresh_service.build_tree_text()
-          required_tree_entries = [
-              "pr_checks_visibility.py",
-              "pr_checks_visibility_service.py",
-              "pr-checks-visibility.md",
-          ]
-          missing_tree = [entry for entry in required_tree_entries if entry not in generated_tree]
-          assert not missing_tree, f"Autorefresh generated tree missing entries: {missing_tree}"
+          for entry in [
+              "install_readiness_final.py",
+              "install_readiness_final_service.py",
+              "install-readiness-final-gate.md",
+              "prune-project-tree-sync-guard-validation.yml",
+          ]:
+              assert entry in generated_tree, f"Project Tree Autorefresh generated tree missing {entry}"
 
-          print("pr checks visibility validation passed")
+          workflow = Path(".github/workflows/prune-project-tree-sync-guard-validation.yml").read_text(encoding="utf-8")
+          assert "Install Readiness Final Gate Validation" in workflow
+          assert "phase94-*" in workflow
+          assert "PR Checks Visibility Validation" not in workflow
+
+          print("install readiness final gate validation passed")
           PY
 
       - name: Build summary
         run: |
-          echo '## PR Checks Visibility Validation Summary' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Install Readiness Final Gate Validation Summary' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo '- PR check visibility classifications were validated.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Missing checks are not treated as green.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Green, red, pending and no-check scenarios are covered.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Final install readiness endpoints were validated.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home exposes Instalação final as a quick action.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Home, Modo Fácil, Teste geral, memory audit and real rehearsal were checked.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- APK/EXE workflows and expected artifact names were checked.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Project Tree Autorefresh confirms the new phase files.' >> "$GITHUB_STEP_SUMMARY"
