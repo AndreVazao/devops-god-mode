@@ -24,8 +24,21 @@ async def status(tenant_id: str = "owner-andre"):
     return pro_operator_bridge_service.get_status(tenant_id=tenant_id)
 
 
+@router.post('/status')
+async def post_status(tenant_id: str = "owner-andre"):
+    return pro_operator_bridge_service.get_status(tenant_id=tenant_id)
+
+
 @router.get('/panel')
 async def panel(tenant_id: str = "owner-andre", requested_project: str = "GOD_MODE"):
+    return pro_operator_bridge_service.build_panel(
+        tenant_id=tenant_id,
+        requested_project=requested_project,
+    )
+
+
+@router.post('/panel')
+async def post_panel(tenant_id: str = "owner-andre", requested_project: str = "GOD_MODE"):
     return pro_operator_bridge_service.build_panel(
         tenant_id=tenant_id,
         requested_project=requested_project,
@@ -53,6 +66,14 @@ async def run(payload: ProOperatorRunRequest):
 
 @router.get('/package')
 async def package(tenant_id: str = "owner-andre", requested_project: str = "GOD_MODE"):
+    return pro_operator_bridge_service.get_package(
+        tenant_id=tenant_id,
+        requested_project=requested_project,
+    )
+
+
+@router.post('/package')
+async def post_package(tenant_id: str = "owner-andre", requested_project: str = "GOD_MODE"):
     return pro_operator_bridge_service.get_package(
         tenant_id=tenant_id,
         requested_project=requested_project,
