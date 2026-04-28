@@ -110,6 +110,7 @@ class GodModeHomeService:
 
     def _quick_actions(self) -> List[Dict[str, str]]:
         return [
+            {"id": "pro_operator", "label": "Operador Pro", "endpoint": "/api/pro-operator/panel", "priority": "critical"},
             {"id": "start_now", "label": "Começar agora", "endpoint": "/api/start-now/panel", "priority": "critical"},
             {"id": "professional_scorecard", "label": "Score profissional", "endpoint": "/api/professional-scorecard/scorecard", "priority": "critical"},
             {"id": "local_ai", "label": "IA local", "endpoint": "/api/local-ai/panel", "priority": "critical"},
