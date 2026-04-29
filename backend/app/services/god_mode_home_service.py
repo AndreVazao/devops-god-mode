@@ -110,6 +110,7 @@ class GodModeHomeService:
 
     def _quick_actions(self) -> List[Dict[str, str]]:
         return [
+            {"id": "approved_work_queue", "label": "Fila aprovada", "endpoint": "/api/approved-work-queue/build", "priority": "critical"},
             {"id": "approved_deep_execution", "label": "Execução aprovada", "endpoint": "/api/approved-deep-execution/plan", "priority": "critical"},
             {"id": "project_intake_priority_handoff", "label": "Confirmar prioridades", "endpoint": "/api/project-intake-priority-handoff/review", "priority": "critical"},
             {"id": "unified_project_intake", "label": "Intake unificado", "endpoint": "/api/unified-project-intake/plan", "priority": "critical"},
