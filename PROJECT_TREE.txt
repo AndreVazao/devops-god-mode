@@ -278,6 +278,7 @@ devops-god-mode/
 │  │  │  ├─ tenant_partition.py
 │  │  │  ├─ tenant_provider_onboarding.py
 │  │  │  ├─ tenant_scoped_vault_projection.py
+│  │  │  ├─ unified_project_intake_orchestrator.py
 │  │  │  ├─ vault_deploy_env_planner_frontend.py
 │  │  │  ├─ vault_deploy_env_planner.py
 │  │  │  ├─ workspace_publish_bridge.py
@@ -488,6 +489,7 @@ devops-god-mode/
 │  │  │  ├─ tenant_partition_service.py
 │  │  │  ├─ tenant_provider_onboarding_service.py
 │  │  │  ├─ tenant_scoped_vault_projection_service.py
+│  │  │  ├─ unified_project_intake_orchestrator_service.py
 │  │  │  ├─ vault_deploy_env_planner_service.py
 │  │  │  ├─ workspace_publish_bridge_service.py
 │  │  │  └─ write_verify_rollback_service.py
@@ -657,8 +659,6 @@ devops-god-mode/
 │  │  ├─ windows_exe_real_build_profile.example.json
 │  │  ├─ workspace_bridge.example.json
 │  │  └─ write_verify_rollback.example.json
-│  ├─ main.py
-│  └─ requirements.txt
 ├─ desktop/
 │  ├─ godmode_desktop_launcher.py
 │  ├─ GodModeDesktop.spec
@@ -755,6 +755,7 @@ devops-god-mode/
 │  │  ├─ self-update.md
 │  │  ├─ start-now-panel.md
 │  │  ├─ system-integrity-audit.md
+│  │  ├─ unified-project-intake-orchestrator.md
 │  │  └─ vault-deploy-env-planner.md
 │  ├─ manual-rules/
 │  │  ├─ approval-gate-policy.md
