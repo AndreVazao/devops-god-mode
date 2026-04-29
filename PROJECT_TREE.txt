@@ -1032,4 +1032,5 @@ devops-god-mode/
 │     ├─ start-god-mode-local.ps1
 │     └─ start-mobile-shell-local.ps1
 ├─ .gitignore
+├─ PROJECT_TREE.txt
 └─ README.md
