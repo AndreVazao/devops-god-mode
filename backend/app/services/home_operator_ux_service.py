@@ -56,6 +56,9 @@ class HomeOperatorUxService:
             "daily_command_route_endpoint": "/api/daily-command-router/route",
             "general_test_endpoint": "/api/real-operator-rehearsal/run",
             "critical_actions_endpoint": "/api/home-critical-actions/panel",
+            "launch_center_endpoint": "/api/home-launch/panel",
+            "download_install_endpoint": "/api/download-install-center-v2/panel",
+            "final_readiness_endpoint": "/api/final-install-readiness-v2/check",
             "driving_safe": True,
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
@@ -94,7 +97,10 @@ class HomeOperatorUxService:
 
     def _safe_buttons(self, primary_action: Dict[str, Any]) -> List[Dict[str, Any]]:
         buttons = [
+            {"kind": "launch_center", "label": "Instalar / Baixar", "endpoint": "/api/home-launch/panel", "priority": "critical"},
             primary_action,
+            {"kind": "final_readiness", "label": "Pronto para instalar?", "endpoint": "/api/final-install-readiness-v2/check", "priority": "critical"},
+            {"kind": "download_install", "label": "Baixar APK/EXE", "endpoint": "/api/download-install-center-v2/panel", "priority": "critical"},
             {"kind": "critical_actions", "label": "Ações críticas", "endpoint": "/api/home-critical-actions/panel", "priority": "critical"},
             {"kind": "real_completion", "label": "Estado real %", "endpoint": "/api/god-mode-completion/panel", "priority": "critical"},
             {"kind": "general_test", "label": "Teste geral", "endpoint": "/api/real-operator-rehearsal/run", "payload": {"tenant_id": "owner-andre"}, "priority": "critical"},
@@ -117,6 +123,12 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_launch_center",
+                "label": "Instalar/Baixar",
+                "message": "abre o centro de instalação, download, pairing e primeiro teste real",
+                "route_endpoint": "/api/home-launch/panel",
+            },
             {
                 "id": "continue_active_project",
                 "label": f"Continua {active_project}",
@@ -162,6 +174,9 @@ class HomeOperatorUxService:
             "daily_command_route_endpoint": panel["daily_command_route_endpoint"],
             "general_test_endpoint": panel["general_test_endpoint"],
             "critical_actions_endpoint": panel["critical_actions_endpoint"],
+            "launch_center_endpoint": panel["launch_center_endpoint"],
+            "download_install_endpoint": panel["download_install_endpoint"],
+            "final_readiness_endpoint": panel["final_readiness_endpoint"],
             "driving_safe": panel["driving_safe"],
         }
 
