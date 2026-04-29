@@ -110,6 +110,7 @@ class GodModeHomeService:
 
     def _quick_actions(self) -> List[Dict[str, str]]:
         return [
+            {"id": "external_ai_browser", "label": "Browser IA", "endpoint": "/api/external-ai-browser/panel", "priority": "critical"},
             {"id": "external_ai_session", "label": "Sessões IA", "endpoint": "/api/external-ai-session/package", "priority": "critical"},
             {"id": "ai_chat_webservice_audit", "label": "Auditar chats IA", "endpoint": "/api/ai-chat-webservice-audit/audit", "priority": "critical"},
             {"id": "mobile_result", "label": "Cartão mobile", "endpoint": "/api/mobile-result/home", "priority": "critical"},
