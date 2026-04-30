@@ -56,6 +56,7 @@ jobs:
           Copy-Item desktop/windows_shortcut_bootstrap.ps1 dist/support/windows_shortcut_bootstrap.ps1
           Copy-Item desktop/windows_autostart_bootstrap.ps1 dist/support/windows_autostart_bootstrap.ps1
           Copy-Item desktop/windows_autostart_remove.ps1 dist/support/windows_autostart_remove.ps1
+          Copy-Item desktop/godmode_update_helper.py dist/support/godmode_update_helper.py
 
           $manifest = @{
             package_name = 'GodModeDesktopBundle'
@@ -63,13 +64,19 @@ jobs:
             support_scripts = @(
               'windows_shortcut_bootstrap.ps1',
               'windows_autostart_bootstrap.ps1',
-              'windows_autostart_remove.ps1'
+              'windows_autostart_remove.ps1',
+              'godmode_update_helper.py'
             )
             onboarding_assets = @(
               'desktop_first_run_payload.json',
               'desktop_shortcut_payload.json',
               'desktop_autostart_payload.json',
               'godmode-mobile-pairing.json'
+            )
+            update_assets = @(
+              'godmode_update_helper.py',
+              'desktop_update_manifest.json',
+              'desktop_pending_update.json'
             )
             install_mode = 'desktop_bundle_local_actions'
             installer_status = 'installer_manifest_ready'
@@ -85,11 +92,16 @@ jobs:
               'open_home',
               'open_mobile_pairing'
             )
+            updater = @{
+              bootstrap_available = $true
+              helper_file = 'support/godmode_update_helper.py'
+              first_updater_install_is_manual = $true
+            }
             pairing_required = $true
             backend_port = 8000
             onboarding_status = 'onboarding_bundle_ready'
           }
-          $onboarding | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-onboarding.json
+          $onboarding | ConvertTo-Json -Depth 6 | Set-Content -Path dist/onboarding/desktop-onboarding.json
 
           $bundleIndex = @{
             package_name = 'GodModeDesktopBundle'
@@ -97,7 +109,8 @@ jobs:
             support_files = @(
               'windows_shortcut_bootstrap.ps1',
               'windows_autostart_bootstrap.ps1',
-              'windows_autostart_remove.ps1'
+              'windows_autostart_remove.ps1',
+              'godmode_update_helper.py'
             )
             onboarding_files = @(
               'desktop-installer-manifest.json',
@@ -120,7 +133,8 @@ jobs:
               'GodModeDesktop.exe',
               'desktop-installer-manifest.json',
               'desktop-onboarding.json',
-              'desktop-bundle-index.json'
+              'desktop-bundle-index.json',
+              'godmode_update_helper.py'
             )
             mobile_bundle_assets = @(
               'GodModeMobile.apk',
@@ -130,6 +144,11 @@ jobs:
             )
             pairing_asset = 'godmode-mobile-pairing.json'
             backend_port = 8000
+            updater = @{
+              bootstrap_available = $true
+              future_updates_can_use_package_update = $true
+              first_updater_install_is_manual = $true
+            }
             install_sequence = @(
               'download_desktop_bundle',
               'launch_desktop',
@@ -139,7 +158,7 @@ jobs:
             )
             handoff_status = 'handoff_package_ready'
           }
-          $handoff | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-mobile-handoff.json
+          $handoff | ConvertTo-Json -Depth 6 | Set-Content -Path dist/onboarding/desktop-mobile-handoff.json
 
       - name: Verify built files exist
         shell: pwsh
@@ -147,6 +166,7 @@ jobs:
           if (-not (Test-Path dist/GodModeDesktop.exe)) { throw 'dist/GodModeDesktop.exe was not created.' }
           if (-not (Test-Path dist/support/windows_shortcut_bootstrap.ps1)) { throw 'Desktop shortcut helper was not created.' }
           if (-not (Test-Path dist/support/windows_autostart_bootstrap.ps1)) { throw 'Desktop autostart helper was not created.' }
+          if (-not (Test-Path dist/support/godmode_update_helper.py)) { throw 'Desktop update helper was not created.' }
           if (-not (Test-Path dist/onboarding/desktop-installer-manifest.json)) { throw 'Desktop installer manifest was not created.' }
           if (-not (Test-Path dist/onboarding/desktop-onboarding.json)) { throw 'Desktop onboarding file was not created.' }
           if (-not (Test-Path dist/onboarding/desktop-bundle-index.json)) { throw 'Desktop bundle index file was not created.' }
@@ -162,6 +182,7 @@ jobs:
             dist/support/windows_shortcut_bootstrap.ps1
             dist/support/windows_autostart_bootstrap.ps1
             dist/support/windows_autostart_remove.ps1
+            dist/support/godmode_update_helper.py
             dist/onboarding/desktop-installer-manifest.json
             dist/onboarding/desktop-onboarding.json
             dist/onboarding/desktop-bundle-index.json
@@ -175,6 +196,7 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- This is the canonical desktop EXE build workflow for the local-first PC brain.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher now starts the FastAPI backend on port 8000.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Backend dependencies are installed before PyInstaller packaging.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop self-update helper is included in the support bundle.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut and autostart were added to `dist/support`.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut, autostart and package update were added to `dist/support`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, bundle index, and handoff files were added to `dist/onboarding`.'
