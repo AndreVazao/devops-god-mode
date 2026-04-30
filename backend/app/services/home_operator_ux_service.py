@@ -62,6 +62,7 @@ class HomeOperatorUxService:
             "andreos_context_endpoint": "/api/andreos-context/panel",
             "andreos_memory_repo_endpoint": "/api/andreos-memory-repo/panel",
             "ai_handoff_trace_endpoint": "/api/ai-handoff-trace/panel",
+            "ollama_local_brain_endpoint": "/api/ollama-local-brain/panel",
             "driving_safe": True,
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
@@ -70,6 +71,7 @@ class HomeOperatorUxService:
                 "Se estiver a conduzir, usar só botões curtos e aprovações claras.",
                 "Antes de pedir ajuda a uma IA, usar o contexto AndreOS do projeto.",
                 "Toda passagem para IA deve ficar com trace_id e histórico.",
+                "Usar Ollama como IA local privada para resumos, triagem e fallback, não como fonte final sem validação.",
             ],
             "signals": {
                 "health_score": health.get("health_score"),
@@ -104,6 +106,7 @@ class HomeOperatorUxService:
         buttons = [
             {"kind": "andreos_context", "label": "Contexto AndreOS", "endpoint": "/api/andreos-context/panel", "priority": "critical"},
             {"kind": "ai_handoff_trace", "label": "Handoff IA", "endpoint": "/api/ai-handoff-trace/panel", "priority": "critical"},
+            {"kind": "ollama_local_brain", "label": "IA Local", "endpoint": "/api/ollama-local-brain/panel", "priority": "critical"},
             {"kind": "launch_center", "label": "Instalar / Baixar", "endpoint": "/api/home-launch/panel", "priority": "critical"},
             primary_action,
             {"kind": "final_readiness", "label": "Pronto para instalar?", "endpoint": "/api/final-install-readiness-v2/check", "priority": "critical"},
@@ -130,6 +133,12 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_ollama_local_brain",
+                "label": "IA Local",
+                "message": "abre o painel Ollama, testa modelos locais, escolhe o melhor e define quando usar IA local",
+                "route_endpoint": "/api/ollama-local-brain/panel",
+            },
             {
                 "id": "open_ai_handoff_trace",
                 "label": "Handoff IA",
@@ -199,6 +208,7 @@ class HomeOperatorUxService:
             "andreos_context_endpoint": panel["andreos_context_endpoint"],
             "andreos_memory_repo_endpoint": panel["andreos_memory_repo_endpoint"],
             "ai_handoff_trace_endpoint": panel["ai_handoff_trace_endpoint"],
+            "ollama_local_brain_endpoint": panel["ollama_local_brain_endpoint"],
             "driving_safe": panel["driving_safe"],
         }
 
