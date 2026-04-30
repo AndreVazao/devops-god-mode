@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
     private static final String PREF_BASE_URL = "base_url";
     private static final String DEFAULT_BASE_URL = "http://127.0.0.1:8000";
     private static final String ENTRY_ROUTE = "/app/home";
-    private static final int HEALTH_TIMEOUT_MS = 1200;
+    private static final int HEALTH_TIMEOUT_MS = 900;
 
     private WebView webView;
     private EditText baseUrlInput;
@@ -153,20 +153,44 @@ public class MainActivity extends Activity {
     }
 
     private boolean isSafeBaseUrl(String baseUrl) {
-        if (baseUrl == null) {
+        String value = smartNormalizeUrl(baseUrl);
+        if (value == null) {
             return false;
         }
-        String value = baseUrl.trim().toLowerCase();
-        return (value.startsWith("http://") || value.startsWith("https://"))
-                && !value.contains("?")
-                && !value.contains("=")
-                && value.length() < 120;
+        String lowered = value.toLowerCase();
+        return (lowered.startsWith("http://") || lowered.startsWith("https://"))
+                && !lowered.contains("?")
+                && !lowered.contains("=")
+                && lowered.length() < 120;
+    }
+
+    private String smartNormalizeUrl(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String value = raw.trim();
+        if (value.isEmpty()) {
+            return value;
+        }
+        if (!value.startsWith("http://") && !value.startsWith("https://")) {
+            value = "http://" + value;
+        }
+        if (value.startsWith("http://182.168.")) {
+            value = "http://192.168." + value.substring("http://182.168.".length());
+        }
+        if (value.startsWith("https://182.168.")) {
+            value = "https://192.168." + value.substring("https://182.168.".length());
+        }
+        while (value.endsWith("/")) {
+            value = value.substring(0, value.length() - 1);
+        }
+        return value;
     }
 
     private void saveBaseUrl(String baseUrl) {
-        String value = baseUrl.trim();
-        while (value.endsWith("/")) {
-            value = value.substring(0, value.length() - 1);
+        String value = smartNormalizeUrl(baseUrl);
+        if (value == null || value.isEmpty()) {
+            return;
         }
         preferences.edit().putString(PREF_BASE_URL, value).apply();
         if (baseUrlInput != null) {
@@ -193,11 +217,12 @@ public class MainActivity extends Activity {
         String baseUrl = baseUrlInput.getText().toString().trim();
         if (baseUrl.isEmpty() || "auto".equalsIgnoreCase(baseUrl)) {
             baseUrl = preferences.getString(PREF_BASE_URL, DEFAULT_BASE_URL);
-            baseUrlInput.setText(baseUrl);
         }
-        while (baseUrl.endsWith("/")) {
-            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        baseUrl = smartNormalizeUrl(baseUrl);
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = DEFAULT_BASE_URL;
         }
+        baseUrlInput.setText(baseUrl);
         preferences.edit().putString(PREF_BASE_URL, baseUrl).apply();
         return baseUrl;
     }
@@ -242,42 +267,60 @@ public class MainActivity extends Activity {
 
     private List<String> buildDiscoveryCandidates() {
         Set<String> candidates = new LinkedHashSet<>();
+        addCandidate(candidates, baseUrlInput != null ? baseUrlInput.getText().toString() : null);
         addCandidate(candidates, preferences.getString(PREF_BASE_URL, DEFAULT_BASE_URL));
         addCandidate(candidates, DEFAULT_BASE_URL);
         addCandidate(candidates, "http://10.0.2.2:8000");
+
         String gateway = gatewayIp();
         if (gateway != null && gateway.contains(".")) {
             addCandidate(candidates, "http://" + gateway + ":8000");
-            String prefix = gateway.substring(0, gateway.lastIndexOf('.') + 1);
-            int[] likelyHosts = new int[]{1, 2, 10, 20, 50, 100, 101, 102, 150, 200, 254};
-            for (int host : likelyHosts) {
-                addCandidate(candidates, "http://" + prefix + host + ":8000");
-            }
+            addLanCandidates(candidates, gateway, 20);
         }
+
         String phoneIp = phoneIp();
         if (phoneIp != null && phoneIp.contains(".")) {
-            String prefix = phoneIp.substring(0, phoneIp.lastIndexOf('.') + 1);
-            int[] likelyHosts = new int[]{1, 2, 10, 20, 50, 100, 101, 102, 150, 200, 254};
-            for (int host : likelyHosts) {
-                addCandidate(candidates, "http://" + prefix + host + ":8000");
-            }
+            addLanCandidates(candidates, phoneIp, 20);
         }
         return new ArrayList<>(candidates);
     }
 
+    private void addLanCandidates(Set<String> candidates, String referenceIp, int neighborRadius) {
+        int lastDot = referenceIp.lastIndexOf('.');
+        if (lastDot < 0) {
+            return;
+        }
+        String prefix = referenceIp.substring(0, lastDot + 1);
+        int[] fixedHosts = new int[]{1, 2, 10, 20, 50, 67, 80, 81, 82, 100, 101, 102, 150, 200, 254};
+        for (int host : fixedHosts) {
+            addCandidate(candidates, "http://" + prefix + host + ":8000");
+        }
+        int center = parseLastOctet(referenceIp);
+        if (center > 0) {
+            int start = Math.max(1, center - neighborRadius);
+            int end = Math.min(254, center + neighborRadius);
+            for (int host = start; host <= end; host++) {
+                addCandidate(candidates, "http://" + prefix + host + ":8000");
+            }
+        }
+    }
+
+    private int parseLastOctet(String ip) {
+        try {
+            int lastDot = ip.lastIndexOf('.');
+            if (lastDot < 0) {
+                return -1;
+            }
+            return Integer.parseInt(ip.substring(lastDot + 1));
+        } catch (Exception ignored) {
+            return -1;
+        }
+    }
+
     private void addCandidate(Set<String> candidates, String candidate) {
-        if (candidate == null) {
+        String normalized = smartNormalizeUrl(candidate);
+        if (normalized == null || normalized.isEmpty() || "auto".equalsIgnoreCase(normalized)) {
             return;
-        }
-        String normalized = candidate.trim();
-        if (normalized.isEmpty() || "auto".equalsIgnoreCase(normalized)) {
-            return;
-        }
-        while (normalized.endsWith("/")) {
-            normalized = normalized.substring(0, normalized.length() - 1);
-        }
-        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
-            normalized = "http://" + normalized;
         }
         candidates.add(normalized);
     }
@@ -364,8 +407,8 @@ public class MainActivity extends Activity {
                 + "<div class='card'><h1>PC ainda não ligado</h1><p>O APK está instalado. O cérebro do God Mode corre no PC. Enquanto o EXE/backend não estiver aberto, o chat real e os botões ficam à espera.</p>"
                 + "<span class='pill'>APK OK</span><span class='pill'>A aguardar PC</span><span class='pill'>" + html(networkStatus()) + "</span></div>"
                 + "<div class='card'><h1>Quando chegares ao PC</h1><p>1. Abre <b>GodModeDesktop.exe</b>.</p><p>2. No APK, carrega em <b>Auto</b>.</p><p>3. Se não encontrar, escreve em cima: <b>http://IP_DO_PC:8000</b>.</p><p>4. Depois abre <b>Home</b> ou <b>Chat</b>.</p>"
-                + "<p class='warn'>127.0.0.1 no telemóvel é o próprio telemóvel, não o PC.</p></div>"
-                + "<div class='card'><h1>Estado</h1><p class='muted'>Base atual: " + html(baseUrl) + "</p><p class='muted'>Rota pedida: " + html(route) + "</p></div>"
+                + "<p class='warn'>Confirma que escreveste 192.168.x.x e não 182.168.x.x. 127.0.0.1 no telemóvel é o próprio telemóvel, não o PC.</p></div>"
+                + "<div class='card'><h1>Estado</h1><p class='muted'>Base atual: " + html(baseUrl) + "</p><p class='muted'>Rota pedida: " + html(route) + "</p><p class='muted'>Auto procura também hosts próximos do IP do telemóvel e hosts comuns como .80, .81 e .82.</p></div>"
                 + "</body></html>";
         webView.loadDataWithBaseURL("https://godmode.local/offline", html, "text/html", "UTF-8", null);
     }
