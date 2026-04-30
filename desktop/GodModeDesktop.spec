@@ -15,7 +15,7 @@ a = Analysis(
     ['godmode_desktop_launcher.py'],
     pathex=['desktop', 'backend'],
     binaries=[],
-    datas=[('backend', 'backend')],
+    datas=[('../backend', 'backend')],
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
