@@ -63,6 +63,7 @@ class HomeOperatorUxService:
             "andreos_memory_repo_endpoint": "/api/andreos-memory-repo/panel",
             "ai_handoff_trace_endpoint": "/api/ai-handoff-trace/panel",
             "ollama_local_brain_endpoint": "/api/ollama-local-brain/panel",
+            "desktop_self_update_endpoint": "/api/desktop-self-update/panel",
             "driving_safe": True,
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
@@ -72,6 +73,7 @@ class HomeOperatorUxService:
                 "Antes de pedir ajuda a uma IA, usar o contexto AndreOS do projeto.",
                 "Toda passagem para IA deve ficar com trace_id e histórico.",
                 "Usar Ollama como IA local privada para resumos, triagem e fallback, não como fonte final sem validação.",
+                "Depois da primeira instalação com updater, preferir updates por pacote em vez de reinstalar tudo.",
             ],
             "signals": {
                 "health_score": health.get("health_score"),
@@ -104,6 +106,7 @@ class HomeOperatorUxService:
 
     def _safe_buttons(self, primary_action: Dict[str, Any]) -> List[Dict[str, Any]]:
         buttons = [
+            {"kind": "desktop_self_update", "label": "Atualizações", "endpoint": "/api/desktop-self-update/panel", "priority": "critical"},
             {"kind": "andreos_context", "label": "Contexto AndreOS", "endpoint": "/api/andreos-context/panel", "priority": "critical"},
             {"kind": "ai_handoff_trace", "label": "Handoff IA", "endpoint": "/api/ai-handoff-trace/panel", "priority": "critical"},
             {"kind": "ollama_local_brain", "label": "IA Local", "endpoint": "/api/ollama-local-brain/panel", "priority": "critical"},
@@ -133,6 +136,12 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_desktop_self_update",
+                "label": "Atualizações",
+                "message": "abre o painel de atualizações do God Mode, mostra versão atual e política de update sem reinstalar tudo",
+                "route_endpoint": "/api/desktop-self-update/panel",
+            },
             {
                 "id": "open_ollama_local_brain",
                 "label": "IA Local",
@@ -209,6 +218,7 @@ class HomeOperatorUxService:
             "andreos_memory_repo_endpoint": panel["andreos_memory_repo_endpoint"],
             "ai_handoff_trace_endpoint": panel["ai_handoff_trace_endpoint"],
             "ollama_local_brain_endpoint": panel["ollama_local_brain_endpoint"],
+            "desktop_self_update_endpoint": panel["desktop_self_update_endpoint"],
             "driving_safe": panel["driving_safe"],
         }
 
