@@ -1,13 +1,22 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import collect_submodules
+
 block_cipher = None
+
+hiddenimports = []
+hiddenimports += collect_submodules('uvicorn')
+hiddenimports += collect_submodules('fastapi')
+hiddenimports += collect_submodules('starlette')
+hiddenimports += collect_submodules('pydantic')
+hiddenimports += collect_submodules('httpx')
 
 a = Analysis(
     ['godmode_desktop_launcher.py'],
-    pathex=['desktop'],
+    pathex=['desktop', 'backend'],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('backend', 'backend')],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
