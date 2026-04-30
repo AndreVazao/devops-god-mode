@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.text.format.Formatter;
-import android.util.Base64;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -26,13 +25,8 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,7 +37,6 @@ public class MainActivity extends Activity {
     private static final String PREF_BASE_URL = "base_url";
     private static final String DEFAULT_BASE_URL = "http://127.0.0.1:8000";
     private static final String ENTRY_ROUTE = "/app/home";
-    private static final String LEGACY_START_ROUTE = "/app/apk-start";
     private static final int HEALTH_TIMEOUT_MS = 1200;
 
     private WebView webView;
@@ -57,16 +50,15 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         buildUi();
-        if (!handlePairingIntent(getIntent())) {
-            autoDiscoverAndOpen(true);
-        }
+        handleUrlIntent(getIntent());
+        autoDiscoverAndOpen(true);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        handlePairingIntent(intent);
+        handleUrlIntent(intent);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -74,28 +66,18 @@ public class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(5, 8, 22));
-        root.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
 
         statusText = new TextView(this);
         statusText.setTextColor(Color.WHITE);
-        statusText.setText("God Mode APK · Home principal pronta");
+        statusText.setText("God Mode APK · a procurar PC");
         statusText.setPadding(18, 16, 18, 4);
-        root.addView(statusText, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
+        root.addView(statusText);
 
         routeText = new TextView(this);
         routeText.setTextColor(Color.LTGRAY);
         routeText.setText("Rota principal: " + ENTRY_ROUTE);
         routeText.setPadding(18, 0, 18, 8);
-        root.addView(routeText, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
+        root.addView(routeText);
 
         LinearLayout controls = new LinearLayout(this);
         controls.setOrientation(LinearLayout.HORIZONTAL);
@@ -106,17 +88,14 @@ public class MainActivity extends Activity {
         baseUrlInput.setText(preferences.getString(PREF_BASE_URL, DEFAULT_BASE_URL));
         baseUrlInput.setTextColor(Color.WHITE);
         baseUrlInput.setHintTextColor(Color.LTGRAY);
-        baseUrlInput.setHint("auto, QR ou http://IP_DO_PC:8000");
+        baseUrlInput.setHint("http://IP_DO_PC:8000");
         baseUrlInput.setBackgroundColor(Color.rgb(15, 23, 42));
         controls.addView(baseUrlInput, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
-        Button openButton = new Button(this);
-        openButton.setText("Home");
-        openButton.setOnClickListener(v -> loadRoute(ENTRY_ROUTE));
-        controls.addView(openButton, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
+        Button homeButton = new Button(this);
+        homeButton.setText("Home");
+        homeButton.setOnClickListener(v -> loadRoute(ENTRY_ROUTE));
+        controls.addView(homeButton);
         root.addView(controls);
 
         HorizontalScrollView quickScroll = new HorizontalScrollView(this);
@@ -129,8 +108,6 @@ public class MainActivity extends Activity {
         addQuickButton(quickButtons, "OK", "/app/mobile-approval-cockpit-v2", false, false);
         addQuickButton(quickButtons, "PC", "/app/pc-autopilot", false, false);
         addQuickButton(quickButtons, "Teste", "/health", true, false);
-        addQuickButton(quickButtons, "Start", LEGACY_START_ROUTE, false, false);
-        addQuickButton(quickButtons, "First", "/app/first-use", false, false);
         quickScroll.addView(quickButtons);
         root.addView(quickScroll);
 
@@ -138,12 +115,15 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
-                statusText.setText("Aberto · " + url + " · rede: " + networkStatus());
+                statusText.setText("Aberto · " + url + " · " + networkStatus());
             }
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                statusText.setText("Erro WebView · confirma IP/porta do PC · rede: " + networkStatus());
+                if (request == null || request.isForMainFrame()) {
+                    String path = request != null && request.getUrl() != null ? request.getUrl().getPath() : ENTRY_ROUTE;
+                    showOfflineScreen(path);
+                }
             }
         });
         webView.setWebChromeClient(new WebChromeClient());
@@ -156,76 +136,42 @@ public class MainActivity extends Activity {
         settings.setSupportZoom(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         webView.setBackgroundColor(Color.rgb(5, 8, 22));
-        root.addView(webView, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0,
-                1
-        ));
+        root.addView(webView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
         setContentView(root);
     }
 
-    private boolean handlePairingIntent(Intent intent) {
+    private void handleUrlIntent(Intent intent) {
         if (intent == null || intent.getData() == null) {
-            return false;
+            return;
         }
         Uri uri = intent.getData();
-        if (!"godmode".equalsIgnoreCase(uri.getScheme()) || !"pair".equalsIgnoreCase(uri.getHost())) {
-            return false;
-        }
-        String encodedPayload = uri.getQueryParameter("payload");
-        if (encodedPayload == null || encodedPayload.trim().isEmpty()) {
-            statusText.setText("Pairing inválido: payload vazio");
-            return true;
-        }
-        try {
-            String padded = padBase64Url(encodedPayload.trim());
-            byte[] decoded = Base64.decode(padded, Base64.URL_SAFE | Base64.NO_WRAP);
-            String json = new String(decoded, StandardCharsets.UTF_8);
-            JSONObject payload = new JSONObject(json);
-            boolean containsSecret = payload.optBoolean("contains_secret", true);
-            String type = payload.optString("type", "");
-            String baseUrl = payload.optString("base_url", "").trim();
-            if (containsSecret || !"god_mode_mobile_pairing".equals(type) || !isSafePairingBaseUrl(baseUrl)) {
-                statusText.setText("Pairing recusado: payload inseguro ou URL inválido");
-                return true;
-            }
-            while (baseUrl.endsWith("/")) {
-                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-            }
-            preferences.edit().putString(PREF_BASE_URL, baseUrl).apply();
-            baseUrlInput.setText(baseUrl);
-            statusText.setText("Pairing aplicado. A abrir Home: " + baseUrl);
-            testHealth();
-            return true;
-        } catch (Exception exc) {
-            statusText.setText("Pairing falhou: " + exc.getClass().getSimpleName());
-            return true;
+        String baseUrl = uri.getQueryParameter("base_url");
+        if (isSafeBaseUrl(baseUrl)) {
+            saveBaseUrl(baseUrl);
         }
     }
 
-    private String padBase64Url(String value) {
-        int remainder = value.length() % 4;
-        if (remainder == 0) {
-            return value;
-        }
-        StringBuilder builder = new StringBuilder(value);
-        for (int i = remainder; i < 4; i++) {
-            builder.append('=');
-        }
-        return builder.toString();
-    }
-
-    private boolean isSafePairingBaseUrl(String baseUrl) {
+    private boolean isSafeBaseUrl(String baseUrl) {
         if (baseUrl == null) {
             return false;
         }
-        String normalized = baseUrl.trim().toLowerCase();
-        if (!(normalized.startsWith("http://") || normalized.startsWith("https://"))) {
-            return false;
+        String value = baseUrl.trim().toLowerCase();
+        return (value.startsWith("http://") || value.startsWith("https://"))
+                && !value.contains("?")
+                && !value.contains("=")
+                && value.length() < 120;
+    }
+
+    private void saveBaseUrl(String baseUrl) {
+        String value = baseUrl.trim();
+        while (value.endsWith("/")) {
+            value = value.substring(0, value.length() - 1);
         }
-        String forbidden = normalized;
-        return !(forbidden.contains("token=") || forbidden.contains("password=") || forbidden.contains("cookie=") || forbidden.contains("api_key=") || forbidden.contains("apikey=") || forbidden.contains("authorization=") || forbidden.contains("bearer"));
+        preferences.edit().putString(PREF_BASE_URL, value).apply();
+        if (baseUrlInput != null) {
+            baseUrlInput.setText(value);
+        }
     }
 
     private void addQuickButton(LinearLayout parent, String label, String route, boolean diagnostic, boolean autoDiscovery) {
@@ -240,10 +186,7 @@ public class MainActivity extends Activity {
                 loadRoute(route);
             }
         });
-        parent.addView(button, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
+        parent.addView(button);
     }
 
     private String normalizeBaseUrl() {
@@ -263,12 +206,12 @@ public class MainActivity extends Activity {
         String baseUrl = normalizeBaseUrl();
         String target = route.startsWith("http") ? route : baseUrl + route;
         routeText.setText("Rota: " + route);
-        statusText.setText("A abrir: " + target + " · rede: " + networkStatus());
+        statusText.setText("A abrir: " + target + " · " + networkStatus());
         webView.loadUrl(target);
     }
 
-    private void autoDiscoverAndOpen(boolean silentFallback) {
-        statusText.setText("A procurar God Mode no PC... · rede: " + networkStatus());
+    private void autoDiscoverAndOpen(boolean firstBoot) {
+        statusText.setText("A procurar God Mode no PC... · " + networkStatus());
         routeText.setText("Auto discovery: /health → /app/home");
         new Thread(() -> {
             List<String> candidates = buildDiscoveryCandidates();
@@ -285,18 +228,13 @@ public class MainActivity extends Activity {
                 }
             }
             String finalFound = found;
-            int totalChecked = checked;
             runOnUiThread(() -> {
                 if (finalFound != null) {
-                    preferences.edit().putString(PREF_BASE_URL, finalFound).apply();
-                    baseUrlInput.setText(finalFound);
-                    statusText.setText("God Mode encontrado automaticamente: " + finalFound);
+                    saveBaseUrl(finalFound);
+                    statusText.setText("God Mode encontrado: " + finalFound);
                     loadRoute(ENTRY_ROUTE);
                 } else {
-                    statusText.setText("Não encontrei o PC automaticamente após " + totalChecked + " testes. Escreve o IP do PC ou confirma firewall/porta 8000.");
-                    if (silentFallback) {
-                        loadRoute(ENTRY_ROUTE);
-                    }
+                    showOfflineScreen(ENTRY_ROUTE);
                 }
             });
         }).start();
@@ -307,7 +245,6 @@ public class MainActivity extends Activity {
         addCandidate(candidates, preferences.getString(PREF_BASE_URL, DEFAULT_BASE_URL));
         addCandidate(candidates, DEFAULT_BASE_URL);
         addCandidate(candidates, "http://10.0.2.2:8000");
-        addCandidate(candidates, "http://localhost:8000");
         String gateway = gatewayIp();
         if (gateway != null && gateway.contains(".")) {
             addCandidate(candidates, "http://" + gateway + ":8000");
@@ -398,58 +335,55 @@ public class MainActivity extends Activity {
 
     private void testHealth() {
         String baseUrl = normalizeBaseUrl();
-        String target = baseUrl + "/health";
         routeText.setText("Teste: /health → /app/home");
-        statusText.setText("A testar backend: " + target);
+        statusText.setText("A testar backend: " + baseUrl);
         new Thread(() -> {
-            String message;
-            boolean ok = false;
-            HttpURLConnection connection = null;
-            try {
-                URL url = new URL(target);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(3500);
-                connection.setReadTimeout(3500);
-                connection.setRequestMethod("GET");
-                int code = connection.getResponseCode();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        code >= 200 && code < 400 ? connection.getInputStream() : connection.getErrorStream()
-                ));
-                StringBuilder body = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    body.append(line);
-                    if (body.length() > 120) {
-                        break;
-                    }
-                }
-                ok = code >= 200 && code < 400;
-                message = (ok ? "Backend OK" : "Backend respondeu erro") + " · HTTP " + code + " · " + body;
-            } catch (Exception exc) {
-                message = "Falha no teste · tenta Auto ou verifica IP do PC, firewall e se o backend está aberto · " + exc.getClass().getSimpleName();
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
-            boolean finalOk = ok;
-            String finalMessage = message;
+            boolean ok = isHealthy(baseUrl, 3500);
             runOnUiThread(() -> {
-                statusText.setText(finalMessage);
-                if (finalOk) {
+                if (ok) {
+                    statusText.setText("Backend OK: " + baseUrl);
                     loadRoute(ENTRY_ROUTE);
+                } else {
+                    statusText.setText("Backend indisponível: " + baseUrl);
+                    showOfflineScreen(ENTRY_ROUTE);
                 }
             });
         }).start();
+    }
+
+    private void showOfflineScreen(String route) {
+        String baseUrl = normalizeBaseUrl();
+        routeText.setText("Offline · rota: " + route);
+        statusText.setText("A aguardar PC/backend · " + networkStatus());
+        String html = "<!doctype html><html lang='pt-PT'><head><meta charset='utf-8'>"
+                + "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+                + "<style>body{margin:0;background:#050816;color:#eef5ff;font-family:Arial,sans-serif;padding:16px}"
+                + ".card{border:1px solid #26344f;background:#0f172a;border-radius:20px;padding:16px;margin-bottom:12px}"
+                + "h1{font-size:24px;margin:0 0 8px}p{color:#b8c7e6;line-height:1.45}.pill{display:inline-block;background:#082f49;color:#7dd3fc;border-radius:999px;padding:6px 10px;margin:4px 4px 4px 0;font-weight:bold}"
+                + ".warn{color:#fde68a}.muted{color:#9fb0d0}</style></head><body>"
+                + "<div class='card'><h1>PC ainda não ligado</h1><p>O APK está instalado. O cérebro do God Mode corre no PC. Enquanto o EXE/backend não estiver aberto, o chat real e os botões ficam à espera.</p>"
+                + "<span class='pill'>APK OK</span><span class='pill'>A aguardar PC</span><span class='pill'>" + html(networkStatus()) + "</span></div>"
+                + "<div class='card'><h1>Quando chegares ao PC</h1><p>1. Abre <b>GodModeDesktop.exe</b>.</p><p>2. No APK, carrega em <b>Auto</b>.</p><p>3. Se não encontrar, escreve em cima: <b>http://IP_DO_PC:8000</b>.</p><p>4. Depois abre <b>Home</b> ou <b>Chat</b>.</p>"
+                + "<p class='warn'>127.0.0.1 no telemóvel é o próprio telemóvel, não o PC.</p></div>"
+                + "<div class='card'><h1>Estado</h1><p class='muted'>Base atual: " + html(baseUrl) + "</p><p class='muted'>Rota pedida: " + html(route) + "</p></div>"
+                + "</body></html>";
+        webView.loadDataWithBaseURL("https://godmode.local/offline", html, "text/html", "UTF-8", null);
+    }
+
+    private String html(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
     }
 
     private String networkStatus() {
         try {
             ConnectivityManager manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
             NetworkInfo info = manager != null ? manager.getActiveNetworkInfo() : null;
-            return info != null && info.isConnected() ? "online" : "offline";
+            return info != null && info.isConnected() ? "rede online" : "rede offline";
         } catch (Exception ignored) {
-            return "unknown";
+            return "rede desconhecida";
         }
     }
 
