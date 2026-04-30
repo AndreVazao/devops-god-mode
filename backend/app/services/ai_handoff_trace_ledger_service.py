@@ -25,18 +25,23 @@ PROJECT_REPO_HINTS = {
 }
 
 
+def _default_ledger() -> dict[str, Any]:
+    return {"events": [], "last": None}
+
+
 class AIHandoffTraceLedgerService:
     def __init__(self) -> None:
-        self.store = AtomicJsonStore(TRACE_STORE, default={"events": [], "last": None})
+        self.store = AtomicJsonStore(TRACE_STORE, default_factory=_default_ledger)
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
 
     def _load(self) -> dict[str, Any]:
-        payload = self.store.read()
+        payload = self.store.load()
         if not isinstance(payload, dict):
-            return {"events": [], "last": None}
+            return _default_ledger()
         payload.setdefault("events", [])
+        payload.setdefault("last", None)
         return payload
 
     def _save_event(self, event: dict[str, Any]) -> dict[str, Any]:
@@ -45,7 +50,7 @@ class AIHandoffTraceLedgerService:
         events.append(event)
         payload["events"] = events[-500:]
         payload["last"] = event
-        self.store.write(payload)
+        self.store.save(payload)
         return event
 
     def status(self) -> dict[str, Any]:
@@ -196,7 +201,7 @@ class AIHandoffTraceLedgerService:
         compact_context: str,
     ) -> str:
         repo_list = "\n".join(f"- {repo}" for repo in repo_candidates) or "- DEFINE_TARGET_REPO"
-        memory_list = "\n".join(f"- {path}" for path in memory_paths) or "- AndreOS/02_PROJETOS/{project_id}/MEMORIA_MESTRE.md"
+        memory_list = "\n".join(f"- {path}" for path in memory_paths) or f"- AndreOS/02_PROJETOS/{project_id}/MEMORIA_MESTRE.md"
         note_block = f"\nNota do operador:\n{operator_note}\n" if operator_note else ""
         return (
             f"Trace ID: {trace_id}\n"
@@ -219,7 +224,7 @@ class AIHandoffTraceLedgerService:
             "- Não pedir nem guardar tokens, passwords, cookies, API keys ou segredos.\n"
             "- Se precisares mexer no código, devolver plano, ficheiros e patch/estratégia para o God Mode aplicar com PR.\n"
             "- Se houver risco, bloquear e explicar o motivo.\n"
-            "- No fim devolver uma secção `MEMORY_DELTA` curta para guardar na memória AndreOS.\n\n"
+            "- No fim devolver uma secção MEMORY_DELTA curta para guardar na memória AndreOS.\n\n"
             "Formato de resposta obrigatório:\n"
             "1. Resumo\n"
             "2. Decisão técnica\n"
