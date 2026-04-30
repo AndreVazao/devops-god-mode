@@ -61,6 +61,7 @@ class HomeOperatorUxService:
             "final_readiness_endpoint": "/api/final-install-readiness-v2/check",
             "andreos_context_endpoint": "/api/andreos-context/panel",
             "andreos_memory_repo_endpoint": "/api/andreos-memory-repo/panel",
+            "ai_handoff_trace_endpoint": "/api/ai-handoff-trace/panel",
             "driving_safe": True,
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
@@ -68,6 +69,7 @@ class HomeOperatorUxService:
                 "Não escrever dados sensíveis no chat: tokens, passwords, cookies ou API keys.",
                 "Se estiver a conduzir, usar só botões curtos e aprovações claras.",
                 "Antes de pedir ajuda a uma IA, usar o contexto AndreOS do projeto.",
+                "Toda passagem para IA deve ficar com trace_id e histórico.",
             ],
             "signals": {
                 "health_score": health.get("health_score"),
@@ -101,6 +103,7 @@ class HomeOperatorUxService:
     def _safe_buttons(self, primary_action: Dict[str, Any]) -> List[Dict[str, Any]]:
         buttons = [
             {"kind": "andreos_context", "label": "Contexto AndreOS", "endpoint": "/api/andreos-context/panel", "priority": "critical"},
+            {"kind": "ai_handoff_trace", "label": "Handoff IA", "endpoint": "/api/ai-handoff-trace/panel", "priority": "critical"},
             {"kind": "launch_center", "label": "Instalar / Baixar", "endpoint": "/api/home-launch/panel", "priority": "critical"},
             primary_action,
             {"kind": "final_readiness", "label": "Pronto para instalar?", "endpoint": "/api/final-install-readiness-v2/check", "priority": "critical"},
@@ -127,6 +130,12 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_ai_handoff_trace",
+                "label": "Handoff IA",
+                "message": "prepara um pedido para IA com repo, memória AndreOS e trace_id, e mostra como registar o resultado",
+                "route_endpoint": "/api/ai-handoff-trace/panel",
+            },
             {
                 "id": "open_andreos_context",
                 "label": "Contexto AndreOS",
@@ -189,6 +198,7 @@ class HomeOperatorUxService:
             "final_readiness_endpoint": panel["final_readiness_endpoint"],
             "andreos_context_endpoint": panel["andreos_context_endpoint"],
             "andreos_memory_repo_endpoint": panel["andreos_memory_repo_endpoint"],
+            "ai_handoff_trace_endpoint": panel["ai_handoff_trace_endpoint"],
             "driving_safe": panel["driving_safe"],
         }
 
