@@ -1,13 +1,29 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-MEMORY_ROOT = Path("memory")
+
+def _resolve_memory_root() -> Path:
+    """Resolve the live God Mode memory root.
+
+    On the home PC this should point outside the public repository, normally to
+    the local Obsidian/AndreOS workspace. The default keeps backwards
+    compatibility with the existing repo seed memory.
+    """
+
+    configured = os.getenv("GOD_MODE_MEMORY_ROOT", "").strip()
+    if configured:
+        return Path(configured).expanduser().resolve()
+    return Path("memory")
+
+
+MEMORY_ROOT = _resolve_memory_root()
 CONFIG_FILE = MEMORY_ROOT / "config" / "memory.config.json"
 VAULT_ROOT = MEMORY_ROOT / "vault" / "AndreOS"
 PROJECTS_ROOT = VAULT_ROOT / "02_PROJETOS"
@@ -209,7 +225,16 @@ class MemoryCore:
 
     def get_status(self) -> Dict[str, Any]:
         config = self.bridge.config
-        return {"ok": True, "mode": "andreos_memory_core_status", "memory_name": config.get("memory_name", "AndreOS Memory Core"), "vault_root": str(VAULT_ROOT), "default_project": config.get("default_project", "GOD_MODE")}
+        return {
+            "ok": True,
+            "mode": "andreos_memory_core_status",
+            "memory_name": config.get("memory_name", "AndreOS Memory Core"),
+            "memory_root": str(MEMORY_ROOT),
+            "vault_root": str(VAULT_ROOT),
+            "projects_root": str(PROJECTS_ROOT),
+            "default_project": config.get("default_project", "GOD_MODE"),
+            "external_root_configured": bool(os.getenv("GOD_MODE_MEMORY_ROOT", "").strip()),
+        }
 
     def initialize(self) -> Dict[str, Any]:
         return self.bridge.ensure_structure()
