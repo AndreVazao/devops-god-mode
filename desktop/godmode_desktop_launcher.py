@@ -202,14 +202,17 @@ def start_backend_thread() -> dict[str, Any]:
 
         def run_server() -> None:
             try:
-                write_log("starting uvicorn main:app on 0.0.0.0:8000")
-                uvicorn.run(
+                write_log("starting uvicorn main:app on 0.0.0.0:8000 with log_config=None")
+                config = uvicorn.Config(
                     "main:app",
                     host=BACKEND_HOST,
                     port=BACKEND_PORT,
-                    log_level="info",
+                    log_level="warning",
                     access_log=False,
+                    log_config=None,
                 )
+                server = uvicorn.Server(config)
+                server.run()
             except Exception:
                 write_log("backend thread crashed:\n" + traceback.format_exc())
 
