@@ -245,6 +245,121 @@ class GitHubService:
             "write_status": "written",
         }
 
+    async def get_branch_head_sha(self, repository_full_name: str, branch: str) -> dict[str, Any]:
+        if not self.is_configured():
+            raise RuntimeError("github_not_configured")
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{GITHUB_API_BASE}/repos/{repository_full_name}/git/ref/heads/{branch}",
+                headers=self._headers(),
+                timeout=30.0,
+            )
+            if response.status_code == 404:
+                return {"ok": False, "mode": "github_branch_head", "repository_full_name": repository_full_name, "branch": branch, "error": "branch_not_found"}
+            response.raise_for_status()
+            payload = response.json()
+
+        return {
+            "ok": True,
+            "mode": "github_branch_head",
+            "repository_full_name": repository_full_name,
+            "branch": branch,
+            "sha": ((payload.get("object") or {}).get("sha")),
+            "ref": payload.get("ref"),
+        }
+
+    async def ensure_branch_from_base(
+        self,
+        repository_full_name: str,
+        base_branch: str,
+        target_branch: str,
+    ) -> dict[str, Any]:
+        if not self.is_configured():
+            raise RuntimeError("github_not_configured")
+        if target_branch == base_branch:
+            base = await self.get_branch_head_sha(repository_full_name, base_branch)
+            return {**base, "mode": "github_branch_ensured", "created": False, "target_branch": target_branch}
+
+        existing = await self.get_branch_head_sha(repository_full_name, target_branch)
+        if existing.get("ok"):
+            return {**existing, "mode": "github_branch_ensured", "created": False, "target_branch": target_branch}
+
+        base = await self.get_branch_head_sha(repository_full_name, base_branch)
+        if not base.get("ok"):
+            return {"ok": False, "mode": "github_branch_ensured", "repository_full_name": repository_full_name, "base_branch": base_branch, "target_branch": target_branch, "error": "base_branch_not_found"}
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{GITHUB_API_BASE}/repos/{repository_full_name}/git/refs",
+                headers=self._headers(),
+                json={"ref": f"refs/heads/{target_branch}", "sha": base.get("sha")},
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            payload = response.json()
+
+        return {
+            "ok": True,
+            "mode": "github_branch_ensured",
+            "repository_full_name": repository_full_name,
+            "base_branch": base_branch,
+            "target_branch": target_branch,
+            "created": True,
+            "sha": ((payload.get("object") or {}).get("sha")) or base.get("sha"),
+            "ref": payload.get("ref"),
+        }
+
+    async def create_pull_request(
+        self,
+        repository_full_name: str,
+        title: str,
+        body: str,
+        head_branch: str,
+        base_branch: str = "main",
+        draft: bool = False,
+    ) -> dict[str, Any]:
+        if not self.is_configured():
+            raise RuntimeError("github_not_configured")
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{GITHUB_API_BASE}/repos/{repository_full_name}/pulls",
+                headers=self._headers(),
+                json={
+                    "title": title,
+                    "body": body,
+                    "head": head_branch,
+                    "base": base_branch,
+                    "draft": draft,
+                },
+                timeout=30.0,
+            )
+            if response.status_code == 422:
+                return {
+                    "ok": False,
+                    "mode": "github_pull_request_created",
+                    "repository_full_name": repository_full_name,
+                    "head_branch": head_branch,
+                    "base_branch": base_branch,
+                    "error": "pull_request_not_created_or_already_exists",
+                    "details": response.text[:1000],
+                }
+            response.raise_for_status()
+            payload = response.json()
+
+        return {
+            "ok": True,
+            "mode": "github_pull_request_created",
+            "repository_full_name": repository_full_name,
+            "number": payload.get("number"),
+            "title": payload.get("title"),
+            "html_url": payload.get("html_url"),
+            "head_branch": head_branch,
+            "base_branch": base_branch,
+            "state": payload.get("state"),
+        }
+
     async def _detect_common_files(
         self,
         client: httpx.AsyncClient,
