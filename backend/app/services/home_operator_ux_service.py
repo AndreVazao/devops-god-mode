@@ -62,6 +62,8 @@ class HomeOperatorUxService:
             "andreos_context_endpoint": "/api/andreos-context/panel",
             "andreos_memory_repo_endpoint": "/api/andreos-memory-repo/panel",
             "memory_boundary_endpoint": "/api/memory-boundary/panel",
+            "obsidian_technical_sync_endpoint": "/api/obsidian-technical-sync/panel",
+            "reusable_code_registry_endpoint": "/api/reusable-code-registry/panel",
             "ai_handoff_trace_endpoint": "/api/ai-handoff-trace/panel",
             "ollama_local_brain_endpoint": "/api/ollama-local-brain/panel",
             "desktop_self_update_endpoint": "/api/desktop-self-update/panel",
@@ -71,7 +73,8 @@ class HomeOperatorUxService:
                 "O backend continua até terminar, bloquear ou pedir OK.",
                 "Não escrever dados sensíveis no chat: tokens, passwords, cookies ou API keys.",
                 "Se estiver a conduzir, usar só botões curtos e aprovações claras.",
-                "GitHub memory é para programação das repos/programas; Obsidian local é para trabalho local e evolução.",
+                "Obsidian é a oficina técnica/local; GitHub memory é o arquivo técnico estável das repos/programas.",
+                "Antes de gerar código novo, pesquisar primeiro no catálogo de código reutilizável.",
                 "Antes de pedir ajuda a uma IA para código, usar a GitHub memory técnica do projeto.",
                 "Toda passagem para IA deve ficar com trace_id e histórico.",
                 "Usar Ollama como IA local privada para resumos, triagem e fallback, não como fonte final sem validação.",
@@ -110,6 +113,8 @@ class HomeOperatorUxService:
         buttons = [
             {"kind": "desktop_self_update", "label": "Atualizações", "endpoint": "/api/desktop-self-update/panel", "priority": "critical"},
             {"kind": "memory_boundary", "label": "GitHub / Obsidian", "endpoint": "/api/memory-boundary/panel", "priority": "critical"},
+            {"kind": "obsidian_technical_sync", "label": "Sync Obsidian", "endpoint": "/api/obsidian-technical-sync/panel", "priority": "critical"},
+            {"kind": "reusable_code_registry", "label": "Código Reutilizável", "endpoint": "/api/reusable-code-registry/panel", "priority": "critical"},
             {"kind": "andreos_context", "label": "Contexto AndreOS", "endpoint": "/api/andreos-context/panel", "priority": "critical"},
             {"kind": "ai_handoff_trace", "label": "Handoff IA", "endpoint": "/api/ai-handoff-trace/panel", "priority": "critical"},
             {"kind": "ollama_local_brain", "label": "IA Local", "endpoint": "/api/ollama-local-brain/panel", "priority": "critical"},
@@ -139,6 +144,18 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_reusable_code_registry",
+                "label": "Código Reutilizável",
+                "message": "pesquisa primeiro se já existe código feito para este propósito antes de pedir novo código a IA",
+                "route_endpoint": "/api/reusable-code-registry/panel",
+            },
+            {
+                "id": "open_obsidian_technical_sync",
+                "label": "Sync Obsidian",
+                "message": "abre o sync técnico Obsidian para promover notas maduras para GitHub memory",
+                "route_endpoint": "/api/obsidian-technical-sync/panel",
+            },
             {
                 "id": "open_memory_boundary",
                 "label": "GitHub/Obsidian",
@@ -226,6 +243,8 @@ class HomeOperatorUxService:
             "andreos_context_endpoint": panel["andreos_context_endpoint"],
             "andreos_memory_repo_endpoint": panel["andreos_memory_repo_endpoint"],
             "memory_boundary_endpoint": panel["memory_boundary_endpoint"],
+            "obsidian_technical_sync_endpoint": panel["obsidian_technical_sync_endpoint"],
+            "reusable_code_registry_endpoint": panel["reusable_code_registry_endpoint"],
             "ai_handoff_trace_endpoint": panel["ai_handoff_trace_endpoint"],
             "ollama_local_brain_endpoint": panel["ollama_local_brain_endpoint"],
             "desktop_self_update_endpoint": panel["desktop_self_update_endpoint"],
