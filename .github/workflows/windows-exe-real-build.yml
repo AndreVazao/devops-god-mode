@@ -172,6 +172,62 @@ jobs:
           if (-not (Test-Path dist/onboarding/desktop-bundle-index.json)) { throw 'Desktop bundle index file was not created.' }
           if (-not (Test-Path dist/onboarding/desktop-mobile-handoff.json)) { throw 'Desktop mobile handoff file was not created.' }
 
+      - name: Boot smoke test desktop backend
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $appData = Join-Path $env:APPDATA 'GodModeDesktop'
+          if (Test-Path $appData) { Remove-Item $appData -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $appData | Out-Null
+
+          $process = Start-Process -FilePath (Resolve-Path 'dist/GodModeDesktop.exe') -PassThru -WindowStyle Hidden
+          try {
+            $healthy = $false
+            $body = ''
+            for ($i = 0; $i -lt 60; $i++) {
+              Start-Sleep -Seconds 1
+              try {
+                $response = Invoke-WebRequest -Uri 'http://127.0.0.1:8000/health' -UseBasicParsing -TimeoutSec 2
+                if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 400) {
+                  $healthy = $true
+                  $body = $response.Content
+                  break
+                }
+              } catch {
+                if ($process.HasExited) { break }
+              }
+            }
+
+            $statePath = Join-Path $appData 'desktop_runtime_state.json'
+            $logPath = Join-Path $appData 'desktop_runtime.log'
+            $diagPath = Join-Path $appData 'desktop_backend_diagnostic.html'
+            if (Test-Path $statePath) { Copy-Item $statePath 'dist/onboarding/desktop-runtime-state-ci.json' -Force }
+            if (Test-Path $logPath) { Copy-Item $logPath 'dist/onboarding/desktop-runtime-ci.log' -Force }
+            if (Test-Path $diagPath) { Copy-Item $diagPath 'dist/onboarding/desktop-backend-diagnostic-ci.html' -Force }
+
+            if (-not $healthy) {
+              if (Test-Path $logPath) { Get-Content $logPath | Select-Object -Last 120 }
+              throw 'GodModeDesktop.exe did not answer http://127.0.0.1:8000/health during CI boot smoke test.'
+            }
+
+            $smoke = @{
+              ok = $true
+              checked_url = 'http://127.0.0.1:8000/health'
+              health_body = $body
+              process_id = $process.Id
+              appdata = $appData
+              tested_at = (Get-Date).ToUniversalTime().ToString('o')
+            }
+            $smoke | ConvertTo-Json -Depth 5 | Set-Content -Path dist/onboarding/desktop-boot-smoke-result.json
+          }
+          finally {
+            try {
+              if ($process -and -not $process.HasExited) {
+                Stop-Process -Id $process.Id -Force
+              }
+            } catch {}
+          }
+
       - name: Upload artifact if quota allows
         continue-on-error: true
         uses: actions/upload-artifact@v4
@@ -187,6 +243,10 @@ jobs:
             dist/onboarding/desktop-onboarding.json
             dist/onboarding/desktop-bundle-index.json
             dist/onboarding/desktop-mobile-handoff.json
+            dist/onboarding/desktop-boot-smoke-result.json
+            dist/onboarding/desktop-runtime-state-ci.json
+            dist/onboarding/desktop-runtime-ci.log
+            dist/onboarding/desktop-backend-diagnostic-ci.html
 
       - name: Build summary
         shell: pwsh
@@ -194,9 +254,10 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Windows EXE Build Summary'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- This is the canonical desktop EXE build workflow for the local-first PC brain.'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher now starts the FastAPI backend on port 8000.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher starts the FastAPI backend on port 8000.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Backend dependencies are installed before PyInstaller packaging.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- CI boot smoke test starts the EXE and checks `http://127.0.0.1:8000/health`.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop self-update helper is included in the support bundle.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop launcher EXE was built from `desktop/godmode_desktop_launcher.py` using PyInstaller.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Support scripts for desktop shortcut, autostart and package update were added to `dist/support`.'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, bundle index, and handoff files were added to `dist/onboarding`.'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Desktop installer manifest, onboarding, bundle index, handoff and boot-smoke files were added to `dist/onboarding`.'
