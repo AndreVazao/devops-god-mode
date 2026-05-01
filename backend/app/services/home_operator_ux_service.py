@@ -63,6 +63,7 @@ class HomeOperatorUxService:
             "andreos_memory_repo_endpoint": "/api/andreos-memory-repo/panel",
             "memory_boundary_endpoint": "/api/memory-boundary/panel",
             "obsidian_technical_sync_endpoint": "/api/obsidian-technical-sync/panel",
+            "program_obsidian_policy_endpoint": "/api/program-obsidian-policy/panel",
             "reusable_code_registry_endpoint": "/api/reusable-code-registry/panel",
             "ai_handoff_trace_endpoint": "/api/ai-handoff-trace/panel",
             "ollama_local_brain_endpoint": "/api/ollama-local-brain/panel",
@@ -73,6 +74,8 @@ class HomeOperatorUxService:
                 "O backend continua até terminar, bloquear ou pedir OK.",
                 "Não escrever dados sensíveis no chat: tokens, passwords, cookies ou API keys.",
                 "Se estiver a conduzir, usar só botões curtos e aprovações claras.",
+                "God Mode usa Obsidian como oficina técnica/dev; outros programas locais usam Obsidian só para operação real e evolução de uso.",
+                "Programas cloud não dependem de Obsidian local; usam DB/storage/cloud memory própria.",
                 "Obsidian é a oficina técnica/local; GitHub memory é o arquivo técnico estável das repos/programas.",
                 "Antes de gerar código novo, pesquisar primeiro no catálogo de código reutilizável.",
                 "Antes de pedir ajuda a uma IA para código, usar a GitHub memory técnica do projeto.",
@@ -113,6 +116,7 @@ class HomeOperatorUxService:
         buttons = [
             {"kind": "desktop_self_update", "label": "Atualizações", "endpoint": "/api/desktop-self-update/panel", "priority": "critical"},
             {"kind": "memory_boundary", "label": "GitHub / Obsidian", "endpoint": "/api/memory-boundary/panel", "priority": "critical"},
+            {"kind": "program_obsidian_policy", "label": "Obsidian por Programa", "endpoint": "/api/program-obsidian-policy/panel", "priority": "critical"},
             {"kind": "obsidian_technical_sync", "label": "Sync Obsidian", "endpoint": "/api/obsidian-technical-sync/panel", "priority": "critical"},
             {"kind": "reusable_code_registry", "label": "Código Reutilizável", "endpoint": "/api/reusable-code-registry/panel", "priority": "critical"},
             {"kind": "andreos_context", "label": "Contexto AndreOS", "endpoint": "/api/andreos-context/panel", "priority": "critical"},
@@ -144,6 +148,12 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_program_obsidian_policy",
+                "label": "Obsidian por Programa",
+                "message": "abre a regra: God Mode usa Obsidian para dev; outros programas locais só para operação/evolução; cloud não depende de Obsidian local",
+                "route_endpoint": "/api/program-obsidian-policy/panel",
+            },
             {
                 "id": "open_reusable_code_registry",
                 "label": "Código Reutilizável",
@@ -244,6 +254,7 @@ class HomeOperatorUxService:
             "andreos_memory_repo_endpoint": panel["andreos_memory_repo_endpoint"],
             "memory_boundary_endpoint": panel["memory_boundary_endpoint"],
             "obsidian_technical_sync_endpoint": panel["obsidian_technical_sync_endpoint"],
+            "program_obsidian_policy_endpoint": panel["program_obsidian_policy_endpoint"],
             "reusable_code_registry_endpoint": panel["reusable_code_registry_endpoint"],
             "ai_handoff_trace_endpoint": panel["ai_handoff_trace_endpoint"],
             "ollama_local_brain_endpoint": panel["ollama_local_brain_endpoint"],
