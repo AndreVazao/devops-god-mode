@@ -1,34 +1,44 @@
-# Ecossistema AndreVazao — Grupos, Programas e Arquivo Reutilizável
+# Ecossistema AndreVazao — Grupos Oficiais, Subprogramas e Reusable Codes
 
-Este documento organiza todos os projetos falados/criados em grupos empresariais mais fortes.
+Este documento define a divisão oficial dos projetos do ecossistema AndreVazao.
 
-A regra principal é simples:
+A regra principal mantém-se:
 
 - O **God Mode** é o orquestrador central.
-- Nenhum projeto antigo deve ser apagado sem antes ser arquivado.
-- Programas que não avancem continuam úteis como banco de código, ideias, componentes, scripts, automações e experiências.
-- O arquivo deve ser preparado para ser lido por IA, Obsidian e pelo próprio God Mode.
+- Os grupos são famílias de produto/negócio.
+- Os projetos antigos que não avançarem não devem ser apagados sem análise.
+- Scripts, dashboards, APIs, bases de dados, prompts, automações e instaladores úteis devem ser enviados para **Reusable Codes**.
+- O arquivo deve ser legível por humanos, pelo Obsidian e por agentes IA do God Mode.
 
 ---
 
-## 0. Núcleo central — God Mode / Orquestrador
+# Mapa oficial dos grupos
 
-O God Mode é o cérebro operacional do ecossistema.
+```txt
+ECOSSISTEMA_ANDREVAZAO/
+├── 01_GOD_MODE_E_SUBSISTEMAS/
+├── 02_BARIBUDOS_STUDIO_E_CRIADORES_CONTEUDO/
+├── 03_MECANICA_ECUPROTUNE_SWAPAI_OUTROS/
+├── 04_DESENHO_E_CONVERSOR_CNC/
+├── 05_PROVENTIL_VIDEO_PORTEIRO_EXTRATORES_FUMOS/
+├── 06_BOT_FACTORY_ENGENHARIA_REVERSA_PCFARM_BOTS_JOGO/
+├── 07_BOTS_PROGRAMAS_E_EXCHANGE/
+├── 08_MOBILE/
+├── 09_ONER_CORE_E_CHAT_BOTS/
+├── 10_SHEETPRO_E_PROGRAMAS_PESSOAIS/
+├── 11_REUSABLE_CODES/
+└── 12_ETC_INCUBADORA_FUTURA/
+```
 
-Ele deve conseguir:
+---
 
-- gerir projetos;
-- consultar memória persistente;
-- ler documentação em Obsidian/GitHub;
-- reaproveitar código arquivado;
-- criar novas repos;
-- modificar projetos existentes;
-- controlar builds;
-- controlar licenças;
-- coordenar subprogramas;
-- decidir que código antigo pode ser reaproveitado noutros produtos.
+# 01 — God Mode e subsistemas
 
-### Projetos dentro deste grupo
+O God Mode é o cérebro e orquestrador de todo o ecossistema.
+
+Ele não deve conter fisicamente todos os projetos dentro dele. Deve conhecer, indexar, controlar, automatizar e reaproveitar tudo.
+
+## Projetos e subsistemas
 
 - God Mode
 - DevOps God Mode
@@ -43,14 +53,15 @@ Ele deve conseguir:
 - AndreOS Memory
 - Obsidian + IA Memory
 - Sistema de memória persistente
-- Sistema de arquivo reutilizável de código
-- Sistema de leitura de repositórios GitHub
-- Sistema de automação de builds
-- Sistema de gestão de `.env`
-- Sistema de criação automática de repos
-- Sistema de dashboard DevOps mobile-first
+- Sistema de gestão de repositórios
+- Sistema de automação GitHub
+- Sistema de builds automáticos
+- Sistema de dashboards de estado
+- Sistema de agentes IA internos
+- Sistema de leitura e catalogação de projetos
+- Sistema de integração com Reusable Codes
 
-### Submódulos do God Mode
+## Função do grupo
 
 ```txt
 GodMode/
@@ -59,101 +70,102 @@ GodMode/
 ├── 02_GITHUB_AUTOMATION/
 ├── 03_BUILD_CENTER/
 ├── 04_AGENTES_IA/
-├── 05_ARQUIVO_CODIGO_REUTILIZAVEL/
-├── 06_LICENCAS_E_ONER/
-├── 07_DASHBOARD_WEB/
+├── 05_REUSABLE_CODES_INDEX/
+├── 06_DEPLOY_E_PACKAGING/
+├── 07_PROJECT_ORGANIZER/
 ├── 08_MOBILE_CONTROL/
-└── 09_LOGS_DECISOES_E_AUDITORIA/
+└── 09_AUDITORIA_DECISOES/
+```
+
+## Regra
+
+O God Mode deve conseguir perguntar:
+
+```txt
+Tenho código antigo útil para resolver isto?
+Existe script arquivado semelhante?
+Existe dashboard, API, base de dados ou instalador reaproveitável?
+Qual repo contém a melhor versão deste módulo?
 ```
 
 ---
 
-## 1. Grupo Conteúdos — Veributo Studio
+# 02 — Baribudos Studio e criadores de conteúdo
 
-Nome de cabeçalho sugerido: **Veributo Studio**.
+Grupo para conteúdo, websites, vídeos, ebooks, cursos, vozes, personagens, lipsync, tradução e publicação automática.
 
-Este grupo junta tudo o que cria conteúdo, marcas, vídeos, ebooks, vozes, personagens, websites e publicação automática.
+## Projetos e subprogramas
 
-### Projetos dentro deste grupo
-
-- Veributo Studio
 - Baribudos Studio
 - Baribudos Studio Primary
 - Baribudos Studio Home Edition
 - Baribudos Studio Website
-- Website do estúdio
+- Website Baribudos Studio
 - VerbaForge
 - ViralVazao
+- Criadores de conteúdo
 - Content Creator / Contentoria Heitor
-- Persona Voz / Pé Só na Foz / módulo de vozes/personagens
+- Sistema de personagens/personas
+- Sistema de vozes fixas
+- Coqui TTS / XTTS-v2
+- Voice cloning
 - Translation + Lipsync Lab
 - Tradutor de vídeo
 - Sistema de dobragem automática
+- Sistema de legendagem
 - Sistema de lipsync
-- Coqui TTS / XTTS-v2
-- Voice cloning
-- Sistema de ebooks automáticos
-- Sistema de cursos automáticos
-- Sistema de vídeos automáticos
-- Sistema de posts automáticos
-- Sistema de deteção de tendências virais
-- Sistema de patrocinadores/anúncios dentro dos conteúdos
-- Sistema de publicação YouTube / Instagram / TikTok
-- Sistema de aprovação manual para séries grandes
-- Sistema autopilot para posts rápidos
+- Gerador de ebooks
+- Gerador de vídeos
+- Gerador de cursos
+- Gerador de posts
+- Sistema de tendências virais
+- Sistema de autopublicação
+- Sistema de patrocinadores/anúncios em conteúdos
 
-### Estrutura sugerida
+## Estrutura sugerida
 
 ```txt
-VeributoStudio/
-├── 00_BRAND_E_WEBSITE/
-│   ├── website/
-│   └── landing-pages/
-├── 01_VERBAFORGE/
-│   ├── gerador-ebooks/
-│   ├── gerador-videos/
-│   ├── gerador-cursos/
-│   └── publicador-redes/
-├── 02_BARIBUDOS/
+BaribudosStudioConteudo/
+├── 00_BRAND_WEBSITE/
+├── 01_BARIBUDOS_UNIVERSE/
 │   ├── historias/
 │   ├── personagens/
 │   ├── vozes/
 │   ├── ilustracoes/
 │   └── videos/
-├── 03_VOZES_E_PERSONAS/
-│   ├── voice-cloning/
-│   ├── narradores/
-│   └── personagens-recorrentes/
-├── 04_TRADUCAO_LIPSYNC/
+├── 02_VERBAFORGE/
+│   ├── ebooks/
+│   ├── cursos/
+│   ├── videos/
+│   └── publicador-redes/
+├── 03_CRIADORES_CONTEUDO/
+│   ├── personas/
+│   ├── canais/
+│   ├── campanhas/
+│   └── monetizacao/
+├── 04_TRANSLATION_LIPSYNC/
 │   ├── tradutor-video/
 │   ├── dobragem/
 │   ├── legendas/
 │   └── lipsync/
-├── 05_CONTEUDO_SOCIAL/
-│   ├── youtube/
-│   ├── instagram/
-│   ├── tiktok/
-│   └── campanhas/
-└── 99_ARQUIVO_CONTEUDOS/
-```
-
-### Regra de arquivo
-
-Tudo o que for criado para conteúdo, mesmo que não avance, deve ir para:
-
-```txt
-VeributoStudio/99_ARQUIVO_CONTEUDOS/
+├── 05_VOZES_TTS/
+│   ├── coqui-xtts/
+│   ├── voice-cloning/
+│   ├── narradores/
+│   └── personagens-recorrentes/
+└── 99_ARQUIVO_CONTEUDO/
 ```
 
 ---
 
-## 2. Grupo Mecânica — ECU, Swap e Engenharia Automóvel
+# 03 — Mecânica: EcuProTune, SwapAI e outros
 
-Este grupo junta ferramentas para carros, diagnóstico, reprogramação, peças, desenhos técnicos e futuros sistemas de oficina/engenharia.
+Grupo para diagnóstico automóvel, ECU, reprogramação, swaps de motores, engenharia de suportes, peças e futuros sistemas de oficina.
 
-### Projetos dentro deste grupo
+## Projetos e subprogramas
 
 - ECU Pro Tune
+- EcuProTune
 - Diagnóstico OBD2
 - Reprogramação ECU
 - Konnwei ELM327 v1.5
@@ -161,28 +173,30 @@ Este grupo junta ferramentas para carros, diagnóstico, reprogramação, peças,
 - Sistema de presets de performance
 - Sistema de limites seguros
 - Sistema de relatório de anomalias
-- Sistema de PDF com assinatura do cliente
-- Sistema por matrícula/veículo
-- SwapAI / Swap Engine Designer
+- Sistema de assinatura/aceitação do cliente
+- SwapAI
+- Swap Engine Designer
 - Desenho de apoios de motor
-- Sistema para trocas de motor
-- Sistema para medir e desenhar suportes/adaptadores
-- Sistema CAD para peças automóveis
+- Sistema para trocas de motores
 - Sistema de compatibilidade motor/chassis
-- Sistema futuro para oficina/mecânica
-- Sistema futuro com drones/scanner/fotogrametria para captar medidas
+- Sistema de desenho de adaptadores
+- Sistema CAD automóvel
+- Sistema de medição por fotos/scans
+- Sistema futuro de drone/scanner/fotogrametria
+- Outros projetos futuros de mecânica
 
-### Estrutura sugerida
+## Estrutura sugerida
 
 ```txt
 Mecanica/
-├── 00_ECU_PRO_TUNE/
+├── 00_ECUPROTUNE/
 │   ├── diagnostico-obd2/
 │   ├── reprogramacao-ecu/
-│   ├── backups-ecu/
+│   ├── backups-originais/
 │   ├── presets-performance/
+│   ├── limites-seguros/
 │   └── relatorios-cliente/
-├── 01_SWAP_AI/
+├── 01_SWAPAI/
 │   ├── motor-mount-designer/
 │   ├── apoios-motor/
 │   ├── adaptadores/
@@ -200,23 +214,23 @@ Mecanica/
 └── 99_ARQUIVO_MECANICA/
 ```
 
-### Nota de segurança
+## Regra de segurança
 
-Projetos de ECU e alterações mecânicas devem guardar sempre:
+Qualquer sistema ECU ou alteração mecânica deve guardar:
 
 - backup original;
-- limites seguros;
 - relatório de alterações;
+- limites mínimos e máximos;
 - consentimento do cliente;
-- separação entre modo diagnóstico e modo alteração.
+- separação clara entre diagnóstico e alteração.
 
 ---
 
-## 3. Grupo Maquinário — CNC, Laser, DXF, Produção
+# 04 — Desenho e conversor CNC
 
-Este grupo junta tudo o que transforma desenhos, imagens, texto ou medidas em ficheiros para máquinas.
+Grupo para desenho técnico, CNC, laser, DXF, GCode e conversores de ficheiros para máquinas.
 
-### Projetos dentro deste grupo
+## Projetos e subprogramas
 
 - GCode Converter
 - Conversor SVG para GCode
@@ -233,76 +247,90 @@ Este grupo junta tudo o que transforma desenhos, imagens, texto ou medidas em fi
 - DXF Generator
 - Gerador DXF para botoneiras
 - Gerador DXF para chapas ProVentil
+- Gerador DXF para apoios de motor/SwapAI
 - Gerador de ficheiros para corte laser/vinil
 - Sistema de camadas CUT_OUTER, CUT_INNER, ENGRAVE, MARK_TEXT, BEND_REF
 
-### Estrutura sugerida
+## Estrutura sugerida
 
 ```txt
-Maquinario/
-├── 00_GCODE_CONVERTER/
+DesenhoCNC/
+├── 00_DESENHO_TECNICO/
+│   ├── templates/
+│   ├── medidas/
+│   ├── bibliotecas/
+│   └── validadores/
+├── 01_GCODE_CONVERTER/
 │   ├── svg-to-gcode/
 │   ├── dxf-to-gcode/
 │   ├── image-to-gcode/
 │   ├── pdf-to-gcode/
 │   └── txt-to-gcode/
-├── 01_DXF_GENERATORS/
+├── 02_DXF_GENERATORS/
 │   ├── botoneiras/
 │   ├── chapas/
+│   ├── apoios-motor/
 │   ├── suportes/
 │   └── templates/
-├── 02_CNC_LASER_PREVIEW/
+├── 03_CNC_LASER_PREVIEW/
 │   ├── preview-2d/
 │   ├── simulador-caminho/
 │   └── configuracoes-maquina/
-├── 03_EXPORTADORES/
+├── 04_EXPORTADORES/
 │   ├── gcode/
 │   ├── dxf/
 │   ├── svg/
 │   ├── stl/
 │   └── step/
-└── 99_ARQUIVO_MAQUINARIO/
+└── 99_ARQUIVO_DESENHO_CNC/
 ```
 
-### Relação com outros grupos
+## Relações com outros grupos
 
-Este grupo serve também:
+Este grupo serve diretamente:
 
-- ProVentil, para chapas e botoneiras;
-- Mecânica, para apoios de motor e peças;
-- Conteúdos, para produtos físicos, placas, brindes e merchandising.
+- ProVentil, para chapas, botoneiras e peças;
+- Mecânica/SwapAI, para apoios de motor e adaptadores;
+- Baribudos/Conteúdo, para produtos físicos, brindes, placas e merchandising.
 
 ---
 
-## 4. Grupo ProVentil — Negócio Real / Obras / Orçamentos
+# 05 — ProVentil: videoporteiro, extratores de fumos e outros
 
-Este grupo fica separado porque é negócio operacional real.
+Grupo do negócio real de instalação, orçamento, manutenção e gestão técnica.
 
-### Projetos dentro deste grupo
+## Projetos e subprogramas
 
 - ProVentil
 - proventil.pt
-- Sistema de extração de fumos
-- Sistema de ventilação hotelaria
-- Sistema de videoporteiros
+- Sistema videoporteiro
 - Sistema Comelit
 - Sistema Fermax
 - Sistema BTicino
+- Sistema de botoneiras
+- Sistema de chapas para botoneiras
+- Sistema de extração de fumos para restaurantes/hotelaria
+- Extratores de fumos
+- Motores
+- Tubos
+- Curvas
+- Filtros
+- Filtros eletrostáticos
+- Carvão ativado
+- Juntas flexíveis
 - Sistema de propostas por marca
 - Sistema de orçamentos automáticos
 - Sistema de deslocações por distância
-- Sistema de materiais e fornecedores
+- Sistema de fornecedores
 - Sistema ClimaStore
 - Sistema de ID por obra/morada
-- Sistema de histórico técnico por edifício
-- Sistema de faltosos
-- Sistema de revisitas
-- Sistema de comissões técnicas
+- Histórico técnico por edifício
+- Sistema de faltosos/revisitas
 - Sistema de stock
-- Sistema de PDFs/orçamentos/propostas
-- Sistema de chapas e botoneiras com DXF
+- Sistema de comissões técnicas
+- Outros futuros serviços ProVentil
 
-### Estrutura sugerida
+## Estrutura sugerida
 
 ```txt
 ProVentil/
@@ -312,33 +340,38 @@ ProVentil/
 ├── 03_VIDEO_PORTEIROS/
 │   ├── comelit/
 │   ├── fermax/
-│   └── bticino/
-├── 04_EXTRACAO_FUMOS/
+│   ├── bticino/
+│   ├── botoneiras/
+│   └── chapas/
+├── 04_EXTRACAO_FUMOS_RESTAURANTES/
 │   ├── motores/
 │   ├── tubos/
 │   ├── curvas/
 │   ├── filtros/
+│   ├── eletrostaticos/
+│   ├── carvao-ativado/
 │   └── fornecedores/
-├── 05_DESLOCACOES_E_TECNICOS/
+├── 05_DESLOCACOES_TECNICOS/
 ├── 06_DXF_CHAPAS_BOTONEIRAS/
-├── 07_COMISSOES/
+├── 07_STOCK_FORNECEDORES/
+├── 08_COMISSOES/
 └── 99_ARQUIVO_PROVENTIL/
 ```
 
 ---
 
-## 5. Grupo Bots / Jogos / Automação
+# 06 — Bot Factory, engenharia reversa, PcFarm e bots de jogo
 
-Este grupo fica separado do God Mode.
+Grupo para criar bots de jogos, estudar comportamento, automatizar jogos e gerir farms.
 
-O God Mode orquestra, mas os bots vivem aqui como produtos próprios.
-
-### Projetos dentro deste grupo
+## Projetos e subprogramas
 
 - Bot Factory
 - Engenharia Reversa Framework
-- BOT_<nome do jogo>
+- Reverse Engineering Agents
+- BOT_<nome_do_jogo>
 - PC Farm Lords Mobile
+- PcFarm
 - Headless Lords Mobile Bot
 - Bot Lords Mobile
 - Bot Guerra
@@ -354,35 +387,85 @@ O God Mode orquestra, mas os bots vivem aqui como produtos próprios.
 - Sistema de semáforo por castelo
 - Sistema dos 3 bonecos de estado
 - Bot APK
-- Bots Android
-- Bots PC
+- Bots Android para jogos
+- Bots PC para jogos
 
-### Estrutura sugerida
+## Estrutura sugerida
 
 ```txt
-BotsJogos/
+BotFactoryJogos/
 ├── 00_BOT_FACTORY/
-├── 01_REVERSE_ENGINEERING/
-├── 02_LORDS_MOBILE/
+├── 01_ENGENHARIA_REVERSA/
+├── 02_FRAMEWORK_BOT_GENERATOR/
+├── 03_LORDS_MOBILE_PCFARM/
 │   ├── pc-farm/
 │   ├── headless-real/
 │   ├── emulator-fallback/
 │   ├── comandos-chat/
 │   ├── rally-dn-war/
 │   └── dashboard-instancias/
-├── 03_BOTS_ANDROID/
-├── 04_BOTS_PC/
-├── 05_LICENCAS_BOTS/
+├── 04_BOTS_ANDROID_JOGOS/
+├── 05_BOTS_PC_JOGOS/
+├── 06_LICENCAS_BOTS_JOGOS/
 └── 99_ARQUIVO_BOTS_JOGOS/
 ```
 
 ---
 
-## 6. Grupo Mobile / Android / Overlay / OS
+# 07 — Bots programas e de exchange
 
-Este grupo junta apps móveis, overlays e ideias de sistema operativo leve.
+Grupo para bots que não são de jogos: bots de programas, automações de trabalho, assistentes, integrações, bots de exchange/trading e futuros bots de operação digital.
 
-### Projetos dentro deste grupo
+## Projetos e subprogramas
+
+- Bots de programas
+- Bots de automação de software
+- Bots de produtividade
+- Bots de scraping legal/permitido
+- Bots de monitorização
+- Bots de exchange
+- Bots de trading por API oficial
+- Bots de alertas de preço
+- Bots de gestão de carteira
+- Bots de arbitragem apenas se for legal e via APIs permitidas
+- Bots de relatórios financeiros
+- Bots de marketplaces
+- Bots de resposta automática
+- Bots de atendimento
+- Bots futuros não relacionados com jogos
+
+## Estrutura sugerida
+
+```txt
+BotsProgramasExchange/
+├── 00_BOTS_PROGRAMAS/
+│   ├── produtividade/
+│   ├── scraping-permitido/
+│   ├── monitorizacao/
+│   └── automacoes-desktop-web/
+├── 01_BOTS_EXCHANGE/
+│   ├── api-connectors/
+│   ├── price-alerts/
+│   ├── portfolio-manager/
+│   ├── trading-strategies/
+│   └── reports/
+├── 02_BOTS_ATENDIMENTO/
+├── 03_BOTS_MARKETPLACES/
+├── 04_BOTS_FINANCEIROS/
+└── 99_ARQUIVO_BOTS_PROGRAMAS_EXCHANGE/
+```
+
+## Regra
+
+Bots de exchange/trading devem trabalhar apenas com APIs oficiais, chaves protegidas, logs, limites de risco, modo simulação e confirmação antes de operações reais.
+
+---
+
+# 08 — Mobile
+
+Grupo para apps Android, overlays, controlo pelo telemóvel, automações mobile e sistemas operativos/ambientes móveis.
+
+## Projetos e subprogramas
 
 - Script Reviewer Mobile
 - App Android com botões flutuantes
@@ -393,31 +476,34 @@ Este grupo junta apps móveis, overlays e ideias de sistema operativo leve.
 - AndreOS
 - OS Universal para Telemóveis
 - Sistema operativo ultra-leve para jogos
-- Instalador PC que prepara o telemóvel
+- Instalador PC que prepara telemóvel
 - Sistema de deteção automática de hardware
 - Sistema de drivers
 - Sistema controlado por ADB
+- Apps APK futuras dos outros grupos
 
-### Estrutura sugerida
+## Estrutura sugerida
 
 ```txt
-MobileAndroid/
+Mobile/
 ├── 00_SCRIPT_REVIEWER_MOBILE/
 ├── 01_FLOATING_OVERLAY_AI/
 ├── 02_ANDROID_AUTOMATION/
 ├── 03_ANDREOS/
 ├── 04_ADB_CONTROL/
+├── 05_APKS_PRODUTOS/
 └── 99_ARQUIVO_MOBILE/
 ```
 
 ---
 
-## 7. Grupo Dados / Licenças / Oner
+# 09 — Oner Core e chat bots
 
-Este grupo é transversal. Não é produto final único; é infraestrutura de monetização e controlo.
+Grupo transversal para administração, licenças, utilizadores, pagamentos, permissões, chatbots e controlo interno.
 
-### Projetos dentro deste grupo
+## Projetos e subprogramas
 
+- Oner Core
 - Painel Oner
 - Back-end unificado
 - Base de dados unificada
@@ -431,32 +517,43 @@ Este grupo é transversal. Não é produto final único; é infraestrutura de mo
 - Sistema de comissões
 - Sistema de bónus
 - Sistema de auditoria
-- Sistema de aprovação de alterações por botão aceitar
+- Chatbot privado do Oner
+- Chatbots de cliente
+- Chatbots de suporte
+- Chatbots internos por projeto
+- Sistema de aprovação por botão aceitar
 
-### Estrutura sugerida
+## Estrutura sugerida
 
 ```txt
-OnerCore/
-├── 00_AUTH_USERS/
-├── 01_LICENCAS/
-├── 02_PAGAMENTOS/
-├── 03_PLANOS_E_PRECOS/
-├── 04_PERMISSOES_CHECKBOXES/
-├── 05_ADMIN_EMPREGADOS/
-├── 06_COMISSOES_BONUS/
-├── 07_AUDITORIA/
-└── 99_ARQUIVO_ONER/
+OnerCoreChatBots/
+├── 00_CORE_ADMIN/
+├── 01_AUTH_USERS/
+├── 02_LICENCAS/
+├── 03_PAGAMENTOS/
+├── 04_PLANOS_PRECOS/
+├── 05_PERMISSOES_CHECKBOXES/
+├── 06_ADMIN_EMPREGADOS/
+├── 07_COMISSOES_BONUS/
+├── 08_CHATBOTS/
+│   ├── oner-private-ai/
+│   ├── suporte-clientes/
+│   ├── chatbots-projetos/
+│   └── agentes-internos/
+├── 09_AUDITORIA_APROVACOES/
+└── 99_ARQUIVO_ONER_CORE/
 ```
 
 ---
 
-## 8. Grupo SheetPro / Escalas / PDFs
+# 10 — SheetPro e outros programas pessoais
 
-Este grupo fica dedicado a análise de PDFs, escalas, chapas e serviços.
+Grupo para ferramentas pessoais, análise de PDFs, escalas, chapas, organização, utilitários e programas que servem a vida diária/trabalho interno.
 
-### Projetos dentro deste grupo
+## Projetos e subprogramas
 
 - SheetProPrivate
+- SheetPro
 - Programa para verificar escalas
 - Sistema de análise de chapas
 - Sistema de análise de PDFs de serviços
@@ -466,33 +563,58 @@ Este grupo fica dedicado a análise de PDFs, escalas, chapas e serviços.
 - Sistema horário escolar/não escolar
 - Sistema de deteção de novas rotas
 - Sistema de comparação de alterações
+- Programas pessoais futuros
+- Utilitários locais
+- Ferramentas internas pequenas
 
-### Estrutura sugerida
+## Estrutura sugerida
 
 ```txt
-SheetPro/
-├── 00_IMPORTADOR_PDFS/
-├── 01_ANALISADOR_CHAPAS/
-├── 02_BASE_ROTAS_SERVICOS/
-├── 03_COMPARADOR_ALTERACOES/
-├── 04_VALIDADOR_ESCALAS/
-└── 99_ARQUIVO_SHEETPRO/
+SheetProProgramasPessoais/
+├── 00_SHEETPRO/
+│   ├── importador-pdfs/
+│   ├── analisador-chapas/
+│   ├── base-rotas-servicos/
+│   ├── comparador-alteracoes/
+│   └── validador-escalas/
+├── 01_UTILITARIOS_PESSOAIS/
+├── 02_AUTOMACOES_LOCAIS/
+├── 03_ORGANIZADORES/
+└── 99_ARQUIVO_PESSOAL/
 ```
 
 ---
 
-# Arquivo geral reutilizável
+# 11 — Reusable Codes
 
-Este é o ponto crítico.
+Grupo especial para guardar código reaproveitável de todos os projetos.
 
-Tudo o que nasceu antes e pode não avançar deve ser preservado num arquivo de reaproveitamento.
+Este grupo não é cemitério morto. É uma biblioteca de peças úteis.
 
-O objetivo não é manter projetos mortos. O objetivo é guardar peças úteis.
+## O que entra aqui
 
-## Estrutura geral recomendada
+- scripts completos;
+- funções úteis;
+- componentes UI;
+- dashboards;
+- instaladores;
+- GitHub Actions;
+- configs;
+- esquemas de base de dados;
+- migrações;
+- prompts;
+- agentes;
+- integrações;
+- conversores;
+- módulos mobile;
+- lógica de licenças;
+- código abandonado mas útil;
+- experiências que podem ser adaptadas.
+
+## Estrutura oficial
 
 ```txt
-ArquivoCodigoReutilizavel/
+ReusableCodes/
 ├── 00_INDEX/
 │   ├── catalogo-geral.md
 │   ├── mapa-repos.md
@@ -547,6 +669,11 @@ ArquivoCodigoReutilizavel/
 │   ├── pagamentos/
 │   ├── comissoes/
 │   └── propostas/
+├── 10_MECANICA_CNC/
+│   ├── ecu/
+│   ├── swapai/
+│   ├── dxf/
+│   └── gcode/
 └── 99_CEMITERIO_CONTROLADO/
     ├── projetos-parados/
     ├── ideias-congeladas/
@@ -554,14 +681,15 @@ ArquivoCodigoReutilizavel/
     └── codigo-nao-validado/
 ```
 
-## Regras do arquivo
+## Metadata obrigatória por peça guardada
 
-Cada script guardado deve ter um ficheiro `.meta.md` com:
+Cada ficheiro reaproveitável deve ter um `.meta.md` ao lado:
 
 ```txt
 Nome:
 Projeto original:
-Grupo:
+Grupo original:
+Grupo destino possível:
 Linguagem:
 Framework:
 Estado:
@@ -569,6 +697,7 @@ Serve para:
 Pode ser reutilizado em:
 Riscos:
 Dependências:
+Como testar:
 Última revisão:
 ```
 
@@ -576,6 +705,7 @@ Dependências:
 
 ```txt
 ATIVO
+REUTILIZAVEL
 ARQUIVADO_UTIL
 EXPERIENCIA
 SUBSTITUIDO
@@ -585,79 +715,96 @@ PERIGOSO_NAO_USAR_SEM_REVISAO
 
 ---
 
-# Mapa final dos grupos
+# 12 — ETC / Incubadora futura
+
+Grupo para ideias novas que ainda não têm família clara.
+
+Nada deve ficar perdido em conversas soltas. Quando surgir uma ideia nova, entra primeiro aqui. Depois o God Mode decide se vira projeto próprio, subprograma ou peça para Reusable Codes.
+
+## Estrutura sugerida
 
 ```txt
-ECOSSISTEMA_ANDREVAZAO/
-├── 00_GOD_MODE_ORQUESTRADOR/
-├── 01_VERIBUTO_STUDIO_CONTEUDOS/
-├── 02_MECANICA_ECU_SWAP_AUTO/
-├── 03_MAQUINARIO_CNC_DXF_GCODE/
-├── 04_PROVENTIL_NEGOCIO_REAL/
-├── 05_BOTS_JOGOS_AUTOMACAO/
-├── 06_MOBILE_ANDROID_OVERLAY_OS/
-├── 07_ONER_CORE_LICENCAS_DADOS/
-├── 08_SHEETPRO_ESCALAS_PDFS/
-└── 99_ARQUIVO_CODIGO_REUTILIZAVEL/
+EtcIncubadora/
+├── 00_IDEIAS_NOVAS/
+├── 01_TESTES_RAPIDOS/
+├── 02_PROMPTS_SOLTOS/
+├── 03_PROVAS_CONCEITO/
+├── 04_PROJETOS_SEM_GRUPO/
+└── 99_ARQUIVO_INCUBADORA/
+```
+
+## Regra
+
+A incubadora não é para guardar código final. Código útil sai daqui e vai para:
+
+```txt
+ReusableCodes/
+```
+
+Projetos que ganham força saem daqui e vão para um dos grupos oficiais.
+
+---
+
+# Repositórios GitHub conhecidos e grupo sugerido
+
+```txt
+AndreVazao/devops-god-mode                 -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/ai-devops-control-center        -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/universal-build-platform        -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/build-control-center            -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/build-control-panel             -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/GitHub-auto-builder             -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/Project-Organizer-AI            -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/ENV-editor                      -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/Vortexa-core                    -> 01_GOD_MODE_E_SUBSISTEMAS
+AndreVazao/andreos-memory                  -> 01_GOD_MODE_E_SUBSISTEMAS
+
+AndreVazao/baribudos-studio                -> 02_BARIBUDOS_STUDIO_E_CRIADORES_CONTEUDO
+AndreVazao/baribudos-studio-primary        -> 02_BARIBUDOS_STUDIO_E_CRIADORES_CONTEUDO
+AndreVazao/baribudos-studio-home-edition   -> 02_BARIBUDOS_STUDIO_E_CRIADORES_CONTEUDO
+AndreVazao/baribudos-studio-website        -> 02_BARIBUDOS_STUDIO_E_CRIADORES_CONTEUDO
+
+AndreVazao/ecu-pro-tune                    -> 03_MECANICA_ECUPROTUNE_SWAPAI_OUTROS
+
+AndreVazao/proventil                       -> 05_PROVENTIL_VIDEO_PORTEIRO_EXTRATORES_FUMOS
+
+AndreVazao/Bot_Factory                     -> 06_BOT_FACTORY_ENGENHARIA_REVERSA_PCFARM_BOTS_JOGO
+
+AndreVazao/script-reviewer-mobile          -> 08_MOBILE
+
+AndreVazao/SheetProPrivate                 -> 10_SHEETPRO_E_PROGRAMAS_PESSOAIS
 ```
 
 ---
 
-# Prioridade estratégica
+# Política de eliminação e aproveitamento
 
-## Prioridade 1
+Nenhum projeto antigo deve ser apagado diretamente.
 
-- God Mode
-- AndreOS Memory / Obsidian Memory
-- Arquivo Código Reutilizável
-- GitHub Auto Builder / Build Center
-
-## Prioridade 2
-
-- Veributo Studio
-- VerbaForge
-- Baribudos Studio
-- Translation + Lipsync Lab
-
-## Prioridade 3
-
-- ProVentil
-- Maquinário/CNC/DXF
-- Mecânica/ECU/SwapAI
-
-## Prioridade 4
-
-- Bots/Jogos
-- Mobile Overlay
-- SheetPro
-
----
-
-# Decisão arquitetural
-
-O God Mode não deve conter todos os projetos fisicamente dentro dele.
-
-O God Mode deve conter:
-
-- índice dos projetos;
-- ponte para cada repo;
-- memória Obsidian;
-- arquivo de código reutilizável;
-- automações de leitura/build/deploy;
-- agentes que entendem o que cada projeto faz.
-
-Os projetos devem continuar separados por produto/grupo, mas ligados por índice central.
-
----
-
-# Próximo passo recomendado
-
-Criar os seguintes ficheiros/pastas:
+Fluxo correto:
 
 ```txt
-docs/arquitetura/ECOSSISTEMA_ANDREVAZAO_GRUPOS_E_ARQUIVO.md
-docs/arquivo-codigo/README.md
-docs/arquivo-codigo/catalogo-geral.md
-docs/arquivo-codigo/template-meta-script.md
-docs/obsidian/estrutura-vault-andrevazao.md
+1. Identificar projeto antigo.
+2. Analisar scripts, configs, prompts, DBs e UI.
+3. Separar o que é útil.
+4. Guardar em ReusableCodes com metadata.
+5. Marcar projeto como ARQUIVADO, SUBSTITUIDO ou NAO_VALIDADO.
+6. Só depois decidir se o repo pode ser congelado, mantido ou eliminado.
 ```
+
+---
+
+# Decisão estratégica
+
+Os 12 grupos oficiais passam a ser a base de organização.
+
+O God Mode deve usar este documento como mapa principal para:
+
+- organizar repos;
+- criar novos projetos;
+- decidir onde guardar ideias;
+- reaproveitar código antigo;
+- montar documentação Obsidian;
+- alimentar agentes IA;
+- preparar builds;
+- ligar produtos ao Oner Core.
