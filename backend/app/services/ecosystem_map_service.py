@@ -10,7 +10,7 @@ ECOSYSTEM_OPERATIONAL_DOC_PATH = "docs/arquitetura/ECOSSISTEMA_ANDREVAZAO_OPERAC
 GROUPS: dict[str, dict[str, Any]] = {
     "01_GOD_MODE_E_SUBSISTEMAS": {
         "name": "God Mode e subsistemas",
-        "keywords": ["god mode", "devops", "build", "github", "organizer", "andreos", "memory", "vortexa", "automation", "agent", "orchestrator"],
+        "keywords": ["god mode", "devops", "build", "github", "organizer", "andreos", "memory", "vortexa", "automation", "agent", "orchestrator", "ruflo", "mcp", "swarm", "goal planner"],
         "execution_default": "HIBRIDO",
         "license_default": "interno_apenas",
     },
@@ -84,6 +84,7 @@ GROUPS: dict[str, dict[str, Any]] = {
 
 KNOWN_REPOS: dict[str, str] = {
     "AndreVazao/devops-god-mode": "01_GOD_MODE_E_SUBSISTEMAS",
+    "AndreVazao/godmode-ruflo-lab": "01_GOD_MODE_E_SUBSISTEMAS",
     "AndreVazao/ai-devops-control-center": "01_GOD_MODE_E_SUBSISTEMAS",
     "AndreVazao/universal-build-platform": "01_GOD_MODE_E_SUBSISTEMAS",
     "AndreVazao/build-control-center": "01_GOD_MODE_E_SUBSISTEMAS",
