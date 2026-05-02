@@ -61,6 +61,7 @@ class HomeOperatorUxService:
             "final_readiness_endpoint": "/api/final-install-readiness-v2/check",
             "andreos_context_endpoint": "/api/andreos-context/panel",
             "andreos_memory_repo_endpoint": "/api/andreos-memory-repo/panel",
+            "ecosystem_map_endpoint": "/api/ecosystem-map/panel",
             "memory_boundary_endpoint": "/api/memory-boundary/panel",
             "obsidian_technical_sync_endpoint": "/api/obsidian-technical-sync/panel",
             "program_obsidian_policy_endpoint": "/api/program-obsidian-policy/panel",
@@ -74,6 +75,7 @@ class HomeOperatorUxService:
                 "O backend continua até terminar, bloquear ou pedir OK.",
                 "Não escrever dados sensíveis no chat: tokens, passwords, cookies ou API keys.",
                 "Se estiver a conduzir, usar só botões curtos e aprovações claras.",
+                "Todo projeto deve ser classificado no Ecossistema AndreVazao antes de criar repo, arquivar ou pedir código novo.",
                 "God Mode usa Obsidian como oficina técnica/dev; outros programas locais usam Obsidian só para operação real e evolução de uso.",
                 "Programas cloud não dependem de Obsidian local; usam DB/storage/cloud memory própria.",
                 "Obsidian é a oficina técnica/local; GitHub memory é o arquivo técnico estável das repos/programas.",
@@ -115,6 +117,7 @@ class HomeOperatorUxService:
     def _safe_buttons(self, primary_action: Dict[str, Any]) -> List[Dict[str, Any]]:
         buttons = [
             {"kind": "desktop_self_update", "label": "Atualizações", "endpoint": "/api/desktop-self-update/panel", "priority": "critical"},
+            {"kind": "ecosystem_map", "label": "Ecossistema", "endpoint": "/api/ecosystem-map/panel", "priority": "critical"},
             {"kind": "memory_boundary", "label": "GitHub / Obsidian", "endpoint": "/api/memory-boundary/panel", "priority": "critical"},
             {"kind": "program_obsidian_policy", "label": "Obsidian por Programa", "endpoint": "/api/program-obsidian-policy/panel", "priority": "critical"},
             {"kind": "obsidian_technical_sync", "label": "Sync Obsidian", "endpoint": "/api/obsidian-technical-sync/panel", "priority": "critical"},
@@ -148,6 +151,12 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_ecosystem_map",
+                "label": "Ecossistema",
+                "message": "abre o mapa operacional do ecossistema AndreVazao para classificar projetos, repos, execução, licença e reusable codes",
+                "route_endpoint": "/api/ecosystem-map/panel",
+            },
             {
                 "id": "open_program_obsidian_policy",
                 "label": "Obsidian por Programa",
@@ -252,6 +261,7 @@ class HomeOperatorUxService:
             "final_readiness_endpoint": panel["final_readiness_endpoint"],
             "andreos_context_endpoint": panel["andreos_context_endpoint"],
             "andreos_memory_repo_endpoint": panel["andreos_memory_repo_endpoint"],
+            "ecosystem_map_endpoint": panel["ecosystem_map_endpoint"],
             "memory_boundary_endpoint": panel["memory_boundary_endpoint"],
             "obsidian_technical_sync_endpoint": panel["obsidian_technical_sync_endpoint"],
             "program_obsidian_policy_endpoint": panel["program_obsidian_policy_endpoint"],
