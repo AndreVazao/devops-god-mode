@@ -54,6 +54,7 @@ class HomeOperatorUxService:
             "safe_buttons": self._safe_buttons(primary_action),
             "quick_commands": self._quick_commands(active_project),
             "daily_command_route_endpoint": "/api/daily-command-router/route",
+            "goal_planner_endpoint": "/api/goal-planner/panel",
             "general_test_endpoint": "/api/real-operator-rehearsal/run",
             "critical_actions_endpoint": "/api/home-critical-actions/panel",
             "launch_center_endpoint": "/api/home-launch/panel",
@@ -62,6 +63,7 @@ class HomeOperatorUxService:
             "andreos_context_endpoint": "/api/andreos-context/panel",
             "andreos_memory_repo_endpoint": "/api/andreos-memory-repo/panel",
             "ecosystem_map_endpoint": "/api/ecosystem-map/panel",
+            "ruflo_research_lab_endpoint": "/api/ruflo-research-lab/panel",
             "memory_boundary_endpoint": "/api/memory-boundary/panel",
             "obsidian_technical_sync_endpoint": "/api/obsidian-technical-sync/panel",
             "program_obsidian_policy_endpoint": "/api/program-obsidian-policy/panel",
@@ -72,10 +74,12 @@ class HomeOperatorUxService:
             "driving_safe": True,
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
+                "Objetivos longos devem passar primeiro pelo Goal Planner.",
                 "O backend continua até terminar, bloquear ou pedir OK.",
                 "Não escrever dados sensíveis no chat: tokens, passwords, cookies ou API keys.",
                 "Se estiver a conduzir, usar só botões curtos e aprovações claras.",
                 "Todo projeto deve ser classificado no Ecossistema AndreVazao antes de criar repo, arquivar ou pedir código novo.",
+                "Ruflo é laboratório externo controlado, não dependência central do God Mode.",
                 "God Mode usa Obsidian como oficina técnica/dev; outros programas locais usam Obsidian só para operação real e evolução de uso.",
                 "Programas cloud não dependem de Obsidian local; usam DB/storage/cloud memory própria.",
                 "Obsidian é a oficina técnica/local; GitHub memory é o arquivo técnico estável das repos/programas.",
@@ -117,7 +121,9 @@ class HomeOperatorUxService:
     def _safe_buttons(self, primary_action: Dict[str, Any]) -> List[Dict[str, Any]]:
         buttons = [
             {"kind": "desktop_self_update", "label": "Atualizações", "endpoint": "/api/desktop-self-update/panel", "priority": "critical"},
+            {"kind": "goal_planner", "label": "Goal Planner", "endpoint": "/api/goal-planner/panel", "priority": "critical"},
             {"kind": "ecosystem_map", "label": "Ecossistema", "endpoint": "/api/ecosystem-map/panel", "priority": "critical"},
+            {"kind": "ruflo_research_lab", "label": "Ruflo Lab", "endpoint": "/api/ruflo-research-lab/panel", "priority": "critical"},
             {"kind": "memory_boundary", "label": "GitHub / Obsidian", "endpoint": "/api/memory-boundary/panel", "priority": "critical"},
             {"kind": "program_obsidian_policy", "label": "Obsidian por Programa", "endpoint": "/api/program-obsidian-policy/panel", "priority": "critical"},
             {"kind": "obsidian_technical_sync", "label": "Sync Obsidian", "endpoint": "/api/obsidian-technical-sync/panel", "priority": "critical"},
@@ -151,6 +157,18 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_goal_planner",
+                "label": "Goal Planner",
+                "message": "abre o Goal Planner para transformar o objetivo em plano executável com tarefas, riscos, memória e validação",
+                "route_endpoint": "/api/goal-planner/panel",
+            },
+            {
+                "id": "open_ruflo_research_lab",
+                "label": "Ruflo Lab",
+                "message": "abre o laboratório Ruflo para ver mapeamento de ideias úteis, plano de extração e política de não dependência central",
+                "route_endpoint": "/api/ruflo-research-lab/panel",
+            },
             {
                 "id": "open_ecosystem_map",
                 "label": "Ecossistema",
@@ -254,6 +272,7 @@ class HomeOperatorUxService:
             "safe_button_count": len(panel["safe_buttons"]),
             "quick_command_count": len(panel["quick_commands"]),
             "daily_command_route_endpoint": panel["daily_command_route_endpoint"],
+            "goal_planner_endpoint": panel["goal_planner_endpoint"],
             "general_test_endpoint": panel["general_test_endpoint"],
             "critical_actions_endpoint": panel["critical_actions_endpoint"],
             "launch_center_endpoint": panel["launch_center_endpoint"],
@@ -262,6 +281,7 @@ class HomeOperatorUxService:
             "andreos_context_endpoint": panel["andreos_context_endpoint"],
             "andreos_memory_repo_endpoint": panel["andreos_memory_repo_endpoint"],
             "ecosystem_map_endpoint": panel["ecosystem_map_endpoint"],
+            "ruflo_research_lab_endpoint": panel["ruflo_research_lab_endpoint"],
             "memory_boundary_endpoint": panel["memory_boundary_endpoint"],
             "obsidian_technical_sync_endpoint": panel["obsidian_technical_sync_endpoint"],
             "program_obsidian_policy_endpoint": panel["program_obsidian_policy_endpoint"],
