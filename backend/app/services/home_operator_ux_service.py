@@ -69,12 +69,14 @@ class HomeOperatorUxService:
             "program_obsidian_policy_endpoint": "/api/program-obsidian-policy/panel",
             "reusable_code_registry_endpoint": "/api/reusable-code-registry/panel",
             "ai_handoff_trace_endpoint": "/api/ai-handoff-trace/panel",
+            "ai_handoff_security_guard_endpoint": "/api/ai-handoff-security-guard/panel",
             "ollama_local_brain_endpoint": "/api/ollama-local-brain/panel",
             "desktop_self_update_endpoint": "/api/desktop-self-update/panel",
             "driving_safe": True,
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
                 "Objetivos longos devem passar primeiro pelo Goal Planner.",
+                "Antes de enviar contexto para IA, passar pelo AI Handoff Security Guard.",
                 "O backend continua até terminar, bloquear ou pedir OK.",
                 "Não escrever dados sensíveis no chat: tokens, passwords, cookies ou API keys.",
                 "Se estiver a conduzir, usar só botões curtos e aprovações claras.",
@@ -122,6 +124,7 @@ class HomeOperatorUxService:
         buttons = [
             {"kind": "desktop_self_update", "label": "Atualizações", "endpoint": "/api/desktop-self-update/panel", "priority": "critical"},
             {"kind": "goal_planner", "label": "Goal Planner", "endpoint": "/api/goal-planner/panel", "priority": "critical"},
+            {"kind": "ai_handoff_security_guard", "label": "Segurança IA", "endpoint": "/api/ai-handoff-security-guard/panel", "priority": "critical"},
             {"kind": "ecosystem_map", "label": "Ecossistema", "endpoint": "/api/ecosystem-map/panel", "priority": "critical"},
             {"kind": "ruflo_research_lab", "label": "Ruflo Lab", "endpoint": "/api/ruflo-research-lab/panel", "priority": "critical"},
             {"kind": "memory_boundary", "label": "GitHub / Obsidian", "endpoint": "/api/memory-boundary/panel", "priority": "critical"},
@@ -157,6 +160,12 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_ai_handoff_security_guard",
+                "label": "Segurança IA",
+                "message": "abre o Security Guard para analisar e sanitizar contexto antes de enviar a qualquer IA",
+                "route_endpoint": "/api/ai-handoff-security-guard/panel",
+            },
             {
                 "id": "open_goal_planner",
                 "label": "Goal Planner",
@@ -287,6 +296,7 @@ class HomeOperatorUxService:
             "program_obsidian_policy_endpoint": panel["program_obsidian_policy_endpoint"],
             "reusable_code_registry_endpoint": panel["reusable_code_registry_endpoint"],
             "ai_handoff_trace_endpoint": panel["ai_handoff_trace_endpoint"],
+            "ai_handoff_security_guard_endpoint": panel["ai_handoff_security_guard_endpoint"],
             "ollama_local_brain_endpoint": panel["ollama_local_brain_endpoint"],
             "desktop_self_update_endpoint": panel["desktop_self_update_endpoint"],
             "driving_safe": panel["driving_safe"],
