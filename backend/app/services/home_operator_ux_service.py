@@ -55,6 +55,7 @@ class HomeOperatorUxService:
             "quick_commands": self._quick_commands(active_project),
             "daily_command_route_endpoint": "/api/daily-command-router/route",
             "goal_planner_endpoint": "/api/goal-planner/panel",
+            "agent_roles_endpoint": "/api/agent-roles/panel",
             "general_test_endpoint": "/api/real-operator-rehearsal/run",
             "critical_actions_endpoint": "/api/home-critical-actions/panel",
             "launch_center_endpoint": "/api/home-launch/panel",
@@ -76,6 +77,7 @@ class HomeOperatorUxService:
             "operator_rules": [
                 "Escolhe projeto por prioridade, não por dinheiro.",
                 "Objetivos longos devem passar primeiro pelo Goal Planner.",
+                "O Goal Planner deve atribuir papéis internos antes de execução complexa.",
                 "Antes de enviar contexto para IA, passar pelo AI Handoff Security Guard.",
                 "O backend continua até terminar, bloquear ou pedir OK.",
                 "Não escrever dados sensíveis no chat: tokens, passwords, cookies ou API keys.",
@@ -124,6 +126,7 @@ class HomeOperatorUxService:
         buttons = [
             {"kind": "desktop_self_update", "label": "Atualizações", "endpoint": "/api/desktop-self-update/panel", "priority": "critical"},
             {"kind": "goal_planner", "label": "Goal Planner", "endpoint": "/api/goal-planner/panel", "priority": "critical"},
+            {"kind": "agent_roles", "label": "Papéis IA", "endpoint": "/api/agent-roles/panel", "priority": "critical"},
             {"kind": "ai_handoff_security_guard", "label": "Segurança IA", "endpoint": "/api/ai-handoff-security-guard/panel", "priority": "critical"},
             {"kind": "ecosystem_map", "label": "Ecossistema", "endpoint": "/api/ecosystem-map/panel", "priority": "critical"},
             {"kind": "ruflo_research_lab", "label": "Ruflo Lab", "endpoint": "/api/ruflo-research-lab/panel", "priority": "critical"},
@@ -160,6 +163,12 @@ class HomeOperatorUxService:
     def _quick_commands(self, active_project: str) -> List[Dict[str, str]]:
         route_endpoint = "/api/daily-command-router/route"
         return [
+            {
+                "id": "open_agent_roles",
+                "label": "Papéis IA",
+                "message": "abre o Agent Roles Registry para atribuir tarefas aos papéis internos certos do God Mode",
+                "route_endpoint": "/api/agent-roles/panel",
+            },
             {
                 "id": "open_ai_handoff_security_guard",
                 "label": "Segurança IA",
@@ -282,6 +291,7 @@ class HomeOperatorUxService:
             "quick_command_count": len(panel["quick_commands"]),
             "daily_command_route_endpoint": panel["daily_command_route_endpoint"],
             "goal_planner_endpoint": panel["goal_planner_endpoint"],
+            "agent_roles_endpoint": panel["agent_roles_endpoint"],
             "general_test_endpoint": panel["general_test_endpoint"],
             "critical_actions_endpoint": panel["critical_actions_endpoint"],
             "launch_center_endpoint": panel["launch_center_endpoint"],
