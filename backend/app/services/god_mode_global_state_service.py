@@ -15,7 +15,7 @@ class GodModeGlobalStateService:
     """
 
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_179_v1"
+    VERSION = "phase_180_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -46,7 +46,8 @@ class GodModeGlobalStateService:
             {"phase": 176, "name": "Cockpit Runtime UX + Execution Logs", "status": "merged"},
             {"phase": 177, "name": "Project Tree Autorefresh + GOD_MODE Tree", "status": "merged"},
             {"phase": 178, "name": "Module Registry Snapshot + GOD_MODE Tree Integration", "status": "merged"},
-            {"phase": 179, "name": "Reality Audit + First Real Install Mission", "status": "in_progress"},
+            {"phase": 179, "name": "Reality Audit + First Real Install Mission", "status": "merged"},
+            {"phase": 180, "name": "PC Runner + Provider Conversation Proof", "status": "in_progress"},
         ]
 
     def operating_model(self) -> Dict[str, Any]:
@@ -87,6 +88,7 @@ class GodModeGlobalStateService:
                 "control_surface_package": "/api/home-control-surface/package",
                 "runtime_ux_package": "/api/cockpit-runtime-ux/package",
                 "reality_audit_package": "/api/god-mode-reality-audit/package",
+                "pc_provider_proof_package": "/api/pc-provider-conversation-proof/package",
             },
         }
 
@@ -110,6 +112,17 @@ class GodModeGlobalStateService:
             "rule": "No capability should be presented as fully real until it passes PC/runtime proof.",
         }
 
+    def pc_provider_proof_model(self) -> Dict[str, Any]:
+        return {
+            "endpoint": "/api/pc-provider-conversation-proof/package",
+            "probe_tool": "tools/pc_provider_conversation_probe.py",
+            "proof_dir": "data/provider_proofs",
+            "supported_providers": ["chatgpt", "claude", "gemini", "perplexity"],
+            "goal": "Prove provider browser/session/conversation reading on the real PC without storing credentials.",
+            "minimum_success": "manual login + provider opens + proof JSON imported or staged conversation added manually",
+            "strong_success": "visible messages read and imported into Multi-AI Conversation Inventory",
+        }
+
     def memory_model(self) -> Dict[str, Any]:
         return {
             "github_memory": {
@@ -125,7 +138,7 @@ class GodModeGlobalStateService:
             },
             "god_mode_runtime": {
                 "role": "active operational state used by PC backend and cockpits",
-                "stores": ["pipeline state", "button execution logs", "provider outcomes", "safe action queues", "local indexes", "module registry snapshot", "reality audit"],
+                "stores": ["pipeline state", "button execution logs", "provider outcomes", "safe action queues", "local indexes", "module registry snapshot", "reality audit", "provider proof imports"],
             },
         }
 
@@ -164,6 +177,7 @@ class GodModeGlobalStateService:
                 "desktop update helper exists in Windows artifact support bundle",
                 "Memory Sync Runtime records merged phases",
                 "Project Tree Autorefresh keeps GOD_MODE_TREE.md current after main changes",
+                "PC provider proof runner can collect local proof JSON without storing credentials",
             ],
             "still_needed": [
                 "self-update orchestrator that detects accepted God Mode changes",
@@ -186,7 +200,7 @@ class GodModeGlobalStateService:
         return {
             "high_priority_next": [
                 "Run first real PC install mission",
-                "Install/verify Playwright and PC browser runner for AI conversations",
+                "Use PC provider proof runner for selected AI providers",
                 "Local encrypted PC vault contract implementation",
                 "Self-update orchestrator and staged update manifests",
             ],
@@ -219,8 +233,8 @@ class GodModeGlobalStateService:
             "version": self.VERSION,
             "generated_at": self._now(),
             "implemented_phase_count": len(merged),
-            "latest_merged_phase": 178,
-            "current_phase": 179,
+            "latest_merged_phase": 179,
+            "current_phase": 180,
             "canonical_cockpit_route": "/app/home",
             "mobile_first": True,
             "pc_brain": True,
@@ -229,6 +243,7 @@ class GodModeGlobalStateService:
             "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md",
             "module_registry_endpoint": "/api/module-registry-snapshot/package",
             "reality_audit_endpoint": "/api/god-mode-reality-audit/package",
+            "pc_provider_proof_endpoint": "/api/pc-provider-conversation-proof/package",
         }
 
     def package(self) -> Dict[str, Any]:
@@ -238,6 +253,7 @@ class GodModeGlobalStateService:
             "operating_model": self.operating_model(),
             "project_tree_model": self.project_tree_model(),
             "reality_audit_model": self.reality_audit_model(),
+            "pc_provider_proof_model": self.pc_provider_proof_model(),
             "module_registry": self.module_registry(),
             "memory_model": self.memory_model(),
             "vault_policy": self.vault_policy(),
