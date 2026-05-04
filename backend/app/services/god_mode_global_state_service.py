@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from app.services.module_registry_snapshot_service import module_registry_snapshot_service
+
 
 class GodModeGlobalStateService:
     """Stable project snapshot and operating model for God Mode.
@@ -13,7 +15,7 @@ class GodModeGlobalStateService:
     """
 
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_175_v1"
+    VERSION = "phase_178_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -40,7 +42,10 @@ class GodModeGlobalStateService:
             {"phase": 172, "name": "Home/App Control Surface", "status": "merged"},
             {"phase": 173, "name": "Home Visual Shell", "status": "merged"},
             {"phase": 174, "name": "Launcher/App Default Home Route", "status": "merged"},
-            {"phase": 175, "name": "Global State + README Refresh + Operating Model", "status": "in_progress"},
+            {"phase": 175, "name": "Global State + README Refresh + Operating Model", "status": "merged"},
+            {"phase": 176, "name": "Cockpit Runtime UX + Execution Logs", "status": "merged"},
+            {"phase": 177, "name": "Project Tree Autorefresh + GOD_MODE Tree", "status": "merged"},
+            {"phase": 178, "name": "Module Registry Snapshot + GOD_MODE Tree Integration", "status": "in_progress"},
         ]
 
     def operating_model(self) -> Dict[str, Any]:
@@ -79,7 +84,20 @@ class GodModeGlobalStateService:
                 "route": "/app/home",
                 "manifest": "/api/app-entrypoint/manifest",
                 "control_surface_package": "/api/home-control-surface/package",
+                "runtime_ux_package": "/api/cockpit-runtime-ux/package",
             },
+        }
+
+    def project_tree_model(self) -> Dict[str, Any]:
+        return {
+            "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md",
+            "legacy_tree_path": "PROJECT_TREE.txt",
+            "project_id": "GOD_MODE",
+            "generator_script": "scripts/generate_project_tree.py",
+            "autorefresh_workflow": ".github/workflows/project-tree-autorefresh.yml",
+            "backend_package": "/api/project-tree-autorefresh/package",
+            "status_endpoint": "/api/module-registry-snapshot/tree-status",
+            "manual_tree_is_fallback_only": True,
         }
 
     def memory_model(self) -> Dict[str, Any]:
@@ -97,7 +115,7 @@ class GodModeGlobalStateService:
             },
             "god_mode_runtime": {
                 "role": "active operational state used by PC backend and cockpits",
-                "stores": ["pipeline state", "button execution logs", "provider outcomes", "safe action queues", "local indexes"],
+                "stores": ["pipeline state", "button execution logs", "provider outcomes", "safe action queues", "local indexes", "module registry snapshot"],
             },
         }
 
@@ -135,6 +153,7 @@ class GodModeGlobalStateService:
                 "GitHub Actions validates Universal, Android, Windows and smokes",
                 "desktop update helper exists in Windows artifact support bundle",
                 "Memory Sync Runtime records merged phases",
+                "Project Tree Autorefresh keeps GOD_MODE_TREE.md current after main changes",
             ],
             "still_needed": [
                 "self-update orchestrator that detects accepted God Mode changes",
@@ -156,10 +175,9 @@ class GodModeGlobalStateService:
     def backlog(self) -> Dict[str, Any]:
         return {
             "high_priority_next": [
-                "Cockpit polling, execution logs and visible history",
-                "Remote mobile operator control flow for road/work usage",
                 "Local encrypted PC vault contract implementation",
                 "Self-update orchestrator and staged update manifests",
+                "Remote mobile operator control flow for road/work usage",
                 "Provider/browser/platform control registry",
             ],
             "medium_priority": [
@@ -173,8 +191,13 @@ class GodModeGlobalStateService:
                 "Keep README aligned with real architecture",
                 "Validate with GitHub Actions before merge",
                 "Never store secrets in repo/docs/memory",
+                "Check module registry snapshot before creating new modules",
+                "Use docs/project-tree/GOD_MODE_TREE.md as the official tree artifact",
             ],
         }
+
+    def module_registry(self) -> Dict[str, Any]:
+        return module_registry_snapshot_service.package()
 
     def status(self) -> Dict[str, Any]:
         phases = self.implemented_phases()
@@ -185,13 +208,15 @@ class GodModeGlobalStateService:
             "version": self.VERSION,
             "generated_at": self._now(),
             "implemented_phase_count": len(merged),
-            "latest_merged_phase": 174,
-            "current_phase": 175,
+            "latest_merged_phase": 177,
+            "current_phase": 178,
             "canonical_cockpit_route": "/app/home",
             "mobile_first": True,
             "pc_brain": True,
             "github_memory_required_for_technical_continuity": True,
             "secrets_allowed_in_memory": False,
+            "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md",
+            "module_registry_endpoint": "/api/module-registry-snapshot/package",
         }
 
     def package(self) -> Dict[str, Any]:
@@ -199,6 +224,8 @@ class GodModeGlobalStateService:
             "status": self.status(),
             "implemented_phases": self.implemented_phases(),
             "operating_model": self.operating_model(),
+            "project_tree_model": self.project_tree_model(),
+            "module_registry": self.module_registry(),
             "memory_model": self.memory_model(),
             "vault_policy": self.vault_policy(),
             "self_update_model": self.self_update_model(),
