@@ -1,0 +1,52 @@
+name: Project Tree Autorefresh
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/project-tree/GOD_MODE_TREE.md'
+      - 'PROJECT_TREE.txt'
+      - 'data/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: project-tree-autorefresh-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh-project-tree:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate GOD_MODE tree
+        run: |
+          python scripts/generate_project_tree.py \
+            --project-name GOD_MODE \
+            --output docs/project-tree/GOD_MODE_TREE.md
+
+      - name: Commit tree update when changed
+        run: |
+          if git diff --quiet -- docs/project-tree/GOD_MODE_TREE.md; then
+            echo "GOD_MODE tree already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/project-tree/GOD_MODE_TREE.md
+          git commit -m "docs(tree): refresh GOD_MODE tree [skip ci]"
+          git push
