@@ -1,0 +1,80 @@
+name: Phase 173 Home Visual Shell Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/orchestration/home-visual-shell.md'
+      - '.github/workflows/phase173-home-visual-shell-smoke.yml'
+
+jobs:
+  phase173-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 173 visual shell routes and HTML contract
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.home_visual_shell_service import home_visual_shell_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/app/home",
+              "/api/home-visual-shell/page",
+              "/api/home-visual-shell/status",
+              "/api/home-visual-shell/package",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 173 routes: {missing}"
+
+          status = home_visual_shell_service.status()
+          assert status["ok"] is True
+          assert status["data_contract"] == "/api/home-control-surface/package"
+          assert status["dangerous_actions_directly_exposed"] is False
+          assert status["requires_confirmation_supported"] is True
+
+          package = home_visual_shell_service.package()
+          assert package["status"]["ok"] is True
+          assert package["assets"]["html_entrypoint"] == "/app/home"
+          assert "/api/home-control-surface/package" == package["assets"]["control_surface_package"]
+
+          html = home_visual_shell_service.html()
+          required_tokens = [
+              "God Mode",
+              "/api/home-control-surface/package",
+              "traffic_light",
+              "requires_confirmation",
+              "payloadBox",
+              "loadCockpit",
+              "executePendingAction",
+              "@media",
+          ]
+          for token in required_tokens:
+              assert token in html, f"Missing HTML token: {token}"
+          assert "merge_pull_request" not in html
+          assert "delete_file" not in html
+          assert "release" not in html.lower()
+
+          assert Path("docs/orchestration/home-visual-shell.md").exists()
+          print("phase 173 home visual shell smoke passed")
+          PY
