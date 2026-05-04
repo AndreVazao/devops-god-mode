@@ -15,7 +15,7 @@ class GodModeGlobalStateService:
     """
 
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_178_v1"
+    VERSION = "phase_179_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -45,7 +45,8 @@ class GodModeGlobalStateService:
             {"phase": 175, "name": "Global State + README Refresh + Operating Model", "status": "merged"},
             {"phase": 176, "name": "Cockpit Runtime UX + Execution Logs", "status": "merged"},
             {"phase": 177, "name": "Project Tree Autorefresh + GOD_MODE Tree", "status": "merged"},
-            {"phase": 178, "name": "Module Registry Snapshot + GOD_MODE Tree Integration", "status": "in_progress"},
+            {"phase": 178, "name": "Module Registry Snapshot + GOD_MODE Tree Integration", "status": "merged"},
+            {"phase": 179, "name": "Reality Audit + First Real Install Mission", "status": "in_progress"},
         ]
 
     def operating_model(self) -> Dict[str, Any]:
@@ -85,6 +86,7 @@ class GodModeGlobalStateService:
                 "manifest": "/api/app-entrypoint/manifest",
                 "control_surface_package": "/api/home-control-surface/package",
                 "runtime_ux_package": "/api/cockpit-runtime-ux/package",
+                "reality_audit_package": "/api/god-mode-reality-audit/package",
             },
         }
 
@@ -98,6 +100,14 @@ class GodModeGlobalStateService:
             "backend_package": "/api/project-tree-autorefresh/package",
             "status_endpoint": "/api/module-registry-snapshot/tree-status",
             "manual_tree_is_fallback_only": True,
+        }
+
+    def reality_audit_model(self) -> Dict[str, Any]:
+        return {
+            "endpoint": "/api/god-mode-reality-audit/package",
+            "purpose": "Separate real, partial, planned and blocked capabilities before first PC install.",
+            "first_install_mission_endpoint": "/api/god-mode-reality-audit/first-install-mission",
+            "rule": "No capability should be presented as fully real until it passes PC/runtime proof.",
         }
 
     def memory_model(self) -> Dict[str, Any]:
@@ -115,7 +125,7 @@ class GodModeGlobalStateService:
             },
             "god_mode_runtime": {
                 "role": "active operational state used by PC backend and cockpits",
-                "stores": ["pipeline state", "button execution logs", "provider outcomes", "safe action queues", "local indexes", "module registry snapshot"],
+                "stores": ["pipeline state", "button execution logs", "provider outcomes", "safe action queues", "local indexes", "module registry snapshot", "reality audit"],
             },
         }
 
@@ -175,10 +185,10 @@ class GodModeGlobalStateService:
     def backlog(self) -> Dict[str, Any]:
         return {
             "high_priority_next": [
+                "Run first real PC install mission",
+                "Install/verify Playwright and PC browser runner for AI conversations",
                 "Local encrypted PC vault contract implementation",
                 "Self-update orchestrator and staged update manifests",
-                "Remote mobile operator control flow for road/work usage",
-                "Provider/browser/platform control registry",
             ],
             "medium_priority": [
                 "Voice-first safe commands",
@@ -193,6 +203,7 @@ class GodModeGlobalStateService:
                 "Never store secrets in repo/docs/memory",
                 "Check module registry snapshot before creating new modules",
                 "Use docs/project-tree/GOD_MODE_TREE.md as the official tree artifact",
+                "Mark unproven provider/browser powers as partial until PC runtime proves them",
             ],
         }
 
@@ -208,8 +219,8 @@ class GodModeGlobalStateService:
             "version": self.VERSION,
             "generated_at": self._now(),
             "implemented_phase_count": len(merged),
-            "latest_merged_phase": 177,
-            "current_phase": 178,
+            "latest_merged_phase": 178,
+            "current_phase": 179,
             "canonical_cockpit_route": "/app/home",
             "mobile_first": True,
             "pc_brain": True,
@@ -217,6 +228,7 @@ class GodModeGlobalStateService:
             "secrets_allowed_in_memory": False,
             "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md",
             "module_registry_endpoint": "/api/module-registry-snapshot/package",
+            "reality_audit_endpoint": "/api/god-mode-reality-audit/package",
         }
 
     def package(self) -> Dict[str, Any]:
@@ -225,6 +237,7 @@ class GodModeGlobalStateService:
             "implemented_phases": self.implemented_phases(),
             "operating_model": self.operating_model(),
             "project_tree_model": self.project_tree_model(),
+            "reality_audit_model": self.reality_audit_model(),
             "module_registry": self.module_registry(),
             "memory_model": self.memory_model(),
             "vault_policy": self.vault_policy(),
