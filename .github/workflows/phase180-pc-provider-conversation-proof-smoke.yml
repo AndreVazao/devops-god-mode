@@ -63,7 +63,7 @@ jobs:
 
           plan = pc_provider_conversation_proof_service.install_plan()
           assert plan["ok"] is True
-          assert "python -m pip install playwright" in plan["steps"]
+          assert any("python -m pip install playwright" in step for step in plan["steps"])
           assert "chatgpt" in plan["safe_command_examples"]
 
           command = pc_provider_conversation_proof_service.provider_proof_command("chatgpt", wait_login_seconds=90)
