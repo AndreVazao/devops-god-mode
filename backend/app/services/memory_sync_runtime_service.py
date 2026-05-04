@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -186,7 +187,7 @@ class MemorySyncRuntimeService:
             return {"ok": False, "service": self.SERVICE_ID, "error": "unsupported_event_type", "event_type": event.get("event_type")}
 
         stable = self._stable_memory_entries(event)
-        safety = self._validate_safe_text("\n".join(stable.values()))
+        safety = self._validate_safe_text(self._safe_payload_text(stable))
         if not safety.get("ok"):
             return {"ok": False, "service": self.SERVICE_ID, "error": "blocked_secret_keyword", "blocked_keywords": safety.get("blocked_keywords")}
 
@@ -229,7 +230,7 @@ class MemorySyncRuntimeService:
         if not package:
             return {"ok": False, "service": self.SERVICE_ID, "error": "package_not_found", "package_id": package_id}
 
-        safety = self._validate_safe_text(str(package.get("stable_entries") or {}))
+        safety = self._validate_safe_text(self._safe_payload_text(package.get("stable_entries") or {}))
         if not safety.get("ok"):
             return {"ok": False, "service": self.SERVICE_ID, "error": "blocked_secret_keyword", "blocked_keywords": safety.get("blocked_keywords")}
 
@@ -373,6 +374,9 @@ class MemorySyncRuntimeService:
             "classification": "local_workshop_note",
             "promote_to_github_memory": False,
         }
+
+    def _safe_payload_text(self, value: Any) -> str:
+        return json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
 
     def _validate_safe_text(self, text: str) -> Dict[str, Any]:
         lowered = text.lower()
