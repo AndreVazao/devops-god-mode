@@ -1,0 +1,100 @@
+name: Phase 176 Cockpit Runtime UX Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/orchestration/cockpit-runtime-ux.md'
+      - '.github/workflows/phase176-cockpit-runtime-ux-smoke.yml'
+
+jobs:
+  phase176-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 176 cockpit runtime UX and journal integration
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.cockpit_runtime_ux_service import cockpit_runtime_ux_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/cockpit-runtime-ux/status",
+              "/api/cockpit-runtime-ux/package",
+              "/api/cockpit-runtime-ux/history",
+              "/api/cockpit-runtime-ux/quick-history-cards",
+              "/api/cockpit-runtime-ux/log-button-event",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 176 routes: {missing}"
+
+          status = cockpit_runtime_ux_service.status()
+          assert status["ok"] is True
+          assert status["canonical_cockpit_route"] == "/app/home"
+          assert status["mobile_first"] is True
+          assert status["pc_brain"] is True
+          assert status["polling_enabled"] is True
+          assert status["button_logging_enabled"] is True
+          assert status["visible_history_enabled"] is True
+
+          package = cockpit_runtime_ux_service.package(history_limit=5)
+          assert package["ok"] is True
+          assert package["runtime_contract"]["poll_endpoint"] == "/api/cockpit-runtime-ux/package"
+          assert package["runtime_contract"]["log_endpoint"] == "/api/cockpit-runtime-ux/log-button-event"
+          assert package["control_surface"]["status"]["ok"] is True
+          assert package["control_surface"]["buttons"]["button_count"] > 0
+
+          result = cockpit_runtime_ux_service.log_button_event(
+              button_id="phase176_test_button",
+              label="Phase 176 Test Button",
+              endpoint="/api/health?token=must-not-keep",
+              method="GET",
+              risk="safe",
+              phase="test_clicked",
+              outcome="success",
+              module_id="phase176_smoke",
+              status_code=200,
+              ok=True,
+          )
+          assert result["ok"] is True
+          entry = result["entry"]
+          assert entry["thread_id"] == "god-mode-cockpit"
+          assert entry["event_type"] == "cockpit_button_event"
+          assert entry["details"]["endpoint"] == "/api/health"
+          assert entry["details"]["redacted"] is True
+
+          history = cockpit_runtime_ux_service.history(limit=10)
+          assert history["ok"] is True
+          assert any(item.get("entry_id") == entry["entry_id"] for item in history["entries"])
+
+          cards = cockpit_runtime_ux_service.quick_history_cards(limit=10)
+          assert cards["ok"] is True
+          assert any(card.get("id") == entry["entry_id"] for card in cards["cards"])
+
+          docs = Path("docs/orchestration/cockpit-runtime-ux.md").read_text(encoding="utf-8")
+          assert "/api/cockpit-runtime-ux/package" in docs
+          assert "OperatorActionJournalService" in docs
+          assert "Telemóvel" in docs
+
+          print("phase 176 cockpit runtime ux smoke passed")
+          PY
