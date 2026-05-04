@@ -1,0 +1,105 @@
+name: Phase 169 Memory Sync Runtime Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docs/orchestration/memory-sync-runtime.md'
+      - '.github/workflows/phase169-memory-sync-runtime-smoke.yml'
+
+jobs:
+  phase169-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 169 import, routes, sanitization and dry-run sync
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          import asyncio
+          from pathlib import Path
+
+          from main import app
+          from app.services.memory_sync_runtime_service import memory_sync_runtime_service
+
+          async def main() -> None:
+              route_paths = {route.path for route in app.routes}
+              required = {
+                  "/api/memory-sync-runtime/status",
+                  "/api/memory-sync-runtime/panel",
+                  "/api/memory-sync-runtime/policy",
+                  "/api/memory-sync-runtime/rules",
+                  "/api/memory-sync-runtime/register-merged-phase",
+                  "/api/memory-sync-runtime/build-package",
+                  "/api/memory-sync-runtime/prepare-obsidian-note",
+                  "/api/memory-sync-runtime/sync-stable",
+                  "/api/memory-sync-runtime/preview-merged-phase",
+                  "/api/memory-sync-runtime/latest",
+                  "/api/memory-sync-runtime/package",
+              }
+              missing = sorted(required - route_paths)
+              assert not missing, f"Missing Phase 169 routes: {missing}"
+
+              status = memory_sync_runtime_service.status()
+              assert status["ok"] is True
+              assert "HISTORICO.md" in status["stable_files"]
+              assert "ULTIMA_SESSAO.md" in status["stable_files"]
+
+              blocked = memory_sync_runtime_service.register_merged_phase(
+                  phase_number=169,
+                  phase_title="Memory Sync Runtime",
+                  repo_full_name="AndreVazao/devops-god-mode",
+                  pr_number=999,
+                  merge_commit="abc123",
+                  summary="contains password keyword and must be blocked",
+              )
+              assert blocked["ok"] is False
+              assert blocked["error"] == "blocked_secret_keyword"
+
+              preview = memory_sync_runtime_service.end_to_end_preview(
+                  phase_number=169,
+                  phase_title="Memory Sync Runtime",
+                  repo_full_name="AndreVazao/devops-god-mode",
+                  pr_number=999,
+                  merge_commit="abc123def456",
+                  summary="Runtime layer for stable technical memory after merged phases.",
+                  validation=["Phase 169 smoke", "Universal Total Test expected"],
+                  decisions=["Separate GitHub stable memory from Obsidian/local workshop notes."],
+                  next_phase="Phase 170 — Local Knowledge/RAG Decision v1",
+                  project_name="GOD_MODE",
+              )
+              assert preview["ok"] is True
+              package = preview["package"]
+              assert package["classification"] == "stable_programming_memory"
+              assert package["obsidian_note"]["classification"] == "local_workshop_note"
+              assert package["obsidian_note"]["promote_to_github_memory"] is False
+
+              dry = await memory_sync_runtime_service.sync_stable_package(
+                  package_id=package["package_id"],
+                  dry_run=True,
+              )
+              assert dry["ok"] is True
+              assert dry["run"]["dry_run"] is True
+              assert dry["run"]["status"] == "dry_run_completed"
+
+              assert Path("docs/orchestration/memory-sync-runtime.md").exists()
+              print("phase 169 memory sync runtime smoke passed")
+
+          asyncio.run(main())
+          PY
