@@ -1,0 +1,114 @@
+name: Phase 175 Global State Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'README.md'
+      - 'docs/orchestration/god-mode-global-state.md'
+      - '.github/workflows/phase175-global-state-smoke.yml'
+
+jobs:
+  phase175-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 175 global state, README and operating model
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.god_mode_global_state_service import god_mode_global_state_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/god-mode-global-state/status",
+              "/api/god-mode-global-state/phases",
+              "/api/god-mode-global-state/operating-model",
+              "/api/god-mode-global-state/memory-model",
+              "/api/god-mode-global-state/vault-policy",
+              "/api/god-mode-global-state/self-update-model",
+              "/api/god-mode-global-state/backlog",
+              "/api/god-mode-global-state/package",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 175 routes: {missing}"
+
+          status = god_mode_global_state_service.status()
+          assert status["ok"] is True
+          assert status["latest_merged_phase"] == 174
+          assert status["current_phase"] == 175
+          assert status["canonical_cockpit_route"] == "/app/home"
+          assert status["mobile_first"] is True
+          assert status["pc_brain"] is True
+          assert status["secrets_allowed_in_memory"] is False
+
+          package = god_mode_global_state_service.package()
+          phases = package["implemented_phases"]
+          merged_numbers = {item["phase"] for item in phases if item["status"] == "merged"}
+          for number in range(155, 175):
+              if number in {165, 166, 167}:
+                  assert number in merged_numbers, f"Missing merged phase {number}"
+              elif number <= 164 or number >= 168:
+                  assert number in merged_numbers, f"Missing merged phase {number}"
+
+          operating = package["operating_model"]
+          assert operating["primary_brain"]["device"] == "home_pc"
+          assert operating["primary_cockpit"]["device"] == "android_phone"
+          assert operating["primary_cockpit"]["entrypoint"] == "/app/home"
+          assert operating["secondary_cockpit"]["entrypoint"] == "/app/home"
+
+          memory = package["memory_model"]
+          assert memory["github_memory"]["repo"] == "AndreVazao/andreos-memory"
+          assert "tokens" in memory["github_memory"]["must_not_store"]
+          assert memory["obsidian_local"]["cloud_dependency"] is False
+
+          vault = package["vault_policy"]
+          assert vault["status"] == "planned_local_first_contract"
+          assert "commit secrets to GitHub" in vault["blocked"]
+
+          self_update = package["self_update_model"]
+          assert self_update["status"] == "roadmap_high_priority"
+          assert "GitHub Actions validates Universal, Android, Windows and smokes" in self_update["already_available"]
+          assert "rollback checkpoint on PC" in self_update["still_needed"]
+
+          readme = Path("README.md").read_text(encoding="utf-8")
+          required_readme_tokens = [
+              "PC como cérebro poderoso",
+              "telemóvel como cockpit principal",
+              "/app/home",
+              "/api/god-mode-global-state/package",
+              "Vault de credenciais",
+              "Auto-atualização",
+              "Supabase, Render e Vercel são legado",
+          ]
+          for token in required_readme_tokens:
+              assert token in readme, f"README missing token: {token}"
+          assert "passwords;" in readme
+          assert "tokens;" in readme
+
+          docs = Path("docs/orchestration/god-mode-global-state.md").read_text(encoding="utf-8")
+          assert "PC de casa" in docs
+          assert "telemóvel é o cockpit principal" in docs
+          assert "Self-Update Orchestrator" in docs
+
+          print("phase 175 global state smoke passed")
+          PY
