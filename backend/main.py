@@ -19,6 +19,8 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+CANONICAL_HOME_ROUTE = '/app/home'
+
 
 def _include_all_route_modules() -> List[str]:
     loaded: List[str] = []
@@ -37,7 +39,11 @@ LOADED_ROUTE_MODULES = _include_all_route_modules()
 
 @app.get('/')
 def root() -> Dict[str, str]:
-    return {'status': 'DevOps God Mode backend alive'}
+    return {
+        'status': 'DevOps God Mode backend alive',
+        'home': CANONICAL_HOME_ROUTE,
+        'entrypoint_manifest': '/api/app-entrypoint/manifest',
+    }
 
 
 @app.get('/health')
@@ -51,6 +57,9 @@ def config_status() -> Dict[str, Any]:
         'runtime_mode': 'pc_mobile_local_first',
         'local_brain': 'pc',
         'remote_cockpit': 'mobile',
+        'canonical_home_route': CANONICAL_HOME_ROUTE,
+        'home_visual_shell': CANONICAL_HOME_ROUTE,
+        'entrypoint_manifest': '/api/app-entrypoint/manifest',
         'github': bool(settings.GITHUB_TOKEN),
         'openai': bool(settings.OPENAI_KEY),
         'loaded_route_modules': len(LOADED_ROUTE_MODULES),

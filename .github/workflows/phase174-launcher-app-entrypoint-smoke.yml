@@ -1,0 +1,93 @@
+name: Phase 174 Launcher App Entrypoint Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'desktop/**'
+      - 'android-app/**'
+      - 'docs/orchestration/app-entrypoint-manifest.md'
+      - '.github/workflows/phase174-launcher-app-entrypoint-smoke.yml'
+
+jobs:
+  phase174-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 174 canonical app entrypoint
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.app_entrypoint_manifest_service import app_entrypoint_manifest_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/app",
+              "/desktop",
+              "/mobile",
+              "/home",
+              "/app/mobile",
+              "/app/apk-start",
+              "/api/app-entrypoint/status",
+              "/api/app-entrypoint/aliases",
+              "/api/app-entrypoint/manifest",
+              "/api/app-entrypoint/package",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 174 routes: {missing}"
+
+          status = app_entrypoint_manifest_service.status()
+          assert status["ok"] is True
+          assert status["canonical_route"] == "/app/home"
+          assert status["desktop_default_route"] == "/app/home"
+          assert status["android_default_route"] == "/app/home"
+          assert status["compatibility_redirects_enabled"] is True
+
+          manifest = app_entrypoint_manifest_service.manifest()
+          assert manifest["canonical"]["route"] == "/app/home"
+          assert manifest["desktop_launcher"]["default_route"] == "/app/home"
+          assert manifest["android_webview"]["default_route"] == "/app/home"
+          assert manifest["safety"]["direct_destructive_actions"] is False
+
+          alias_targets = {item["route"]: item["target"] for item in manifest["compatibility_aliases"]}
+          assert alias_targets["/app/apk-start"] == "/app/home"
+          assert alias_targets["/desktop"] == "/app/home"
+          assert alias_targets["/mobile"] == "/app/home"
+
+          main_text = Path("backend/main.py").read_text(encoding="utf-8")
+          assert "CANONICAL_HOME_ROUTE = '/app/home'" in main_text
+          assert "entrypoint_manifest" in main_text
+
+          desktop_text = Path("desktop/godmode_desktop_launcher.py").read_text(encoding="utf-8")
+          assert "HOME_URL = f\"{BACKEND_LOCAL_URL}/app/home\"" in desktop_text
+          assert '"shell_url": HOME_URL' in desktop_text
+
+          android_text = Path("android-app/app/src/main/java/pt/andrevazao/godmode/MainActivity.java").read_text(encoding="utf-8")
+          assert 'private static final String ENTRY_ROUTE = "/app/home";' in android_text
+          assert 'addQuickButton(quickButtons, "Home", "/app/home", false, false);' in android_text
+
+          docs = Path("docs/orchestration/app-entrypoint-manifest.md").read_text(encoding="utf-8")
+          assert "/app/home" in docs
+          assert "/app/apk-start" in docs
+
+          print("phase 174 launcher app entrypoint smoke passed")
+          PY
