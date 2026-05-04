@@ -14,7 +14,10 @@ AUTORFRESH_STORE = AtomicJsonStore(
 )
 
 ROOT = Path(".")
-PROJECT_TREE_PATH = ROOT / "PROJECT_TREE.txt"
+PROJECT_ID = "GOD_MODE"
+PROJECT_TREE_PATH = ROOT / "docs" / "project-tree" / "GOD_MODE_TREE.md"
+LEGACY_PROJECT_TREE_PATH = ROOT / "PROJECT_TREE.txt"
+TREE_GENERATOR_SCRIPT = ROOT / "scripts" / "generate_project_tree.py"
 EXCLUDE_DIRS = {
     ".git",
     ".github/.cache",
@@ -22,6 +25,7 @@ EXCLUDE_DIRS = {
     "__pycache__",
     ".mypy_cache",
     ".ruff_cache",
+    ".gradle",
     "node_modules",
     "dist",
     "build",
@@ -29,12 +33,17 @@ EXCLUDE_DIRS = {
     "venv",
     "data",
 }
-EXCLUDE_SUFFIXES = {".pyc", ".pyo", ".log", ".tmp", ".lock"}
-MAX_FILES = 4000
+EXCLUDE_SUFFIXES = {".pyc", ".pyo", ".log", ".tmp", ".lock", ".apk", ".exe", ".jar"}
+MAX_FILES = 12000
 
 
 class ProjectTreeAutorefreshService:
-    """Generates and validates PROJECT_TREE.txt so phase work does not drift."""
+    """Generates and validates a named GOD_MODE project tree.
+
+    Older implementations wrote `PROJECT_TREE.txt` with a generic root label.
+    Phase 177 makes the project name explicit so downloaded tree files cannot be
+    confused across projects.
+    """
 
     def get_status(self) -> Dict[str, Any]:
         store = self._load_store()
@@ -42,10 +51,14 @@ class ProjectTreeAutorefreshService:
             "ok": True,
             "mode": "project_tree_autorefresh_status",
             "status": "project_tree_autorefresh_ready",
+            "project_id": PROJECT_ID,
             "tree_file": str(PROJECT_TREE_PATH),
+            "legacy_tree_file": str(LEGACY_PROJECT_TREE_PATH),
+            "generator_script": str(TREE_GENERATOR_SCRIPT),
             "store_file": str(AUTORFRESH_FILE),
             "snapshot_count": len(store.get("snapshots", [])),
             "report_count": len(store.get("reports", [])),
+            "workflow_expected": ".github/workflows/project-tree-autorefresh.yml",
         }
 
     def _now(self) -> str:
@@ -62,22 +75,23 @@ class ProjectTreeAutorefreshService:
         return self._normalize_store(AUTORFRESH_STORE.load())
 
     def _ignored(self, path: Path) -> bool:
+        if path == PROJECT_TREE_PATH or path == LEGACY_PROJECT_TREE_PATH:
+            return True
         parts = path.as_posix().split("/")
         if any(part in EXCLUDE_DIRS for part in parts):
             return True
         text = path.as_posix()
         if any(text == item or text.startswith(f"{item}/") for item in EXCLUDE_DIRS):
             return True
-        return path.suffix in EXCLUDE_SUFFIXES
+        if any(part in {".env", ".env.local", "id_rsa", "id_ed25519"} for part in parts):
+            return True
+        return path.suffix.lower() in EXCLUDE_SUFFIXES
 
     def _iter_entries(self) -> Iterable[Path]:
         count = 0
         for path in sorted(ROOT.rglob("*"), key=lambda item: item.as_posix().lower()):
             rel = path.relative_to(ROOT)
             if self._ignored(rel):
-                continue
-            if rel.as_posix() == ".gitignore":
-                yield rel
                 continue
             if path.is_file() or path.is_dir():
                 yield rel
@@ -89,7 +103,16 @@ class ProjectTreeAutorefreshService:
         return [entry.as_posix() + ("/" if (ROOT / entry).is_dir() else "") for entry in self._iter_entries()]
 
     def build_tree_text(self) -> str:
-        lines = ["devops-god-mode/"]
+        lines = [
+            f"# {PROJECT_ID} Tree",
+            "",
+            f"Generated at: `{self._now()}`",
+            f"Project: `{PROJECT_ID}`",
+            f"Tree file: `{PROJECT_TREE_PATH.as_posix()}`",
+            "",
+            "```text",
+            f"{PROJECT_ID}/",
+        ]
         entries = self.build_flat_index()
         tree: Dict[str, Any] = {}
         for entry in entries:
@@ -110,12 +133,13 @@ class ProjectTreeAutorefreshService:
                     emit(node[name], prefix + child_prefix)
 
         emit(tree)
-        return "\n".join(lines) + "\n"
+        lines.extend(["```", ""])
+        return "\n".join(lines)
 
     def read_current_tree(self) -> Dict[str, Any]:
         if not PROJECT_TREE_PATH.exists():
             return {"ok": False, "error": "project_tree_missing", "path": str(PROJECT_TREE_PATH)}
-        return {"ok": True, "mode": "project_tree_autorefresh_read", "content": PROJECT_TREE_PATH.read_text(encoding="utf-8"), "path": str(PROJECT_TREE_PATH)}
+        return {"ok": True, "mode": "project_tree_autorefresh_read", "content": PROJECT_TREE_PATH.read_text(encoding="utf-8"), "path": str(PROJECT_TREE_PATH), "project_id": PROJECT_ID}
 
     def compare_tree(self) -> Dict[str, Any]:
         generated = self.build_tree_text()
@@ -126,6 +150,8 @@ class ProjectTreeAutorefreshService:
         obsolete_lines = sorted(current_lines - generated_lines)[:200]
         report = {
             "created_at": self._now(),
+            "project_id": PROJECT_ID,
+            "tree_path": str(PROJECT_TREE_PATH),
             "in_sync": generated == current,
             "generated_line_count": len(generated.splitlines()),
             "current_line_count": len(current.splitlines()),
@@ -146,10 +172,11 @@ class ProjectTreeAutorefreshService:
 
     def write_generated_tree(self, allow_overwrite: bool = False) -> Dict[str, Any]:
         generated = self.build_tree_text()
+        PROJECT_TREE_PATH.parent.mkdir(parents=True, exist_ok=True)
         if PROJECT_TREE_PATH.exists() and not allow_overwrite:
             return {"ok": False, "error": "overwrite_requires_explicit_allow", "path": str(PROJECT_TREE_PATH)}
         PROJECT_TREE_PATH.write_text(generated, encoding="utf-8")
-        snapshot = {"created_at": self._now(), "path": str(PROJECT_TREE_PATH), "line_count": len(generated.splitlines())}
+        snapshot = {"created_at": self._now(), "project_id": PROJECT_ID, "path": str(PROJECT_TREE_PATH), "line_count": len(generated.splitlines())}
 
         def mutate(store: Dict[str, Any]) -> Dict[str, Any]:
             store = self._normalize_store(store)
@@ -165,18 +192,29 @@ class ProjectTreeAutorefreshService:
         return {
             "ok": True,
             "mode": "project_tree_autorefresh_dashboard",
+            "project_id": PROJECT_ID,
+            "tree_file": str(PROJECT_TREE_PATH),
             "status": "in_sync" if comparison["report"]["in_sync"] else "needs_refresh",
             "comparison": comparison["report"],
             "quick_rules": [
-                "Criar branch a partir do main mais recente.",
-                "Apagar workflow temporário da fase anterior antes de criar o novo.",
-                "Ao adicionar/remover ficheiros, regenerar PROJECT_TREE.txt na mesma PR.",
-                "Não substituir PROJECT_TREE.txt sem validação explícita.",
+                "Confirmar HEAD real de main antes de criar branch.",
+                "Regenerar GOD_MODE_TREE.md quando a estrutura mudar.",
+                "Não usar nomes genéricos como PROJECT_TREE.txt para download/partilha.",
+                "Workflow project-tree-autorefresh pode atualizar a tree após push em main.",
+                "Tree não deve incluir segredos, caches, builds ou artifacts.",
             ],
         }
 
     def get_package(self) -> Dict[str, Any]:
-        return {"ok": True, "mode": "project_tree_autorefresh_package", "package": {"status": self.get_status(), "dashboard": self.build_dashboard()}}
+        return {
+            "ok": True,
+            "mode": "project_tree_autorefresh_package",
+            "package": {
+                "status": self.get_status(),
+                "dashboard": self.build_dashboard(),
+                "generated_preview": self.build_tree_text().splitlines()[:80],
+            },
+        }
 
 
 project_tree_autorefresh_service = ProjectTreeAutorefreshService()
