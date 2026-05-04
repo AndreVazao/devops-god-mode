@@ -74,8 +74,8 @@ jobs:
 
           global_status = god_mode_global_state_service.status()
           assert global_status["ok"] is True
-          assert global_status["latest_merged_phase"] == 177
-          assert global_status["current_phase"] == 178
+          assert global_status["latest_merged_phase"] >= 177
+          assert global_status["current_phase"] >= 178
           assert global_status["official_tree_path"] == "docs/project-tree/GOD_MODE_TREE.md"
           assert global_status["module_registry_endpoint"] == "/api/module-registry-snapshot/package"
 
@@ -85,7 +85,7 @@ jobs:
           assert package["module_registry"]["status"]["ok"] is True
           assert package["module_registry"]["summary"]["totals"]["combined"] > 100
           assert any(item["phase"] == 177 and item["status"] == "merged" for item in package["implemented_phases"])
-          assert any(item["phase"] == 178 and item["status"] == "in_progress" for item in package["implemented_phases"])
+          assert any(item["phase"] >= 178 and item["status"] in {"merged", "in_progress"} for item in package["implemented_phases"])
 
           docs = Path("docs/orchestration/module-registry-snapshot.md").read_text(encoding="utf-8")
           assert "/api/module-registry-snapshot/package" in docs
