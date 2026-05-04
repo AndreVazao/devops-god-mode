@@ -144,10 +144,12 @@ class CockpitRuntimeUxService:
         return text.replace("\n", " ").replace("\r", " ")
 
     def _safe_endpoint(self, endpoint: str) -> str:
-        text = self._safe_text(endpoint)
+        raw = str(endpoint or "")
+        path_only = raw.split("?", 1)[0].split("#", 1)[0]
+        text = self._safe_text(path_only)
         if not text.startswith("/"):
             return "/"
-        return text.split("?", 1)[0][:180]
+        return text[:180]
 
 
 cockpit_runtime_ux_service = CockpitRuntimeUxService()
