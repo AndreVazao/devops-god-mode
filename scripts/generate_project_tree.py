@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Dict, Iterable, List
+
+DEFAULT_PROJECT_ID = "GOD_MODE"
+DEFAULT_OUTPUT = Path("docs/project-tree/GOD_MODE_TREE.md")
+MAX_ENTRIES = 12000
+
+EXCLUDE_DIR_NAMES = {
+    ".git",
+    ".gradle",
+    ".idea",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "data",
+    "dist",
+    "node_modules",
+    "out",
+    "venv",
+}
+
+EXCLUDE_TOP_LEVEL = {
+    "PROJECT_TREE.txt",
+}
+
+EXCLUDE_SUFFIXES = {
+    ".apk",
+    ".aab",
+    ".class",
+    ".dll",
+    ".exe",
+    ".jar",
+    ".log",
+    ".lock",
+    ".pdb",
+    ".png",
+    ".pyc",
+    ".pyo",
+    ".tmp",
+}
+
+SECRET_NAME_PARTS = {
+    ".env",
+    ".env.local",
+    ".env.production",
+    "id_rsa",
+    "id_dsa",
+    "id_ed25519",
+    "known_hosts",
+}
+
+
+def normalize_project_name(value: str | None) -> str:
+    raw = (value or DEFAULT_PROJECT_ID).strip()
+    if not raw:
+        raw = DEFAULT_PROJECT_ID
+    safe = []
+    for char in raw:
+        if char.isalnum() or char in {"_", "-"}:
+            safe.append(char)
+        elif char in {" ", ".", "/", "\\"}:
+            safe.append("_")
+    normalized = "".join(safe).strip("_")
+    return normalized.upper() or DEFAULT_PROJECT_ID
+
+
+def should_ignore(rel: Path, output_path: Path) -> bool:
+    rel_posix = rel.as_posix()
+    parts = set(rel.parts)
+    if rel == output_path:
+        return True
+    if rel_posix in EXCLUDE_TOP_LEVEL:
+        return True
+    if any(part in EXCLUDE_DIR_NAMES for part in rel.parts):
+        return True
+    if any(part in SECRET_NAME_PARTS for part in parts):
+        return True
+    if rel.suffix.lower() in EXCLUDE_SUFFIXES:
+        return True
+    return False
+
+
+def iter_entries(root: Path, output_path: Path, max_entries: int) -> Iterable[Path]:
+    count = 0
+    for path in sorted(root.rglob("*"), key=lambda item: item.as_posix().lower()):
+        rel = path.relative_to(root)
+        if should_ignore(rel, output_path):
+            continue
+        if path.is_dir() or path.is_file():
+            yield rel
+            count += 1
+        if count >= max_entries:
+            break
+
+
+def build_tree(entries: List[Path]) -> Dict[str, dict]:
+    tree: Dict[str, dict] = {}
+    for entry in entries:
+        cursor = tree
+        for part in entry.parts:
+            cursor = cursor.setdefault(part, {})
+    return tree
+
+
+def emit_tree(node: Dict[str, dict], lines: List[str], prefix: str = "") -> None:
+    names = sorted(node.keys(), key=lambda item: (not bool(node[item]), item.lower()))
+    for idx, name in enumerate(names):
+        is_last = idx == len(names) - 1
+        connector = "└─ " if is_last else "├─ "
+        child_prefix = "   " if is_last else "│  "
+        lines.append(f"{prefix}{connector}{name}")
+        if node[name]:
+            emit_tree(node[name], lines, prefix + child_prefix)
+
+
+def render_markdown(project_name: str, root: Path, output_path: Path, max_entries: int) -> str:
+    entries = list(iter_entries(root=root, output_path=output_path, max_entries=max_entries))
+    tree = build_tree(entries)
+    generated_at = datetime.now(timezone.utc).isoformat()
+    lines = [
+        f"# {project_name} Tree",
+        "",
+        f"Generated at: `{generated_at}`",
+        f"Project: `{project_name}`",
+        f"Repository root: `{root.as_posix()}`",
+        f"Entries listed: `{len(entries)}`",
+        "",
+        "```text",
+        f"{project_name}/",
+    ]
+    emit_tree(tree, lines)
+    lines.extend(["```", ""])
+    return "\n".join(lines)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Generate a named project tree markdown file.")
+    parser.add_argument("--project-name", default=os.environ.get("PROJECT_TREE_NAME", DEFAULT_PROJECT_ID))
+    parser.add_argument("--root", default=".")
+    parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
+    parser.add_argument("--max-entries", type=int, default=int(os.environ.get("PROJECT_TREE_MAX_ENTRIES", str(MAX_ENTRIES))))
+    args = parser.parse_args()
+
+    project_name = normalize_project_name(args.project_name)
+    root = Path(args.root).resolve()
+    output_path = Path(args.output)
+    output_rel = output_path if not output_path.is_absolute() else output_path.relative_to(root)
+    output_abs = output_path if output_path.is_absolute() else root / output_path
+    output_abs.parent.mkdir(parents=True, exist_ok=True)
+
+    content = render_markdown(
+        project_name=project_name,
+        root=Path(args.root),
+        output_path=output_rel,
+        max_entries=max(1, args.max_entries),
+    )
+    output_abs.write_text(content, encoding="utf-8")
+    print(f"Wrote {output_abs} for {project_name}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
