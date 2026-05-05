@@ -10,7 +10,7 @@ class GodModeGlobalStateService:
     """Stable project snapshot and operating model for God Mode."""
 
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_185_v1"
+    VERSION = "phase_186_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -33,58 +33,57 @@ class GodModeGlobalStateService:
             (182, "Local Encrypted Vault Contract + First Credential Flow"),
             (183, "Lab Best-Of Work Ally + Workflow Hygiene"),
             (184, "Real Local Encrypted Value Store + Approval Gate"),
+            (185, "Vault Deployment Binding + Provider Env Injection Plan"),
         ]
         result = [{"phase": phase, "name": name, "status": "merged"} for phase, name in phases]
-        result.append({"phase": 185, "name": "Vault Deployment Binding + Provider Env Injection Plan", "status": "in_progress"})
+        result.append({"phase": 186, "name": "Provider Env Writers Draft + Dry-Run Apply Gate", "status": "in_progress"})
         return result
 
     def operating_model(self) -> Dict[str, Any]:
         return {
-            "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run FastAPI backend", "control local browser/tools/providers where approved", "prepare repo patches and PRs", "build Windows/Android artifacts", "store local runtime state", "host local/private encrypted vault", "prepare provider env injection plans"]},
-            "primary_cockpit": {"device": "android_phone", "role": "remote_operator_cockpit", "entrypoint": "/app/home", "responsibilities": ["send commands", "approve/reject gated actions", "monitor PC brain", "approve vault/credential use", "approve env injection previews", "receive status and logs"]},
-            "secondary_cockpit": {"device": "pc_browser_or_desktop_launcher", "role": "local_operator_cockpit_when_at_home", "entrypoint": "/app/home"},
-            "canonical_entrypoint": {"route": "/app/home", "manifest": "/api/app-entrypoint/manifest", "real_local_encrypted_vault_package": "/api/real-local-encrypted-vault/package", "vault_deployment_binding_package": "/api/vault-deployment-binding/package"},
+            "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run FastAPI backend", "control local browser/tools/providers where approved", "prepare repo patches and PRs", "build Windows/Android artifacts", "store local runtime state", "host local/private encrypted vault", "prepare provider env dry-run payloads"]},
+            "primary_cockpit": {"device": "android_phone", "role": "remote_operator_cockpit", "entrypoint": "/app/home", "responsibilities": ["send commands", "approve/reject gated actions", "monitor PC brain", "approve vault/credential use", "approve env injection dry-runs", "receive status and logs"]},
+            "canonical_entrypoint": {"route": "/app/home", "real_local_encrypted_vault_package": "/api/real-local-encrypted-vault/package", "vault_deployment_binding_package": "/api/vault-deployment-binding/package", "provider_env_writers_dry_run_package": "/api/provider-env-writers-dry-run/package"},
         }
 
     def project_tree_model(self) -> Dict[str, Any]:
-        return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "legacy_tree_path": "PROJECT_TREE.txt", "project_id": "GOD_MODE", "generator_script": "scripts/generate_project_tree.py", "autorefresh_workflow": ".github/workflows/project-tree-autorefresh.yml", "backend_package": "/api/project-tree-autorefresh/package", "manual_tree_is_fallback_only": True}
-
-    def local_vault_contract_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/local-encrypted-vault-contract/package", "intake_endpoint": "/api/local-encrypted-vault-contract/intake-env-text", "stores_secret_values": False, "barbudo_mapping_note": "Barbudo Studio controls Website through API/routes/env bindings; God Mode should remember placement without exposing values."}
+        return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "project_id": "GOD_MODE", "autorefresh_workflow": ".github/workflows/project-tree-autorefresh.yml"}
 
     def real_local_encrypted_vault_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/real-local-encrypted-vault/package", "stores_encrypted_values": True, "stores_plaintext_values": False, "passphrase_persisted": False, "approval_required_for_read_write": True}
+        return {"endpoint": "/api/real-local-encrypted-vault/package", "stores_encrypted_values": True, "stores_plaintext_values": False, "passphrase_persisted": False}
 
     def vault_deployment_binding_model(self) -> Dict[str, Any]:
+        return {"endpoint": "/api/vault-deployment-binding/package", "uses_secret_ref_id_only": True, "remote_write_executed_in_phase": False, "approval_required_for_apply_preview": True}
+
+    def provider_env_writers_dry_run_model(self) -> Dict[str, Any]:
         return {
-            "endpoint": "/api/vault-deployment-binding/package",
-            "create_binding_endpoint": "/api/vault-deployment-binding/create-binding",
-            "build_plan_endpoint": "/api/vault-deployment-binding/build-injection-plan",
-            "create_apply_gate_endpoint": "/api/vault-deployment-binding/create-apply-gate",
-            "apply_preview_endpoint": "/api/vault-deployment-binding/apply-preview",
-            "uses_secret_ref_id_only": True,
-            "remote_write_executed_in_phase": False,
-            "approval_required_for_apply_preview": True,
-            "supported_provider_modes": ["vercel_env", "render_env", "supabase_config", "github_actions_secret", "local_process_env", "manual_export"],
+            "endpoint": "/api/provider-env-writers-dry-run/package",
+            "create_gate_endpoint": "/api/provider-env-writers-dry-run/create-gate",
+            "build_from_plan_endpoint": "/api/provider-env-writers-dry-run/build-from-plan",
+            "build_from_preview_endpoint": "/api/provider-env-writers-dry-run/build-from-preview",
+            "remote_write_enabled": False,
+            "no_network_calls": True,
+            "stores_plaintext_values": False,
+            "supported_providers": ["vercel", "render", "supabase", "github_actions", "local_process", "manual"],
         }
 
     def memory_model(self) -> Dict[str, Any]:
-        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "role": "stable_technical_memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "obsidian_local": {"role": "local workshop; may mirror safe labels/notes, never cloud-sync raw secrets"}, "god_mode_runtime": {"role": "active operational state", "stores": ["vault references", "encrypted vault index", "deployment binding plans", "redacted apply previews"]}}
+        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["vault references", "encrypted vault index", "deployment binding plans", "provider dry-run payloads redacted"]}}
 
     def vault_policy(self) -> Dict[str, Any]:
-        return {"status": "phase_185_binding_plans", "principle": "Deploy/env/provider plans use secret_ref_id only. Secret values are decrypted only locally after approval for immediate injection/preview.", "allowed_now": ["local encrypted value store", "secret_ref bindings", "provider/project/environment mapping", "redacted apply previews"], "blocked": ["commit raw values", "remote provider write without explicit future gate", "log raw values", "persist passphrase"], "future_requirements": ["provider-specific writers", "Windows DPAPI/OS keyring", "rotation"]}
+        return {"status": "phase_186_provider_dry_run", "principle": "Provider-specific writers generate dry-run payloads only; remote provider writes require a future explicit phase and approval gate.", "allowed_now": ["redacted provider payloads", "payload hashes", "provider-specific request shapes"], "blocked": ["remote provider write", "raw secret in stored dry-run", "persist passphrase", "network mutation"]}
 
     def backlog(self) -> Dict[str, Any]:
-        return {"high_priority_next": ["Run first real PC install mission", "Wire provider-specific env writers after manual proof", "Self-update orchestrator and staged update manifests"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets in repo/docs/memory", "Check module registry before new modules", "Use GOD_MODE_TREE.md as official tree artifact", "Delete old phase smoke workflows when advancing"]}
+        return {"high_priority_next": ["Run first real PC install mission", "Provider real write gates after dry-run proof", "Self-update orchestrator and staged update manifests"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets in repo/docs/memory", "Use GOD_MODE_TREE.md as official tree artifact", "Delete old phase smoke workflows when advancing"]}
 
     def module_registry(self) -> Dict[str, Any]:
         return module_registry_snapshot_service.package()
 
     def status(self) -> Dict[str, Any]:
-        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "implemented_phase_count": 30, "latest_merged_phase": 184, "current_phase": 185, "canonical_cockpit_route": "/app/home", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "real_local_encrypted_vault_endpoint": "/api/real-local-encrypted-vault/package", "vault_deployment_binding_endpoint": "/api/vault-deployment-binding/package"}
+        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 185, "current_phase": 186, "canonical_cockpit_route": "/app/home", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "vault_deployment_binding_endpoint": "/api/vault-deployment-binding/package", "provider_env_writers_dry_run_endpoint": "/api/provider-env-writers-dry-run/package"}
 
     def package(self) -> Dict[str, Any]:
-        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "local_vault_contract_model": self.local_vault_contract_model(), "real_local_encrypted_vault_model": self.real_local_encrypted_vault_model(), "vault_deployment_binding_model": self.vault_deployment_binding_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "vault_policy": self.vault_policy(), "backlog": self.backlog()}
+        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "real_local_encrypted_vault_model": self.real_local_encrypted_vault_model(), "vault_deployment_binding_model": self.vault_deployment_binding_model(), "provider_env_writers_dry_run_model": self.provider_env_writers_dry_run_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "vault_policy": self.vault_policy(), "backlog": self.backlog()}
 
 
 god_mode_global_state_service = GodModeGlobalStateService()
