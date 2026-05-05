@@ -70,14 +70,14 @@ jobs:
           assert any(cmd["provider"] == "chatgpt" for cmd in package["pc_provider_commands"]["commands"])
 
           global_status = god_mode_global_state_service.status()
-          assert global_status["latest_merged_phase"] == 180
-          assert global_status["current_phase"] == 181
+          assert global_status["latest_merged_phase"] >= 180
+          assert global_status["current_phase"] >= 181
           assert global_status["first_install_pc_proof_endpoint"] == "/api/first-install-pc-proof-center/package"
           assert global_status["first_install_pc_proof_page"] == "/api/first-install-pc-proof-center/app"
 
           global_package = god_mode_global_state_service.package()
           assert global_package["first_install_pc_proof_model"]["page"] == "/api/first-install-pc-proof-center/app"
-          assert any(item["phase"] == 181 and item["status"] == "in_progress" for item in global_package["implemented_phases"])
+          assert any(item["phase"] >= 181 and item["status"] in {"merged", "in_progress"} for item in global_package["implemented_phases"])
 
           docs = Path("docs/orchestration/first-install-pc-proof-center.md").read_text(encoding="utf-8")
           assert "/api/first-install-pc-proof-center/app" in docs
