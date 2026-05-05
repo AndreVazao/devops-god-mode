@@ -1,0 +1,121 @@
+name: Phase 183 Lab Best-Of Work Ally Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/routes/lab_best_of_work_ally.py'
+      - 'backend/app/services/lab_best_of_work_ally_service.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/lab-best-of-work-ally.md'
+      - '.github/workflows/phase183-lab-best-of-work-ally-smoke.yml'
+
+jobs:
+  phase183-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 183 lab best-of work ally
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.god_mode_global_state_service import god_mode_global_state_service
+          from app.services.lab_best_of_work_ally_service import lab_best_of_work_ally_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/lab-best-of-work-ally/status",
+              "/api/lab-best-of-work-ally/patterns",
+              "/api/lab-best-of-work-ally/rules",
+              "/api/lab-best-of-work-ally/command-plan",
+              "/api/lab-best-of-work-ally/workflow-hygiene",
+              "/api/lab-best-of-work-ally/source-labs",
+              "/api/lab-best-of-work-ally/package",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 183 routes: {missing}"
+
+          status = lab_best_of_work_ally_service.status()
+          assert status["ok"] is True
+          assert status["god_mode_is_orchestrator"] is True
+          assert status["ruflo_is_lab_dependency"] is False
+          assert status["praison_is_lab_dependency"] is False
+          assert status["phase_workflow_policy"] == "only_current_phase_smoke_workflow_kept"
+
+          patterns = lab_best_of_work_ally_service.best_patterns()
+          assert patterns["ok"] is True
+          ids = {item["id"] for item in patterns["patterns"]}
+          expected_ids = {
+              "goal_first_work_planning",
+              "manager_worker_swarms",
+              "playbook_as_business_process",
+              "local_knowledge_before_code",
+              "provider_router_with_outcome_learning",
+              "security_guard_every_handoff",
+              "operator_friendly_no_code_mode",
+          }
+          assert expected_ids.issubset(ids)
+
+          rules = lab_best_of_work_ally_service.work_ally_operating_rules()
+          assert rules["ok"] is True
+          assert any(item["id"] == "reuse_first" for item in rules["rules"])
+          assert any(item["id"] == "phase_workflow_hygiene" for item in rules["rules"])
+
+          command_plan = lab_best_of_work_ally_service.command_to_work_plan("Avança irmão")
+          assert command_plan["ok"] is True
+          assert len(command_plan["plan"]) >= 8
+          assert "merge" in command_plan["risk_gates"]
+
+          hygiene = lab_best_of_work_ally_service.workflow_hygiene_policy()
+          assert hygiene["ok"] is True
+          assert hygiene["policy"]["delete_previous_phase_smokes"] is True
+          assert ".github/workflows/phase183-lab-best-of-work-ally-smoke.yml" in hygiene["policy"]["keep"]
+
+          sources = lab_best_of_work_ally_service.source_lab_snapshot()
+          assert sources["ok"] is True
+          assert sources["ruflo"]["repo"] == "AndreVazao/godmode-ruflo-lab"
+          assert sources["praison"]["repo"] == "AndreVazao/godmode-praison-lab"
+
+          package = lab_best_of_work_ally_service.package()
+          assert package["status"]["ok"] is True
+          assert package["workflow_hygiene_policy"]["policy"]["delete_previous_phase_smokes"] is True
+
+          global_status = god_mode_global_state_service.status()
+          assert global_status["latest_merged_phase"] == 182
+          assert global_status["current_phase"] == 183
+          assert global_status["lab_best_of_work_ally_endpoint"] == "/api/lab-best-of-work-ally/package"
+
+          global_package = god_mode_global_state_service.package()
+          assert global_package["lab_best_of_work_ally_model"]["dependency_policy"] == "labs_are_references_not_core_dependencies"
+          assert any(item["phase"] == 183 and item["status"] == "in_progress" for item in global_package["implemented_phases"])
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase183-lab-best-of-work-ally-smoke.yml"], phase_workflows
+
+          docs = Path("docs/orchestration/lab-best-of-work-ally.md").read_text(encoding="utf-8")
+          assert "/api/lab-best-of-work-ally/package" in docs
+          assert "Ruflo" in docs
+          assert "Praison" in docs
+          assert "Workflows smoke antigos" in docs
+
+          print("phase 183 lab best-of work ally smoke passed")
+          PY
