@@ -1,0 +1,170 @@
+name: Phase 185 Vault Deployment Binding Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/routes/vault_deployment_binding.py'
+      - 'backend/app/services/vault_deployment_binding_service.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/vault-deployment-binding.md'
+      - '.github/workflows/phase185-vault-deploy-binding-smoke.yml'
+
+jobs:
+  phase185-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 185 vault deployment binding
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.god_mode_global_state_service import god_mode_global_state_service
+          from app.services.operator_approval_gate_service import operator_approval_gate_service
+          from app.services.real_local_encrypted_vault_service import real_local_encrypted_vault_service
+          from app.services.vault_deployment_binding_service import vault_deployment_binding_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/vault-deployment-binding/status",
+              "/api/vault-deployment-binding/policy",
+              "/api/vault-deployment-binding/create-binding",
+              "/api/vault-deployment-binding/create-bindings-from-contract",
+              "/api/vault-deployment-binding/build-injection-plan",
+              "/api/vault-deployment-binding/create-apply-gate",
+              "/api/vault-deployment-binding/apply-preview",
+              "/api/vault-deployment-binding/bindings",
+              "/api/vault-deployment-binding/package",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 185 routes: {missing}"
+
+          status = vault_deployment_binding_service.status()
+          assert status["ok"] is True
+          assert status["stores_plaintext_values"] is False
+          assert status["requires_approval_for_apply"] is True
+
+          policy = vault_deployment_binding_service.policy()
+          assert policy["ok"] is True
+          assert "raw secret value" in policy["policy"]["not_allowed_to_store"]
+          assert policy["policy"]["current_phase_scope"].startswith("planning")
+
+          raw_secret = "phase185_real_secret_to_never_store_in_plan"
+          passphrase = "phase185-passphrase"
+          secret_ref_id = "secret-ref-phase185-smoke"
+
+          write_gate = real_local_encrypted_vault_service.create_write_gate(
+              secret_ref_id=secret_ref_id,
+              project_id="BARBUDO_WEBSITE",
+              provider="VERCEL",
+              environment="production",
+              key_name="SUPABASE_SERVICE_ROLE_KEY",
+          )
+          assert write_gate["ok"] is True
+          write_gate_id = write_gate["gate"]["gate_id"]
+          assert operator_approval_gate_service.resolve_gate(write_gate_id, "approve")["ok"] is True
+          stored = real_local_encrypted_vault_service.store_secret(
+              secret_ref_id=secret_ref_id,
+              secret_value=raw_secret,
+              passphrase=passphrase,
+              project_id="BARBUDO_WEBSITE",
+              provider="VERCEL",
+              environment="production",
+              key_name="SUPABASE_SERVICE_ROLE_KEY",
+              approved_gate_id=write_gate_id,
+          )
+          assert stored["ok"] is True
+          assert raw_secret not in str(stored)
+
+          missing_binding = vault_deployment_binding_service.create_binding(
+              secret_ref_id="missing-secret-ref",
+              target_project="BARBUDO_WEBSITE",
+              target_provider="vercel",
+              environment="production",
+              inject_as="MISSING_ENV",
+          )
+          assert missing_binding["ok"] is False
+
+          binding = vault_deployment_binding_service.create_binding(
+              secret_ref_id=secret_ref_id,
+              target_project="BARBUDO_WEBSITE",
+              target_provider="vercel",
+              environment="production",
+              inject_as="SUPABASE_SERVICE_ROLE_KEY",
+              provider_mode="vercel_env",
+              provider_target_id="barbudo-website-prod",
+          )
+          assert binding["ok"] is True
+          assert binding["binding"]["secret_ref_id"] == secret_ref_id
+          assert raw_secret not in str(binding)
+
+          plan = vault_deployment_binding_service.build_injection_plan("BARBUDO_WEBSITE", "production", target_provider="vercel")
+          assert plan["ok"] is True
+          assert plan["plan"]["status"] == "ready_for_approval"
+          assert plan["plan"]["binding_count"] >= 1
+          assert raw_secret not in str(plan)
+          plan_id = plan["plan"]["plan_id"]
+
+          gate = vault_deployment_binding_service.create_apply_gate(plan_id, purpose="phase185 smoke apply preview")
+          assert gate["ok"] is True
+          gate_id = gate["gate"]["gate_id"]
+          blocked_preview = vault_deployment_binding_service.build_apply_preview(plan_id, gate_id, passphrase, reveal_values=False)
+          assert blocked_preview["ok"] is False
+          assert blocked_preview["error"] == "approval_gate_not_approved"
+          assert operator_approval_gate_service.resolve_gate(gate_id, "approve")["ok"] is True
+
+          preview = vault_deployment_binding_service.build_apply_preview(plan_id, gate_id, passphrase, reveal_values=False)
+          assert preview["ok"] is True
+          assert preview["preview"]["status"] == "ready_for_manual_or_provider_specific_apply"
+          assert preview["preview"]["remote_write_executed"] is False
+          assert preview["preview"]["stores_plaintext_values"] is False
+          assert raw_secret not in str(preview)
+          assert "secret_value" not in str(preview["preview"]["exports"])
+
+          revealed = vault_deployment_binding_service.build_apply_preview(plan_id, gate_id, passphrase, reveal_values=True)
+          assert revealed["ok"] is True
+          assert raw_secret in str(revealed["preview"]["exports"])
+
+          package = vault_deployment_binding_service.package()
+          assert package["status"]["stores_plaintext_values"] is False
+          assert raw_secret not in str(package)
+
+          global_status = god_mode_global_state_service.status()
+          assert global_status["latest_merged_phase"] == 184
+          assert global_status["current_phase"] == 185
+          assert global_status["vault_deployment_binding_endpoint"] == "/api/vault-deployment-binding/package"
+
+          global_package = god_mode_global_state_service.package()
+          assert global_package["vault_deployment_binding_model"]["uses_secret_ref_id_only"] is True
+          assert global_package["vault_deployment_binding_model"]["remote_write_executed_in_phase"] is False
+          assert any(item["phase"] == 185 and item["status"] == "in_progress" for item in global_package["implemented_phases"])
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase185-vault-deploy-binding-smoke.yml"], phase_workflows
+
+          docs = Path("docs/orchestration/vault-deployment-binding.md").read_text(encoding="utf-8")
+          assert "/api/vault-deployment-binding/package" in docs
+          assert "Esta fase não executa escrita remota" in docs
+          assert "BARBUDO_WEBSITE" in docs
+
+          print("phase 185 vault deployment binding smoke passed")
+          PY
