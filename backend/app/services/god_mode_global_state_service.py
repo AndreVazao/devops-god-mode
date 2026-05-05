@@ -52,14 +52,14 @@ class GodModeGlobalStateService:
             "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run FastAPI backend", "control local browser/tools/providers where approved", "prepare repo patches and PRs", "build Windows/Android artifacts", "store local runtime state", "host local/private vault implementation when added"]},
             "primary_cockpit": {"device": "android_phone", "role": "remote_operator_cockpit", "entrypoint": "/app/home", "responsibilities": ["send commands", "approve/reject gated actions", "monitor PC brain", "approve vault/credential use", "receive status and logs"]},
             "secondary_cockpit": {"device": "pc_browser_or_desktop_launcher", "role": "local_operator_cockpit_when_at_home", "entrypoint": "/app/home"},
-            "canonical_entrypoint": {"route": "/app/home", "manifest": "/api/app-entrypoint/manifest", "first_install_pc_proof_page": "/api/first-install-pc-proof-center/app", "local_vault_contract_package": "/api/local-encrypted-vault-contract/package"},
+            "canonical_entrypoint": {"route": "/app/home", "manifest": "/api/app-entrypoint/manifest", "control_surface_package": "/api/home-control-surface/package", "runtime_ux_package": "/api/cockpit-runtime-ux/package", "reality_audit_package": "/api/god-mode-reality-audit/package", "pc_provider_proof_package": "/api/pc-provider-conversation-proof/package", "first_install_pc_proof_page": "/api/first-install-pc-proof-center/app", "local_vault_contract_package": "/api/local-encrypted-vault-contract/package"},
         }
 
     def project_tree_model(self) -> Dict[str, Any]:
         return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "legacy_tree_path": "PROJECT_TREE.txt", "project_id": "GOD_MODE", "generator_script": "scripts/generate_project_tree.py", "autorefresh_workflow": ".github/workflows/project-tree-autorefresh.yml", "backend_package": "/api/project-tree-autorefresh/package", "manual_tree_is_fallback_only": True}
 
     def reality_audit_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/god-mode-reality-audit/package", "rule": "No capability should be presented as fully real until it passes PC/runtime proof."}
+        return {"endpoint": "/api/god-mode-reality-audit/package", "first_install_mission_endpoint": "/api/god-mode-reality-audit/first-install-mission", "rule": "No capability should be presented as fully real until it passes PC/runtime proof."}
 
     def pc_provider_proof_model(self) -> Dict[str, Any]:
         return {"endpoint": "/api/pc-provider-conversation-proof/package", "probe_tool": "tools/pc_provider_conversation_probe.py", "proof_dir": "data/provider_proofs", "supported_providers": ["chatgpt", "claude", "gemini", "perplexity"], "goal": "Prove provider browser/session/conversation reading on the real PC without storing credentials."}
@@ -96,7 +96,26 @@ class GodModeGlobalStateService:
     def status(self) -> Dict[str, Any]:
         phases = self.implemented_phases()
         merged = [phase for phase in phases if phase["status"] == "merged"]
-        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "implemented_phase_count": len(merged), "latest_merged_phase": 181, "current_phase": 182, "canonical_cockpit_route": "/app/home", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "local_vault_contract_endpoint": "/api/local-encrypted-vault-contract/package"}
+        return {
+            "ok": True,
+            "service": self.SERVICE_ID,
+            "version": self.VERSION,
+            "generated_at": self._now(),
+            "implemented_phase_count": len(merged),
+            "latest_merged_phase": 181,
+            "current_phase": 182,
+            "canonical_cockpit_route": "/app/home",
+            "mobile_first": True,
+            "pc_brain": True,
+            "secrets_allowed_in_memory": False,
+            "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md",
+            "module_registry_endpoint": "/api/module-registry-snapshot/package",
+            "reality_audit_endpoint": "/api/god-mode-reality-audit/package",
+            "pc_provider_proof_endpoint": "/api/pc-provider-conversation-proof/package",
+            "first_install_pc_proof_endpoint": "/api/first-install-pc-proof-center/package",
+            "first_install_pc_proof_page": "/api/first-install-pc-proof-center/app",
+            "local_vault_contract_endpoint": "/api/local-encrypted-vault-contract/package",
+        }
 
     def package(self) -> Dict[str, Any]:
         return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "reality_audit_model": self.reality_audit_model(), "pc_provider_proof_model": self.pc_provider_proof_model(), "first_install_pc_proof_model": self.first_install_pc_proof_model(), "local_vault_contract_model": self.local_vault_contract_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "vault_policy": self.vault_policy(), "self_update_model": self.self_update_model(), "backlog": self.backlog()}
