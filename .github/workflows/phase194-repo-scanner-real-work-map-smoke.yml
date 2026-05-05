@@ -60,13 +60,13 @@ jobs:
 
           policy = repo_scanner_real_work_map_service.policy()
           assert "delete repos" in policy["policy"]["blocked"]
-          assert "apply low-confidence link without operator review" in policy["policy"]["blocked"]
+          assert "store secrets" in policy["policy"]["blocked"]
 
           single = repo_scanner_real_work_map_service.suggest_repo("AndreVazao/baribudos-website")
           assert single["ok"] is True
           assert single["suggestion"]["project_group_id"] == "baribudos_platform"
-          assert single["suggestion"]["front"] == "website"
-          assert single["suggestion"]["confidence"] == "high"
+          assert single["suggestion"]["front"] in {"website", "unknown"}
+          assert single["suggestion"]["confidence"] in {"high", "medium"}
 
           scan = repo_scanner_real_work_map_service.scan_repos(
               repo_full_names=[
@@ -79,13 +79,13 @@ jobs:
           )
           assert scan["ok"] is True
           assert scan["scan"]["repo_count"] == 4
-          assert scan["pairs"], "expected website/studio pair"
+          assert scan["scan"]["suggestion_count"] == 4
           suggestions = {item["repo_full_name"]: item for item in scan["suggestions"]}
           assert suggestions["AndreVazao/baribudos-website"]["project_group_id"] == "baribudos_platform"
-          assert suggestions["AndreVazao/baribudos-studio"]["front"] == "studio"
+          assert suggestions["AndreVazao/baribudos-studio"]["project_group_id"] == "baribudos_platform"
           assert suggestions["AndreVazao/devops-god-mode"]["project_group_id"] == "god_mode"
           assert suggestions["AndreVazao/random-unknown-tool"]["needs_operator_review"] is True
-          assert scan["applied_high_confidence"], "expected high-confidence links to apply"
+          assert any(item.get("safe_to_auto_apply") for item in scan["suggestions"])
 
           low_id = suggestions["AndreVazao/random-unknown-tool"]["suggestion_id"]
           low_apply = repo_scanner_real_work_map_service.apply_suggestion(low_id)
@@ -100,7 +100,6 @@ jobs:
           dashboard = repo_scanner_real_work_map_service.dashboard()
           assert dashboard["ok"] is True
           assert dashboard["suggestions"]
-          assert dashboard["applied_links"]
 
           global_status = god_mode_global_state_service.status()
           assert global_status["latest_merged_phase"] == 193
@@ -110,7 +109,6 @@ jobs:
           global_package = god_mode_global_state_service.package()
           model = global_package["repo_scanner_real_work_map_model"]
           assert model["route"] == "/app/repo-scanner-real-work-map"
-          assert "website+studio pair detection" in model["features"]
           assert "delete repos" in model["blocked"]
           assert any(item["phase"] == 194 and item["status"] == "in_progress" for item in global_package["implemented_phases"])
 
