@@ -1,0 +1,149 @@
+name: Phase 193 Real Work Fast Path Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/services/real_work_fast_path_service.py'
+      - 'backend/app/routes/real_work_fast_path.py'
+      - 'backend/app/routes/real_work_fast_path_frontend.py'
+      - 'backend/app/routes/god_mode_home_frontend.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/real-work-fast-path.md'
+      - '.github/workflows/phase193-real-work-fast-path-smoke.yml'
+
+jobs:
+  phase193-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Validate Phase 193 real work fast path
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from main import app
+          from app.services.god_mode_global_state_service import god_mode_global_state_service
+          from app.services.real_work_fast_path_service import real_work_fast_path_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/real-work-fast-path/status",
+              "/api/real-work-fast-path/policy",
+              "/api/real-work-fast-path/seed-defaults",
+              "/api/real-work-fast-path/add-project-group",
+              "/api/real-work-fast-path/link-repo",
+              "/api/real-work-fast-path/link-conversation",
+              "/api/real-work-fast-path/classify-text",
+              "/api/real-work-fast-path/create-work-run",
+              "/api/real-work-fast-path/first-pc-fast-path",
+              "/api/real-work-fast-path/dashboard",
+              "/api/real-work-fast-path/package",
+              "/app/real-work-fast-path",
+              "/app/real-work-map",
+              "/app/home",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 193 routes: {missing}"
+
+          status = real_work_fast_path_service.status()
+          assert status["ok"] is True
+          assert status["real_work_ready"] is True
+          assert status["project_group_count"] >= 3
+
+          seeded = real_work_fast_path_service.seed_defaults()
+          group_ids = {item["group_id"] for item in seeded["project_groups"]}
+          assert {"god_mode", "baribudos_platform", "proventil"}.issubset(group_ids)
+
+          cls = real_work_fast_path_service.classify_text("Baribudos website e Baribudos Studio são duas frentes do mesmo programa")
+          assert cls["ok"] is True
+          assert cls["project_group_id"] == "baribudos_platform"
+          assert cls["front"] in {"website", "studio"}
+
+          repo = real_work_fast_path_service.link_repo(
+              repo_full_name="AndreVazao/baribudos-website",
+              project_hint="Baribudos website",
+              front="website",
+              evidence="phase193_smoke",
+          )
+          assert repo["ok"] is True
+          assert repo["repo_link"]["project_group_id"] == "baribudos_platform"
+          assert repo["repo_link"]["front"] == "website"
+          assert repo["repo_link"]["realness_status"] == "linked_to_group"
+
+          conv = real_work_fast_path_service.link_conversation(
+              title="Baribudos Studio planning",
+              provider="chatgpt",
+              project_hint="Baribudos Studio",
+              source_ref="phase193_smoke",
+              summary="Conversation about studio frontend and website relation.",
+          )
+          assert conv["ok"] is True
+          assert conv["conversation_link"]["project_group_id"] == "baribudos_platform"
+
+          work = real_work_fast_path_service.create_work_run(
+              operator_request="Continuar o Baribudos Studio e cruzar com website sem tratar IA como decisão.",
+              project_hint="Baribudos Studio",
+              selected_provider_ids=["chatgpt", "claude"],
+          )
+          assert work["ok"] is True
+          assert work["work_run"]["classification"]["project_group_id"] == "baribudos_platform"
+          assert work["work_run"]["answers_are_decisions"] is False
+          assert work["work_run"]["broadcast_plan_id"]
+          assert work["work_run"]["ledger_analysis_id"]
+
+          pc = real_work_fast_path_service.first_pc_fast_path()
+          assert pc["ok"] is True
+          route_labels = {item["label"] for item in pc["essential_routes"]}
+          assert {"Home", "Broadcast IA", "Real Work Fast Path"}.issubset(route_labels)
+          assert any("Abrir GodModeDesktop.exe" in step for step in pc["minimum_real_test"])
+
+          package = real_work_fast_path_service.package()
+          assert package["ok"] is True
+          assert package["repo_links"]
+          assert package["conversation_links"]
+          assert package["work_runs"]
+
+          global_status = god_mode_global_state_service.status()
+          assert global_status["latest_merged_phase"] == 192
+          assert global_status["current_phase"] == 193
+          assert global_status["real_work_fast_path_route"] == "/app/real-work-fast-path"
+
+          global_package = god_mode_global_state_service.package()
+          assert global_package["real_work_fast_path_model"]["route"] == "/app/real-work-fast-path"
+          assert "baribudos_platform" in global_package["real_work_fast_path_model"]["default_groups"]
+          assert any(item["phase"] == 193 and item["status"] == "in_progress" for item in global_package["implemented_phases"])
+
+          frontend = Path("backend/app/routes/real_work_fast_path_frontend.py").read_text(encoding="utf-8")
+          assert "Real Work Fast Path" in frontend
+          assert "/api/real-work-fast-path/create-work-run" in frontend
+          assert "Ligar repo" in frontend
+          assert "Ligar conversa" in frontend
+
+          home = Path("backend/app/routes/god_mode_home_frontend.py").read_text(encoding="utf-8")
+          assert "Trabalho Real" in home
+          assert "/app/real-work-fast-path" in home
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase193-real-work-fast-path-smoke.yml"], phase_workflows
+
+          docs = Path("docs/orchestration/real-work-fast-path.md").read_text(encoding="utf-8")
+          assert "/api/real-work-fast-path/package" in docs
+          assert "website" in docs and "studio" in docs
+          assert "Nada fica como fantasia" in docs
+
+          print("phase 193 real work fast path smoke passed")
+          PY
