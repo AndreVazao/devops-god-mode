@@ -1,0 +1,174 @@
+name: Phase 190 Provider Prompt Broadcast Runtime Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/routes/provider_prompt_broadcast_runtime.py'
+      - 'backend/app/services/provider_prompt_broadcast_runtime_service.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/provider-prompt-broadcast-runtime.md'
+      - '.github/workflows/phase190-provider-prompt-broadcast-runtime-smoke.yml'
+
+jobs:
+  phase190-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 190 provider prompt broadcast runtime
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.god_mode_global_state_service import god_mode_global_state_service
+          from app.services.provider_prompt_broadcast_runtime_service import provider_prompt_broadcast_runtime_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/provider-prompt-broadcast-runtime/status",
+              "/api/provider-prompt-broadcast-runtime/policy",
+              "/api/provider-prompt-broadcast-runtime/default-pane-profile",
+              "/api/provider-prompt-broadcast-runtime/create-pane-profile",
+              "/api/provider-prompt-broadcast-runtime/create-broadcast-plan",
+              "/api/provider-prompt-broadcast-runtime/import-provider-response",
+              "/api/provider-prompt-broadcast-runtime/compare-responses",
+              "/api/provider-prompt-broadcast-runtime/plans",
+              "/api/provider-prompt-broadcast-runtime/package",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 190 routes: {missing}"
+
+          status = provider_prompt_broadcast_runtime_service.status()
+          assert status["ok"] is True
+          assert status["browser_automation_enabled"] is False
+          assert status["stores_credentials"] is False
+          assert status["operator_request_preserved"] is True
+          assert status["ai_responses_are_not_decisions"] is True
+
+          policy = provider_prompt_broadcast_runtime_service.policy()
+          assert policy["ok"] is True
+          assert "store credentials" in policy["policy"]["blocked"]
+          assert "create pane profile" in policy["policy"]["allowed"]
+
+          profile = provider_prompt_broadcast_runtime_service.default_pane_profile("phase190-default")
+          assert profile["ok"] is True
+          provider_ids = {item["provider_id"] for item in profile["profile"]["providers"]}
+          assert {"chatgpt", "claude", "gemini", "perplexity", "local_ollama"}.issubset(provider_ids)
+          assert profile["profile"]["security"]["store_credentials"] is False
+
+          custom_profile = provider_prompt_broadcast_runtime_service.create_pane_profile(
+              profile_name="phase190-custom",
+              providers=[
+                  {"provider_id": "chatgpt", "label": "ChatGPT", "kind": "full_webapp", "enabled": True, "pane_order": 1},
+                  {"provider_id": "claude", "label": "Claude", "kind": "full_webapp", "enabled": True, "pane_order": 2},
+                  {"provider_id": "bad provider id", "label": "Bad", "kind": "full_webapp", "enabled": True, "pane_order": 3},
+              ],
+          )
+          assert custom_profile["ok"] is False
+          assert custom_profile["error"] == "invalid_provider_id"
+
+          valid_profile = provider_prompt_broadcast_runtime_service.create_pane_profile(
+              profile_name="phase190-valid",
+              providers=[
+                  {"provider_id": "chatgpt", "label": "ChatGPT", "kind": "full_webapp", "enabled": True, "pane_order": 1},
+                  {"provider_id": "claude", "label": "Claude", "kind": "full_webapp", "enabled": True, "pane_order": 2},
+                  {"provider_id": "local_ollama", "label": "Ollama", "kind": "local_api", "enabled": False, "pane_order": 3},
+              ],
+          )
+          assert valid_profile["ok"] is True
+          profile_id = valid_profile["profile"]["profile_id"]
+
+          empty = provider_prompt_broadcast_runtime_service.create_broadcast_plan(operator_request="", project_key="GOD_MODE")
+          assert empty["ok"] is False
+
+          plan = provider_prompt_broadcast_runtime_service.create_broadcast_plan(
+              operator_request="Oner: Quero comparar respostas e sacar scripts sem transformar IA em decisão.",
+              project_key="GOD_MODE",
+              selected_provider_ids=["chatgpt", "claude"],
+              profile_id=profile_id,
+              context_bundle_ref="ctx-phase190",
+              prompt_mode="development",
+              use_prompt_critic=True,
+          )
+          assert plan["ok"] is True
+          data = plan["plan"]
+          assert data["operator_request_original"].startswith("Oner:")
+          assert data["broadcast_prompt"].startswith(data["operator_request_original"])
+          assert data["selected_provider_count"] == 2
+          assert data["browser_automation_executed"] is False
+          assert data["ledger_seed"]["provider_response_role"] == "ai_response"
+          assert data["ledger_seed"]["answers_are_decisions"] is False
+          assert data["ledger_seed"]["scripts_require_reconciliation"] is True
+          plan_id = data["plan_id"]
+
+          missing_provider = provider_prompt_broadcast_runtime_service.import_provider_response(
+              plan_id=plan_id,
+              provider_id="gemini",
+              response_text="Resposta fora do plano",
+          )
+          assert missing_provider["ok"] is False
+          assert missing_provider["error"] == "provider_not_in_plan"
+
+          response = provider_prompt_broadcast_runtime_service.import_provider_response(
+              plan_id=plan_id,
+              provider_id="chatgpt",
+              response_text="Assistant: Proposta de solução com script. ```python\nprint('ok')\n``` PR futuro exige validação.",
+              source_mode="manual_import",
+          )
+          assert response["ok"] is True
+          imported = response["response_import"]
+          assert imported["ledger_role"] == "ai_response"
+          assert imported["is_decision"] is False
+          assert imported["requires_reconciliation"] is True
+          assert imported["script_block_count"] == 1
+          assert response["ledger_result"]["ok"] is True
+
+          comparison = provider_prompt_broadcast_runtime_service.compare_responses(plan_id)
+          assert comparison["ok"] is True
+          assert comparison["comparison"]["answers_are_decisions"] is False
+          assert comparison["comparison"]["requires_operator_review"] is True
+          assert comparison["comparison"]["script_block_total"] >= 1
+          assert "claude" in comparison["comparison"]["missing_providers"]
+
+          package = provider_prompt_broadcast_runtime_service.package()
+          assert package["status"]["stores_credentials"] is False
+          assert package["status"]["browser_automation_enabled"] is False
+
+          global_status = god_mode_global_state_service.status()
+          assert global_status["latest_merged_phase"] == 189
+          assert global_status["current_phase"] == 190
+          assert global_status["provider_prompt_broadcast_runtime_endpoint"] == "/api/provider-prompt-broadcast-runtime/package"
+
+          global_package = god_mode_global_state_service.package()
+          assert global_package["provider_prompt_broadcast_runtime_model"]["operator_request_preserved"] is True
+          assert global_package["provider_prompt_broadcast_runtime_model"]["ai_responses_are_not_decisions"] is True
+          assert any(item["phase"] == 190 and item["status"] == "in_progress" for item in global_package["implemented_phases"])
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase190-provider-prompt-broadcast-runtime-smoke.yml"], phase_workflows
+
+          docs = Path("docs/orchestration/provider-prompt-broadcast-runtime.md").read_text(encoding="utf-8")
+          assert "/api/provider-prompt-broadcast-runtime/package" in docs
+          assert "Resposta de provider é `ai_response`, não decisão" in docs
+          assert "Não guarda credenciais" in docs
+
+          print("phase 190 provider prompt broadcast runtime smoke passed")
+          PY
