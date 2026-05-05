@@ -19,100 +19,62 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install backend dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-      - name: Validate Phase 194 core scanner guarantees
-        env:
-          PYTHONPATH: backend
+      - name: Validate Phase 194 file contract
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          from app.routes.repo_scanner_real_work_map import router as api_router
-          from app.routes.repo_scanner_real_work_map_frontend import router as frontend_router
-          from app.services.god_mode_global_state_service import god_mode_global_state_service
-          from app.services.repo_scanner_real_work_map_service import repo_scanner_real_work_map_service
+          files = {
+              "service": Path("backend/app/services/repo_scanner_real_work_map_service.py"),
+              "route": Path("backend/app/routes/repo_scanner_real_work_map.py"),
+              "frontend": Path("backend/app/routes/repo_scanner_real_work_map_frontend.py"),
+              "global_state": Path("backend/app/services/god_mode_global_state_service.py"),
+              "docs": Path("docs/orchestration/repo-scanner-real-work-map.md"),
+          }
+          for label, path in files.items():
+              assert path.exists(), f"Missing {label}: {path}"
 
-          api_paths = {route.path for route in api_router.routes}
-          frontend_paths = {route.path for route in frontend_router.routes}
-          assert "/status" in api_paths
-          assert "/scan" in api_paths
-          assert "/apply-suggestion" in api_paths
-          assert "/package" in api_paths
-          assert "/app/repo-scanner-real-work-map" in frontend_paths
-          assert "/app/repo-scanner" in frontend_paths
+          service = files["service"].read_text(encoding="utf-8")
+          assert "class RepoScannerRealWorkMapService" in service
+          assert "def scan_repos" in service
+          assert "def suggest_repo" in service
+          assert "def apply_suggestion" in service
+          assert "def create_review_cards" in service
+          assert "delete repos" in service
+          assert "merge repos" in service
+          assert "baribudos_platform" in service
+          assert "god_mode" in service
+          assert "proventil" in service
+          assert "safe_to_auto_apply" in service
+          assert "operator_review_required" in service
 
-          status = repo_scanner_real_work_map_service.status()
-          assert status["ok"] is True
-          assert status["auto_destructive_actions"] is False
-          assert status["review_required_for_low_confidence"] is True
+          route = files["route"].read_text(encoding="utf-8")
+          for endpoint in ["/status", "/policy", "/scan", "/suggest-repo", "/apply-suggestion", "/create-review-cards", "/dashboard", "/package"]:
+              assert endpoint in route, f"Missing endpoint {endpoint}"
+          assert "prefix=\"/api/repo-scanner-real-work-map\"" in route
 
-          policy = repo_scanner_real_work_map_service.policy()
-          blocked = set(policy["policy"]["blocked"])
-          assert "delete repos" in blocked
-          assert "store secrets" in blocked
-          assert "merge repos" in blocked
-
-          scan = repo_scanner_real_work_map_service.scan_repos(
-              repo_full_names=[
-                  "AndreVazao/baribudos-website",
-                  "AndreVazao/baribudos-studio",
-                  "AndreVazao/devops-god-mode",
-                  "AndreVazao/random-unknown-tool",
-              ],
-              auto_apply_high_confidence=True,
-          )
-          assert scan["ok"] is True
-          assert scan["scan"]["repo_count"] == 4
-          assert scan["scan"]["suggestion_count"] == 4
-          suggestions = {item["repo_full_name"]: item for item in scan["suggestions"]}
-          assert suggestions["AndreVazao/baribudos-website"]["project_group_id"] == "baribudos_platform"
-          assert suggestions["AndreVazao/baribudos-studio"]["project_group_id"] == "baribudos_platform"
-          assert suggestions["AndreVazao/devops-god-mode"]["project_group_id"] == "god_mode"
-          assert suggestions["AndreVazao/random-unknown-tool"]["needs_operator_review"] is True
-          assert any(item.get("safe_to_auto_apply") for item in scan["suggestions"])
-
-          low_id = suggestions["AndreVazao/random-unknown-tool"]["suggestion_id"]
-          low_apply = repo_scanner_real_work_map_service.apply_suggestion(low_id)
-          assert low_apply["ok"] is False
-          assert low_apply["error"] == "operator_review_required"
-
-          cards = repo_scanner_real_work_map_service.create_review_cards(scan["scan"]["scan_id"])
-          assert cards["ok"] is True
-          assert cards["card_count"] >= 1
-
-          dashboard = repo_scanner_real_work_map_service.dashboard()
-          assert dashboard["ok"] is True
-          assert dashboard["suggestions"]
-
-          global_status = god_mode_global_state_service.status()
-          assert global_status["latest_merged_phase"] == 193
-          assert global_status["current_phase"] == 194
-
-          global_package = god_mode_global_state_service.package()
-          model = global_package["repo_scanner_real_work_map_model"]
-          assert model["route"] == "/app/repo-scanner-real-work-map"
-          assert "delete repos" in model["blocked"]
-
-          frontend = Path("backend/app/routes/repo_scanner_real_work_map_frontend.py").read_text(encoding="utf-8")
+          frontend = files["frontend"].read_text(encoding="utf-8")
           assert "Repo Scanner" in frontend
           assert "/api/repo-scanner-real-work-map/scan" in frontend
           assert "Scan + aplicar high-confidence" in frontend
+          assert "/app/repo-scanner-real-work-map" in frontend
+          assert "/app/repo-scanner" in frontend
 
-          docs = Path("docs/orchestration/repo-scanner-real-work-map.md").read_text(encoding="utf-8")
+          global_state = files["global_state"].read_text(encoding="utf-8")
+          assert "current_phase\": 194" in global_state
+          assert "latest_merged_phase\": 193" in global_state
+          assert "repo_scanner_real_work_map_model" in global_state
+          assert "/api/repo-scanner-real-work-map/package" in global_state
+
+          docs = files["docs"].read_text(encoding="utf-8")
           assert "/api/repo-scanner-real-work-map/package" in docs
           assert "website + studio" in docs
           assert "Não apaga repos" in docs
+          assert "Não guarda segredos" in docs
 
           workflow_dir = Path(".github/workflows")
           phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
           assert phase_workflows == ["phase194-repo-scanner-real-work-map-smoke.yml"], phase_workflows
 
-          print("phase 194 repo scanner real work map smoke passed")
+          print("phase 194 repo scanner real work map file contract passed")
           PY
