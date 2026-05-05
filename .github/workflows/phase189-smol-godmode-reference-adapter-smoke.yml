@@ -1,0 +1,121 @@
+name: Phase 189 smol GodMode Reference Adapter Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/routes/smol_godmode_reference_adapter.py'
+      - 'backend/app/services/smol_godmode_reference_adapter_service.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/smol-godmode-reference-adapter.md'
+      - '.github/workflows/phase189-smol-godmode-reference-adapter-smoke.yml'
+
+jobs:
+  phase189-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 189 smol GodMode reference adapter
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.god_mode_global_state_service import god_mode_global_state_service
+          from app.services.smol_godmode_reference_adapter_service import smol_godmode_reference_adapter_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/smol-godmode-reference-adapter/status",
+              "/api/smol-godmode-reference-adapter/capability-fit",
+              "/api/smol-godmode-reference-adapter/patterns",
+              "/api/smol-godmode-reference-adapter/provider-pane-manifest",
+              "/api/smol-godmode-reference-adapter/prompt-broadcast-contract",
+              "/api/smol-godmode-reference-adapter/prompt-critic-policy",
+              "/api/smol-godmode-reference-adapter/package",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 189 routes: {missing}"
+
+          status = smol_godmode_reference_adapter_service.status()
+          assert status["ok"] is True
+          assert status["source_repo"] == "smol-ai/GodMode"
+          assert status["source_role"] == "ux_reference_not_core_dependency"
+          assert status["dependency_added"] is False
+          assert status["native_first"] is True
+
+          fit = smol_godmode_reference_adapter_service.capability_fit()
+          assert fit["ok"] is True
+          assert "multi-AI cockpit UX" in fit["fit"]["good_for"]
+          assert "backend orchestration" in fit["fit"]["not_good_for"]
+
+          patterns = smol_godmode_reference_adapter_service.extracted_patterns()
+          assert patterns["ok"] is True
+          ids = {item["id"] for item in patterns["patterns"]}
+          assert "dedicated_multi_ai_browser" in ids
+          assert "prompt_broadcast" in ids
+          assert "prompt_critic" in ids
+          assert "full_webapp_over_api_when_needed" in ids
+
+          manifest = smol_godmode_reference_adapter_service.provider_pane_manifest()
+          assert manifest["ok"] is True
+          providers = {item["id"] for item in manifest["providers"]}
+          assert {"chatgpt", "claude", "gemini", "perplexity", "local_ollama"}.issubset(providers)
+          assert manifest["layout"]["supports_resize"] is True
+          assert manifest["layout"]["supports_provider_toggle"] is True
+          assert manifest["security"]["store_credentials"] is False
+          assert manifest["security"]["ledger_capture_separates_operator_request_and_ai_response"] is True
+
+          broadcast = smol_godmode_reference_adapter_service.prompt_broadcast_contract()
+          assert broadcast["ok"] is True
+          rules = broadcast["contract"]["rules"]
+          assert any("Original operator request" in rule for rule in rules)
+          assert any("Every provider answer" in rule for rule in rules)
+          assert "script apply" in broadcast["contract"]["risk_gates"]
+
+          critic = smol_godmode_reference_adapter_service.prompt_critic_policy()
+          assert critic["ok"] is True
+          assert "original request" in critic["policy"]["must_preserve"]
+          assert "change architecture direction silently" in critic["policy"]["blocked"]
+
+          package = smol_godmode_reference_adapter_service.package()
+          assert package["status"]["dependency_added"] is False
+          assert package["next_native_phase_recommendation"]["phase"] == 190
+
+          global_status = god_mode_global_state_service.status()
+          assert global_status["latest_merged_phase"] == 188
+          assert global_status["current_phase"] == 189
+          assert global_status["smol_godmode_reference_adapter_endpoint"] == "/api/smol-godmode-reference-adapter/package"
+
+          global_package = god_mode_global_state_service.package()
+          assert global_package["smol_godmode_reference_adapter_model"]["source_repo"] == "smol-ai/GodMode"
+          assert global_package["smol_godmode_reference_adapter_model"]["dependency_added"] is False
+          assert any(item["phase"] == 189 and item["status"] == "in_progress" for item in global_package["implemented_phases"])
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase189-smol-godmode-reference-adapter-smoke.yml"], phase_workflows
+
+          docs = Path("docs/orchestration/smol-godmode-reference-adapter.md").read_text(encoding="utf-8")
+          assert "/api/smol-godmode-reference-adapter/package" in docs
+          assert "smol-ai/GodMode" in docs
+          assert "Não substitui" in docs
+
+          print("phase 189 smol GodMode reference adapter smoke passed")
+          PY

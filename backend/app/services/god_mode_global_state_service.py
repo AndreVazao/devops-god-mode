@@ -10,7 +10,7 @@ class GodModeGlobalStateService:
     """Stable project snapshot and operating model for God Mode."""
 
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_188_v1"
+    VERSION = "phase_189_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -36,54 +36,53 @@ class GodModeGlobalStateService:
             (185, "Vault Deployment Binding + Provider Env Injection Plan"),
             (186, "Provider Env Writers Draft + Dry-Run Apply Gate"),
             (187, "Conversation Requirement Ledger + Request/Decision Reconciliation"),
+            (188, "Conversation Ledger Cockpit Cards + Open Requirements Review"),
         ]
         result = [{"phase": phase, "name": name, "status": "merged"} for phase, name in phases]
-        result.append({"phase": 188, "name": "Conversation Ledger Cockpit Cards + Open Requirements Review", "status": "in_progress"})
+        result.append({"phase": 189, "name": "smol-ai GodMode Reference Adapter + Multi-AI Cockpit Patterns", "status": "in_progress"})
         return result
 
     def operating_model(self) -> Dict[str, Any]:
         return {
-            "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run FastAPI backend", "track requests vs decisions vs reality evidence", "prepare requirement review cards"]},
-            "primary_cockpit": {"device": "android_phone", "role": "remote_operator_cockpit", "entrypoint": "/app/home", "responsibilities": ["review open requirement cards", "mark requests confirmed/open/migrated/obsolete/implemented/rejected", "attach notes/evidence refs"]},
-            "canonical_entrypoint": {"route": "/app/home", "conversation_requirement_ledger_package": "/api/conversation-requirement-ledger/package", "conversation_ledger_cockpit_review_package": "/api/conversation-ledger-cockpit-review/package"},
+            "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run FastAPI backend", "track requests vs decisions vs reality evidence", "prepare provider panes", "plan prompt broadcast across AI webapps"]},
+            "primary_cockpit": {"device": "android_phone", "role": "remote_operator_cockpit", "entrypoint": "/app/home", "responsibilities": ["review open requirement cards", "choose providers", "approve prompt broadcast", "monitor provider answers"]},
+            "canonical_entrypoint": {"route": "/app/home", "conversation_ledger_cockpit_review_package": "/api/conversation-ledger-cockpit-review/package", "smol_godmode_reference_adapter_package": "/api/smol-godmode-reference-adapter/package"},
         }
 
-    def conversation_requirement_ledger_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/conversation-requirement-ledger/package", "request_is_source_of_intent": True, "ai_answers_are_proposals_until_confirmed": True, "preserves_direction_changes": True, "realness_requires_evidence": True}
+    def smol_godmode_reference_adapter_model(self) -> Dict[str, Any]:
+        return {
+            "endpoint": "/api/smol-godmode-reference-adapter/package",
+            "source_repo": "smol-ai/GodMode",
+            "source_role": "ux_reference_not_core_dependency",
+            "dependency_added": False,
+            "native_first": True,
+            "useful_patterns": ["dedicated_multi_ai_browser", "prompt_broadcast", "full_webapp_over_api_when_needed", "provider_toggle_and_saved_layout", "prompt_critic"],
+            "not_a_replacement_for": ["backend orchestration", "vault", "PR automation", "deploy gates", "memory architecture"],
+        }
 
     def conversation_ledger_cockpit_review_model(self) -> Dict[str, Any]:
-        return {
-            "endpoint": "/api/conversation-ledger-cockpit-review/package",
-            "cards_endpoint": "/api/conversation-ledger-cockpit-review/cards",
-            "review_endpoint": "/api/conversation-ledger-cockpit-review/review",
-            "batch_review_endpoint": "/api/conversation-ledger-cockpit-review/batch-review",
-            "summary_endpoint": "/api/conversation-ledger-cockpit-review/summary",
-            "history_endpoint": "/api/conversation-ledger-cockpit-review/history",
-            "mobile_actions": ["confirmed", "still_open", "migrated", "obsolete", "implemented", "rejected_ai_proposal"],
-            "request_led_review": True,
-            "evidence_preferred_for_realness": True,
-        }
+        return {"endpoint": "/api/conversation-ledger-cockpit-review/package", "request_led_review": True, "evidence_preferred_for_realness": True}
 
     def project_tree_model(self) -> Dict[str, Any]:
         return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "project_id": "GOD_MODE", "autorefresh_workflow": ".github/workflows/project-tree-autorefresh.yml"}
 
     def memory_model(self) -> Dict[str, Any]:
-        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["conversation request ledger", "open requirement cards", "operator review decisions", "realness scorecards", "script fingerprints"]}}
+        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["conversation request ledger", "provider pane manifest", "prompt broadcast contract", "prompt critic policy"]}}
 
     def reality_policy(self) -> Dict[str, Any]:
-        return {"status": "phase_188_operator_review", "principle": "Open requirements are not silently forgotten; the Oner reviews cards and marks each request status.", "blocked": ["silently close an operator request", "mark AI proposal as accepted without operator review", "hide migration history"], "required": ["request card", "operator decision", "evidence ref when marking real"]}
+        return {"status": "phase_189_reference_to_native", "principle": "External repos can inspire patterns, but God Mode remains native, real and evidence-gated.", "blocked": ["add external dependency blindly", "copy architecture that conflicts with PC brain/mobile cockpit", "treat webapp answer as decision without ledger"], "required": ["reference evaluation", "native adapter", "security policy", "future implementation plan"]}
 
     def backlog(self) -> Dict[str, Any]:
-        return {"high_priority_next": ["Connect provider proof imports to requirement ledger", "Add visible cockpit page for ledger cards", "Run first real PC install mission"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets", "Use GOD_MODE_TREE.md as official tree artifact", "Delete old phase smoke workflows when advancing"]}
+        return {"high_priority_next": ["Implement Provider Prompt Broadcast + Pane Manifest Runtime", "Visible ledger cockpit page", "Run first real PC install mission"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets", "Use GOD_MODE_TREE.md as official tree artifact", "Delete old phase smoke workflows when advancing"]}
 
     def module_registry(self) -> Dict[str, Any]:
         return module_registry_snapshot_service.package()
 
     def status(self) -> Dict[str, Any]:
-        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 187, "current_phase": 188, "canonical_cockpit_route": "/app/home", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "conversation_requirement_ledger_endpoint": "/api/conversation-requirement-ledger/package", "conversation_ledger_cockpit_review_endpoint": "/api/conversation-ledger-cockpit-review/package"}
+        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 188, "current_phase": 189, "canonical_cockpit_route": "/app/home", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "smol_godmode_reference_adapter_endpoint": "/api/smol-godmode-reference-adapter/package"}
 
     def package(self) -> Dict[str, Any]:
-        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "conversation_requirement_ledger_model": self.conversation_requirement_ledger_model(), "conversation_ledger_cockpit_review_model": self.conversation_ledger_cockpit_review_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy(), "backlog": self.backlog()}
+        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "conversation_ledger_cockpit_review_model": self.conversation_ledger_cockpit_review_model(), "smol_godmode_reference_adapter_model": self.smol_godmode_reference_adapter_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy(), "backlog": self.backlog()}
 
 
 god_mode_global_state_service = GodModeGlobalStateService()
