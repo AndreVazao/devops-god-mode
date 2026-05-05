@@ -10,7 +10,7 @@ class GodModeGlobalStateService:
     """Stable project snapshot and operating model for God Mode."""
 
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_186_v1"
+    VERSION = "phase_187_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -34,56 +34,56 @@ class GodModeGlobalStateService:
             (183, "Lab Best-Of Work Ally + Workflow Hygiene"),
             (184, "Real Local Encrypted Value Store + Approval Gate"),
             (185, "Vault Deployment Binding + Provider Env Injection Plan"),
+            (186, "Provider Env Writers Draft + Dry-Run Apply Gate"),
         ]
         result = [{"phase": phase, "name": name, "status": "merged"} for phase, name in phases]
-        result.append({"phase": 186, "name": "Provider Env Writers Draft + Dry-Run Apply Gate", "status": "in_progress"})
+        result.append({"phase": 187, "name": "Conversation Requirement Ledger + Request/Decision Reconciliation", "status": "in_progress"})
         return result
 
     def operating_model(self) -> Dict[str, Any]:
         return {
-            "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run FastAPI backend", "control local browser/tools/providers where approved", "prepare repo patches and PRs", "build Windows/Android artifacts", "store local runtime state", "host local/private encrypted vault", "prepare provider env dry-run payloads"]},
-            "primary_cockpit": {"device": "android_phone", "role": "remote_operator_cockpit", "entrypoint": "/app/home", "responsibilities": ["send commands", "approve/reject gated actions", "monitor PC brain", "approve vault/credential use", "approve env injection dry-runs", "receive status and logs"]},
-            "canonical_entrypoint": {"route": "/app/home", "real_local_encrypted_vault_package": "/api/real-local-encrypted-vault/package", "vault_deployment_binding_package": "/api/vault-deployment-binding/package", "provider_env_writers_dry_run_package": "/api/provider-env-writers-dry-run/package"},
+            "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run FastAPI backend", "control local browser/tools/providers where approved", "prepare repo patches and PRs", "build artifacts", "track requests vs decisions vs reality evidence"]},
+            "primary_cockpit": {"device": "android_phone", "role": "remote_operator_cockpit", "entrypoint": "/app/home", "responsibilities": ["send commands", "approve/reject gated actions", "review open requirements", "confirm whether AI proposal matches original request"]},
+            "canonical_entrypoint": {"route": "/app/home", "conversation_requirement_ledger_package": "/api/conversation-requirement-ledger/package"},
+        }
+
+    def conversation_requirement_ledger_model(self) -> Dict[str, Any]:
+        return {
+            "endpoint": "/api/conversation-requirement-ledger/package",
+            "analyze_text_endpoint": "/api/conversation-requirement-ledger/analyze-text",
+            "analyze_messages_endpoint": "/api/conversation-requirement-ledger/analyze-messages",
+            "compare_project_endpoint": "/api/conversation-requirement-ledger/compare-project",
+            "open_requirements_endpoint": "/api/conversation-requirement-ledger/open-requirements",
+            "realness_scorecard_endpoint": "/api/conversation-requirement-ledger/realness-scorecard",
+            "request_is_source_of_intent": True,
+            "ai_answers_are_proposals_until_confirmed": True,
+            "preserves_direction_changes": True,
+            "realness_requires_evidence": True,
         }
 
     def project_tree_model(self) -> Dict[str, Any]:
         return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "project_id": "GOD_MODE", "autorefresh_workflow": ".github/workflows/project-tree-autorefresh.yml"}
 
-    def real_local_encrypted_vault_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/real-local-encrypted-vault/package", "stores_encrypted_values": True, "stores_plaintext_values": False, "passphrase_persisted": False}
-
-    def vault_deployment_binding_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/vault-deployment-binding/package", "uses_secret_ref_id_only": True, "remote_write_executed_in_phase": False, "approval_required_for_apply_preview": True}
-
     def provider_env_writers_dry_run_model(self) -> Dict[str, Any]:
-        return {
-            "endpoint": "/api/provider-env-writers-dry-run/package",
-            "create_gate_endpoint": "/api/provider-env-writers-dry-run/create-gate",
-            "build_from_plan_endpoint": "/api/provider-env-writers-dry-run/build-from-plan",
-            "build_from_preview_endpoint": "/api/provider-env-writers-dry-run/build-from-preview",
-            "remote_write_enabled": False,
-            "no_network_calls": True,
-            "stores_plaintext_values": False,
-            "supported_providers": ["vercel", "render", "supabase", "github_actions", "local_process", "manual"],
-        }
+        return {"endpoint": "/api/provider-env-writers-dry-run/package", "remote_write_enabled": False, "no_network_calls": True, "stores_plaintext_values": False}
 
     def memory_model(self) -> Dict[str, Any]:
-        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["vault references", "encrypted vault index", "deployment binding plans", "provider dry-run payloads redacted"]}}
+        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["conversation request ledger", "open requirements", "decision links", "realness scorecards", "script fingerprints"]}}
 
-    def vault_policy(self) -> Dict[str, Any]:
-        return {"status": "phase_186_provider_dry_run", "principle": "Provider-specific writers generate dry-run payloads only; remote provider writes require a future explicit phase and approval gate.", "allowed_now": ["redacted provider payloads", "payload hashes", "provider-specific request shapes"], "blocked": ["remote provider write", "raw secret in stored dry-run", "persist passphrase", "network mutation"]}
+    def reality_policy(self) -> Dict[str, Any]:
+        return {"status": "phase_187_request_led_reality", "principle": "God Mode is real only when operator requests are traceable to decisions, code, PRs, CI/builds or local runtime proof.", "blocked": ["treat AI response as final requirement", "drop old operator requests silently", "mark feature real without evidence"], "required": ["request ledger", "decision link", "implementation evidence", "migration reason when direction changes"]}
 
     def backlog(self) -> Dict[str, Any]:
-        return {"high_priority_next": ["Run first real PC install mission", "Provider real write gates after dry-run proof", "Self-update orchestrator and staged update manifests"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets in repo/docs/memory", "Use GOD_MODE_TREE.md as official tree artifact", "Delete old phase smoke workflows when advancing"]}
+        return {"high_priority_next": ["Connect provider proof imports to requirement ledger", "Add cockpit cards for open requirements", "Run first real PC install mission"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets", "Use GOD_MODE_TREE.md as official tree artifact", "Delete old phase smoke workflows when advancing"]}
 
     def module_registry(self) -> Dict[str, Any]:
         return module_registry_snapshot_service.package()
 
     def status(self) -> Dict[str, Any]:
-        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 185, "current_phase": 186, "canonical_cockpit_route": "/app/home", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "vault_deployment_binding_endpoint": "/api/vault-deployment-binding/package", "provider_env_writers_dry_run_endpoint": "/api/provider-env-writers-dry-run/package"}
+        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 186, "current_phase": 187, "canonical_cockpit_route": "/app/home", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "conversation_requirement_ledger_endpoint": "/api/conversation-requirement-ledger/package"}
 
     def package(self) -> Dict[str, Any]:
-        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "real_local_encrypted_vault_model": self.real_local_encrypted_vault_model(), "vault_deployment_binding_model": self.vault_deployment_binding_model(), "provider_env_writers_dry_run_model": self.provider_env_writers_dry_run_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "vault_policy": self.vault_policy(), "backlog": self.backlog()}
+        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "provider_env_writers_dry_run_model": self.provider_env_writers_dry_run_model(), "conversation_requirement_ledger_model": self.conversation_requirement_ledger_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy(), "backlog": self.backlog()}
 
 
 god_mode_global_state_service = GodModeGlobalStateService()
