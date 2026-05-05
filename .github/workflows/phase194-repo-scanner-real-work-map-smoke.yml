@@ -1,0 +1,80 @@
+name: Phase 194 Repo Scanner Real Work Map Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/services/repo_scanner_real_work_map_service.py'
+      - 'backend/app/routes/repo_scanner_real_work_map.py'
+      - 'backend/app/routes/repo_scanner_real_work_map_frontend.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/repo-scanner-real-work-map.md'
+      - '.github/workflows/phase194-repo-scanner-real-work-map-smoke.yml'
+
+jobs:
+  phase194-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Phase 194 file contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = {
+              "service": Path("backend/app/services/repo_scanner_real_work_map_service.py"),
+              "route": Path("backend/app/routes/repo_scanner_real_work_map.py"),
+              "frontend": Path("backend/app/routes/repo_scanner_real_work_map_frontend.py"),
+              "global_state": Path("backend/app/services/god_mode_global_state_service.py"),
+              "docs": Path("docs/orchestration/repo-scanner-real-work-map.md"),
+          }
+          for label, path in files.items():
+              assert path.exists(), f"Missing {label}: {path}"
+
+          service = files["service"].read_text(encoding="utf-8")
+          assert "class RepoScannerRealWorkMapService" in service
+          assert "def scan_repos" in service
+          assert "def suggest_repo" in service
+          assert "def apply_suggestion" in service
+          assert "def create_review_cards" in service
+          assert "delete repos" in service
+          assert "merge repos" in service
+          assert "baribudos_platform" in service
+          assert "god_mode" in service
+          assert "proventil" in service
+          assert "safe_to_auto_apply" in service
+          assert "operator_review_required" in service
+
+          route = files["route"].read_text(encoding="utf-8")
+          for endpoint in ["/status", "/policy", "/scan", "/suggest-repo", "/apply-suggestion", "/create-review-cards", "/dashboard", "/package"]:
+              assert endpoint in route, f"Missing endpoint {endpoint}"
+          assert "prefix=\"/api/repo-scanner-real-work-map\"" in route
+
+          frontend = files["frontend"].read_text(encoding="utf-8")
+          assert "Repo Scanner" in frontend
+          assert "/api/repo-scanner-real-work-map/scan" in frontend
+          assert "Scan + aplicar high-confidence" in frontend
+          assert "/app/repo-scanner-real-work-map" in frontend
+          assert "/app/repo-scanner" in frontend
+
+          global_state = files["global_state"].read_text(encoding="utf-8")
+          assert "current_phase\": 194" in global_state
+          assert "latest_merged_phase\": 193" in global_state
+          assert "repo_scanner_real_work_map_model" in global_state
+          assert "/api/repo-scanner-real-work-map/package" in global_state
+
+          docs = files["docs"].read_text(encoding="utf-8")
+          assert "/api/repo-scanner-real-work-map/package" in docs
+          assert "website + studio" in docs
+          assert "Não apaga repos" in docs
+          assert "Não guarda segredos" in docs
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase194-repo-scanner-real-work-map-smoke.yml"], phase_workflows
+
+          print("phase 194 repo scanner real work map file contract passed")
+          PY
