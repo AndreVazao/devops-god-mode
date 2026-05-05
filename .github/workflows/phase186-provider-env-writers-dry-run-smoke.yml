@@ -1,0 +1,190 @@
+name: Phase 186 Provider Env Writers Dry-Run Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/routes/provider_env_writers_dry_run.py'
+      - 'backend/app/services/provider_env_writers_dry_run_service.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/provider-env-writers-dry-run.md'
+      - '.github/workflows/phase186-provider-env-writers-dry-run-smoke.yml'
+
+jobs:
+  phase186-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate Phase 186 provider env writers dry-run
+        env:
+          PYTHONPATH: backend
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from main import app
+          from app.services.god_mode_global_state_service import god_mode_global_state_service
+          from app.services.operator_approval_gate_service import operator_approval_gate_service
+          from app.services.provider_env_writers_dry_run_service import provider_env_writers_dry_run_service
+          from app.services.real_local_encrypted_vault_service import real_local_encrypted_vault_service
+          from app.services.vault_deployment_binding_service import vault_deployment_binding_service
+
+          route_paths = {route.path for route in app.routes}
+          required = {
+              "/api/provider-env-writers-dry-run/status",
+              "/api/provider-env-writers-dry-run/policy",
+              "/api/provider-env-writers-dry-run/create-gate",
+              "/api/provider-env-writers-dry-run/build-from-plan",
+              "/api/provider-env-writers-dry-run/build-from-preview",
+              "/api/provider-env-writers-dry-run/writer-specs",
+              "/api/provider-env-writers-dry-run/dry-runs",
+              "/api/provider-env-writers-dry-run/package",
+          }
+          missing = sorted(required - route_paths)
+          assert not missing, f"Missing Phase 186 routes: {missing}"
+
+          status = provider_env_writers_dry_run_service.status()
+          assert status["ok"] is True
+          assert status["remote_write_enabled"] is False
+          assert status["stores_plaintext_values"] is False
+          assert "vercel" in status["supported_providers"]
+          assert "github_actions" in status["supported_providers"]
+
+          policy = provider_env_writers_dry_run_service.policy()
+          assert policy["ok"] is True
+          assert policy["policy"]["no_network_calls"] is True
+          assert "provider API write" in policy["policy"]["blocked"]
+
+          raw_secret = "phase186_provider_writer_secret_never_stored"
+          passphrase = "phase186-passphrase"
+          secret_ref_id = "secret-ref-phase186-smoke"
+
+          write_gate = real_local_encrypted_vault_service.create_write_gate(
+              secret_ref_id=secret_ref_id,
+              project_id="BARBUDO_WEBSITE",
+              provider="VERCEL",
+              environment="production",
+              key_name="SUPABASE_SERVICE_ROLE_KEY",
+          )
+          assert write_gate["ok"] is True
+          write_gate_id = write_gate["gate"]["gate_id"]
+          assert operator_approval_gate_service.resolve_gate(write_gate_id, "approve")["ok"] is True
+          stored = real_local_encrypted_vault_service.store_secret(
+              secret_ref_id=secret_ref_id,
+              secret_value=raw_secret,
+              passphrase=passphrase,
+              project_id="BARBUDO_WEBSITE",
+              provider="VERCEL",
+              environment="production",
+              key_name="SUPABASE_SERVICE_ROLE_KEY",
+              approved_gate_id=write_gate_id,
+          )
+          assert stored["ok"] is True
+          assert raw_secret not in str(stored)
+
+          binding = vault_deployment_binding_service.create_binding(
+              secret_ref_id=secret_ref_id,
+              target_project="BARBUDO_WEBSITE",
+              target_provider="vercel",
+              environment="production",
+              inject_as="SUPABASE_SERVICE_ROLE_KEY",
+              provider_mode="vercel_env",
+              provider_target_id="barbudo-website-prod",
+          )
+          assert binding["ok"] is True
+          plan = vault_deployment_binding_service.build_injection_plan("BARBUDO_WEBSITE", "production", target_provider="vercel")
+          assert plan["ok"] is True
+          plan_id = plan["plan"]["plan_id"]
+
+          gate = provider_env_writers_dry_run_service.create_dry_run_gate(plan_id, provider="vercel")
+          assert gate["ok"] is True
+          gate_id = gate["gate"]["gate_id"]
+          blocked = provider_env_writers_dry_run_service.build_from_injection_plan(
+              plan_id=plan_id,
+              approved_gate_id=gate_id,
+              passphrase=passphrase,
+              provider="vercel",
+          )
+          assert blocked["ok"] is False
+          assert blocked["error"] == "approval_gate_not_approved"
+
+          assert operator_approval_gate_service.resolve_gate(gate_id, "approve")["ok"] is True
+          dry_run = provider_env_writers_dry_run_service.build_from_injection_plan(
+              plan_id=plan_id,
+              approved_gate_id=gate_id,
+              passphrase=passphrase,
+              provider="vercel",
+          )
+          assert dry_run["ok"] is True
+          payload = dry_run["dry_run"]["payloads"][0]
+          assert dry_run["dry_run"]["remote_write_enabled"] is False
+          assert dry_run["dry_run"]["remote_write_executed"] is False
+          assert dry_run["dry_run"]["stores_plaintext_values"] is False
+          assert payload["provider"] == "vercel"
+          assert payload["dry_run_request"]["method"] == "POST"
+          assert raw_secret not in str(dry_run)
+          assert "***REDACTED***" in str(dry_run)
+
+          preview = {
+              "plan_id": "manual-preview-186",
+              "target_project": "BARBUDO_WEBSITE",
+              "environment": "production",
+              "exports": [
+                  {"inject_as": "RENDER_API_KEY", "secret_ref_id": "ref-render", "target_provider": "render", "provider_mode": "render_env", "secret_value": raw_secret},
+                  {"inject_as": "GH_TOKEN", "secret_ref_id": "ref-gh", "target_provider": "github_actions", "provider_mode": "github_actions_secret", "secret_value": raw_secret},
+              ],
+          }
+          second_gate = provider_env_writers_dry_run_service.create_dry_run_gate("manual-preview-186", provider="github_actions")
+          second_gate_id = second_gate["gate"]["gate_id"]
+          assert operator_approval_gate_service.resolve_gate(second_gate_id, "approve")["ok"] is True
+          gh_run = provider_env_writers_dry_run_service.build_from_apply_preview(preview, approved_gate_id=second_gate_id, provider=None)
+          assert gh_run["ok"] is True
+          providers = {item["provider"] for item in gh_run["dry_run"]["payloads"]}
+          assert "render" in providers
+          assert "github_actions" in providers
+          assert raw_secret not in str(gh_run)
+
+          specs = provider_env_writers_dry_run_service.writer_specs()
+          assert specs["ok"] is True
+          assert specs["spec_count"] >= 5
+
+          package = provider_env_writers_dry_run_service.package()
+          assert package["status"]["remote_write_enabled"] is False
+          assert raw_secret not in str(package)
+
+          global_status = god_mode_global_state_service.status()
+          assert global_status["latest_merged_phase"] == 185
+          assert global_status["current_phase"] == 186
+          assert global_status["provider_env_writers_dry_run_endpoint"] == "/api/provider-env-writers-dry-run/package"
+
+          global_package = god_mode_global_state_service.package()
+          assert global_package["provider_env_writers_dry_run_model"]["remote_write_enabled"] is False
+          assert global_package["provider_env_writers_dry_run_model"]["no_network_calls"] is True
+          assert any(item["phase"] == 186 and item["status"] == "in_progress" for item in global_package["implemented_phases"])
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase186-provider-env-writers-dry-run-smoke.yml"], phase_workflows
+
+          docs = Path("docs/orchestration/provider-env-writers-dry-run.md").read_text(encoding="utf-8")
+          assert "/api/provider-env-writers-dry-run/package" in docs
+          assert "não executa escrita remota real" in docs.lower()
+          assert "Vercel" in docs
+          assert "GitHub Actions" in docs
+
+          print("phase 186 provider env writers dry-run smoke passed")
+          PY
