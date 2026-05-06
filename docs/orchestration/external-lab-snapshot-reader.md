@@ -75,6 +75,8 @@ O God Mode passa a conseguir ler snapshots sanitizados das labs, especialmente `
 - Não torna labs dependências centrais.
 - Não faz deploy, release, browser automation, merge ou ação paga.
 - Candidato só vira código através de branch/PR, GitHub Actions e aprovação do Oner quando aplicável.
+- `can_apply_candidate_without_gate=false`.
+- `can_import_raw_lab_code_without_review=false`.
 
 ## Integração com Phase 199
 
