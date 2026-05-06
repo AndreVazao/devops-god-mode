@@ -1,0 +1,76 @@
+name: Phase 200 External Lab Snapshot Reader Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/services/external_lab_snapshot_reader_service.py'
+      - 'backend/app/routes/external_lab_snapshot_reader.py'
+      - 'backend/app/routes/external_lab_snapshot_reader_frontend.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/external-lab-snapshot-reader.md'
+      - '.github/workflows/phase200-external-lab-snapshot-reader-smoke.yml'
+
+jobs:
+  phase200-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Phase 200 file contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = {
+              'service': Path('backend/app/services/external_lab_snapshot_reader_service.py'),
+              'route': Path('backend/app/routes/external_lab_snapshot_reader.py'),
+              'frontend': Path('backend/app/routes/external_lab_snapshot_reader_frontend.py'),
+              'global_state': Path('backend/app/services/god_mode_global_state_service.py'),
+              'docs': Path('docs/orchestration/external-lab-snapshot-reader.md'),
+          }
+          for label, path in files.items():
+              assert path.exists(), f'Missing {label}: {path}'
+
+          service = files['service'].read_text(encoding='utf-8')
+          for marker in [
+              'class ExternalLabSnapshotReaderService',
+              'DOMAIN_RULES',
+              'ingest_snapshot_text',
+              'ingest_snapshot',
+              'generate_candidates_from_registry',
+              'native_skill_candidates',
+              'create_candidate_plan',
+              'can_apply_candidate_without_gate',
+              'can_import_raw_lab_code_without_review',
+              'browser_quarantine',
+              'quarantine_review',
+              'snapshot_contains_possible_secret',
+          ]:
+              assert marker in service, marker
+
+          route = files['route'].read_text(encoding='utf-8')
+          for endpoint in ['/status', '/policy', '/ingest-snapshot-text', '/ingest-snapshot', '/generate-candidates-from-registry', '/candidates', '/create-candidate-plan', '/dashboard', '/package']:
+              assert endpoint in route, f'Missing endpoint {endpoint}'
+          assert 'prefix="/api/external-lab-snapshot-reader"' in route
+
+          frontend = files['frontend'].read_text(encoding='utf-8')
+          for marker in ['External Lab Snapshot Reader', '/api/external-lab-snapshot-reader/ingest-snapshot-text', '/api/external-lab-snapshot-reader/generate-candidates-from-registry', '/app/external-lab-snapshot-reader', '/app/lab-snapshot-reader']:
+              assert marker in frontend, marker
+
+          global_state = files['global_state'].read_text(encoding='utf-8')
+          for marker in ['current_phase": 200', 'latest_merged_phase": 199', 'external_lab_snapshot_reader_model', '/api/external-lab-snapshot-reader/package', 'lab_snapshot_reader_route']:
+              assert marker in global_state, marker
+
+          docs = files['docs'].read_text(encoding='utf-8')
+          for marker in ['/api/external-lab-snapshot-reader/package', 'native_skill_candidate', 'docs/UPSTREAM_SNAPSHOT.json', 'quarantine_review', 'can_apply']:
+              assert marker in docs, marker
+
+          workflow_dir = Path('.github/workflows')
+          phase_workflows = sorted(path.name for path in workflow_dir.glob('phase*-*.yml'))
+          assert phase_workflows == ['phase200-external-lab-snapshot-reader-smoke.yml'], phase_workflows
+
+          print('phase 200 external lab snapshot reader file contract passed')
+          PY
