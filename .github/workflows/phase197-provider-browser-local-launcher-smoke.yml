@@ -1,0 +1,78 @@
+name: Phase 197 Provider Browser Local Launcher Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/services/provider_browser_local_launcher_service.py'
+      - 'backend/app/routes/provider_browser_local_launcher.py'
+      - 'backend/app/routes/provider_browser_local_launcher_frontend.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/provider-browser-local-launcher.md'
+      - '.github/workflows/phase197-provider-browser-local-launcher-smoke.yml'
+
+jobs:
+  phase197-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Phase 197 file contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = {
+              "service": Path("backend/app/services/provider_browser_local_launcher_service.py"),
+              "route": Path("backend/app/routes/provider_browser_local_launcher.py"),
+              "frontend": Path("backend/app/routes/provider_browser_local_launcher_frontend.py"),
+              "global_state": Path("backend/app/services/god_mode_global_state_service.py"),
+              "docs": Path("docs/orchestration/provider-browser-local-launcher.md"),
+          }
+          for label, path in files.items():
+              assert path.exists(), f"Missing {label}: {path}"
+
+          service = files["service"].read_text(encoding="utf-8")
+          assert "class ProviderBrowserLocalLauncherService" in service
+          assert "def create_launch_contract" in service
+          assert "def create_capture_contract" in service
+          assert "def import_capture" in service
+          assert "conversation_source_import_feed_service.import_text" in service
+          assert "executes_browser_automation" in service
+          assert "stores_passwords" in service
+          assert "stores_tokens" in service
+          assert "stores_cookies" in service
+          assert "automate login" in service
+
+          route = files["route"].read_text(encoding="utf-8")
+          for endpoint in ["/status", "/policy", "/create-launch-contract", "/create-capture-contract", "/import-capture", "/create-attention-card", "/package-provider", "/dashboard", "/package"]:
+              assert endpoint in route, f"Missing endpoint {endpoint}"
+          assert "prefix=\"/api/provider-browser-local-launcher\"" in route
+
+          frontend = files["frontend"].read_text(encoding="utf-8")
+          assert "Provider Browser Local Launcher" in frontend
+          assert "/api/provider-browser-local-launcher/package-provider" in frontend
+          assert "/api/provider-browser-local-launcher/import-capture" in frontend
+          assert "/app/provider-browser-local-launcher" in frontend
+          assert "/app/provider-launcher" in frontend
+
+          global_state = files["global_state"].read_text(encoding="utf-8")
+          assert "current_phase\": 197" in global_state
+          assert "latest_merged_phase\": 196" in global_state
+          assert "provider_browser_local_launcher_model" in global_state
+          assert "/api/provider-browser-local-launcher/package" in global_state
+
+          docs = files["docs"].read_text(encoding="utf-8")
+          assert "/api/provider-browser-local-launcher/package" in docs
+          assert "Não guarda passwords" in docs
+          assert "Não automatiza login" in docs
+          assert "executes_browser_automation=false" in docs
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase197-provider-browser-local-launcher-smoke.yml"], phase_workflows
+
+          print("phase 197 provider browser local launcher file contract passed")
+          PY
