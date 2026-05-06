@@ -1,0 +1,76 @@
+name: Phase 198 First PC Runtime Verification Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/services/first_pc_runtime_verification_service.py'
+      - 'backend/app/routes/first_pc_runtime_verification.py'
+      - 'backend/app/routes/first_pc_runtime_verification_frontend.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/first-pc-runtime-verification.md'
+      - '.github/workflows/phase198-first-pc-runtime-verification-smoke.yml'
+
+jobs:
+  phase198-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Phase 198 file contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = {
+              "service": Path("backend/app/services/first_pc_runtime_verification_service.py"),
+              "route": Path("backend/app/routes/first_pc_runtime_verification.py"),
+              "frontend": Path("backend/app/routes/first_pc_runtime_verification_frontend.py"),
+              "global_state": Path("backend/app/services/god_mode_global_state_service.py"),
+              "docs": Path("docs/orchestration/first-pc-runtime-verification.md"),
+          }
+          for label, path in files.items():
+              assert path.exists(), f"Missing {label}: {path}"
+
+          service = files["service"].read_text(encoding="utf-8")
+          assert "class FirstPcRuntimeVerificationService" in service
+          assert "ESSENTIAL_ROUTES" in service
+          assert "API_PROBES" in service
+          assert "def first_run_guide" in service
+          assert "def runtime_checks" in service
+          assert "/app/home" in service
+          assert "/app/provider-browser-local-launcher" in service
+          assert "GodModeDesktop.exe" in service
+
+          route = files["route"].read_text(encoding="utf-8")
+          for endpoint in ["/status", "/guide", "/checks", "/package"]:
+              assert endpoint in route, f"Missing endpoint {endpoint}"
+          assert "prefix=\"/api/first-pc-runtime-verification\"" in route
+
+          frontend = files["frontend"].read_text(encoding="utf-8")
+          assert "First PC Runtime Verification" in frontend
+          assert "/api/first-pc-runtime-verification/package" in frontend
+          assert "/app/first-pc-runtime-verification" in frontend
+          assert "/app/pc-runtime-check" in frontend
+          assert "Provider Launcher" in frontend
+
+          global_state = files["global_state"].read_text(encoding="utf-8")
+          assert "current_phase\": 198" in global_state
+          assert "latest_merged_phase\": 197" in global_state
+          assert "first_pc_runtime_verification_model" in global_state
+          assert "/api/first-pc-runtime-verification/package" in global_state
+
+          docs = files["docs"].read_text(encoding="utf-8")
+          assert "/api/first-pc-runtime-verification/package" in docs
+          assert "GodModeDesktop.exe" in docs
+          assert "/app/provider-browser-local-launcher" in docs
+          assert "Esta fase não finge instalação" in docs
+
+          workflow_dir = Path(".github/workflows")
+          phase_workflows = sorted(path.name for path in workflow_dir.glob("phase*-*.yml"))
+          assert phase_workflows == ["phase198-first-pc-runtime-verification-smoke.yml"], phase_workflows
+
+          print("phase 198 first PC runtime verification file contract passed")
+          PY
