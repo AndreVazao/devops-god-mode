@@ -1,0 +1,75 @@
+name: Phase 199 Controlled Self Evolution Skills Labs Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/services/external_skills_lab_registry_service.py'
+      - 'backend/app/routes/external_skills_lab_registry.py'
+      - 'backend/app/routes/external_skills_lab_registry_frontend.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/controlled-self-evolution-skills-labs.md'
+      - '.github/workflows/phase199-controlled-self-evolution-skills-labs-smoke.yml'
+
+jobs:
+  phase199-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Phase 199 file contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = {
+              'service': Path('backend/app/services/external_skills_lab_registry_service.py'),
+              'route': Path('backend/app/routes/external_skills_lab_registry.py'),
+              'frontend': Path('backend/app/routes/external_skills_lab_registry_frontend.py'),
+              'global_state': Path('backend/app/services/god_mode_global_state_service.py'),
+              'docs': Path('docs/orchestration/controlled-self-evolution-skills-labs.md'),
+          }
+          for label, path in files.items():
+              assert path.exists(), f'Missing {label}: {path}'
+
+          service = files['service'].read_text(encoding='utf-8')
+          for marker in [
+              'class ExternalSkillsLabRegistryService',
+              'DEFAULT_SKILLS_LABS',
+              'assess_external_repo',
+              'catalog_external_repos',
+              'create_lab_creation_plan',
+              'decide_reuse',
+              'workflow_template',
+              'can_apply_code_without_gate',
+              'can_create_lab_without_gate',
+              'godmode-browser-act-skills-lab',
+              'quarantine_lab',
+          ]:
+              assert marker in service, marker
+
+          route = files['route'].read_text(encoding='utf-8')
+          for endpoint in ['/status', '/policy', '/seed-defaults', '/labs', '/assess-repo', '/catalog-repos', '/decide-reuse', '/create-reuse-plan', '/create-lab-creation-plan', '/dashboard', '/package']:
+              assert endpoint in route, f'Missing endpoint {endpoint}'
+          assert 'prefix="/api/external-skills-lab-registry"' in route
+
+          frontend = files['frontend'].read_text(encoding='utf-8')
+          for marker in ['External Skills Lab Registry', '/api/external-skills-lab-registry/assess-repo', '/api/external-skills-lab-registry/decide-reuse', '/app/external-skills-lab-registry', '/app/skills-labs']:
+              assert marker in frontend, marker
+
+          global_state = files['global_state'].read_text(encoding='utf-8')
+          for marker in ['current_phase": 199', 'latest_merged_phase": 198', 'controlled_self_evolution_model', '/api/external-skills-lab-registry/package', 'can_apply_code_without_gate']:
+              assert marker in global_state, marker
+
+          docs = files['docs'].read_text(encoding='utf-8')
+          for marker in ['/api/external-skills-lab-registry/package', 'lab_now', 'quarantine_lab', 'can_apply_code_without_gate=false']:
+              assert marker in docs, marker
+
+          workflow_dir = Path('.github/workflows')
+          phase_workflows = sorted(path.name for path in workflow_dir.glob('phase*-*.yml'))
+          assert phase_workflows == ['phase199-controlled-self-evolution-skills-labs-smoke.yml'], phase_workflows
+
+          print('phase 199 controlled self evolution skills labs file contract passed')
+          PY
