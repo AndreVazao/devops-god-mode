@@ -8,7 +8,7 @@ from app.services.module_registry_snapshot_service import module_registry_snapsh
 
 class GodModeGlobalStateService:
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_205_v1"
+    VERSION = "phase_206_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -38,37 +38,41 @@ class GodModeGlobalStateService:
             (201, "Native Skills Runtime + Candidate Adoption Queue"), (202, "First PC Install Ready Pack + One-Click Local Start Contract"),
             (203, "God Mode Self-Diagnosis Mission Control + Fix-What-Is-Missing Queue"),
             (204, "Autonomous IA Work Session Operator + Provider Work Pack Queue"),
+            (205, "Mobile Permission Relay + Driver Voice Mode + Offline Resend Queue + Local Vault Intake"),
         ]
         result = [{"phase": phase, "name": name, "status": "merged"} for phase, name in phases]
-        result.append({"phase": 205, "name": "Mobile Permission Relay + Driver Voice Mode + Offline Resend Queue + Local Vault Intake", "status": "in_progress"})
+        result.append({"phase": 206, "name": "IA Operator Permission/Vault Bridge + First Autonomous Work Loop", "status": "in_progress"})
         return result
 
+    def ia_operator_bridge_model(self) -> Dict[str, Any]:
+        return {"endpoint": "/api/ia-operator-bridge/package", "route": "/app/ia-operator-bridge", "alias": "/app/first-autonomous-work-loop", "purpose": "Run first safe autonomous loop: self-diagnosis, IA work packets, vault reference binding, mobile permission if needed, response import and task conversion.", "can_start_first_autonomous_work_loop": True, "can_use_vault_references": True, "can_request_mobile_permission": True, "can_apply_code_without_pr": False, "can_merge_without_oner_approval": False}
+
     def mobile_permission_relay_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/mobile-permission-relay/package", "route": "/app/mobile-permission-relay", "alias": "/app/driver-voice-permissions", "purpose": "Relay PC permission requests to mobile popups with wait mode, offline resend, sensitive fill contracts, vault storage and driver-safe voice decisions.", "statuses": ["queued", "sent", "delivered", "acknowledged", "approved", "rejected", "expired", "resend_pending", "offline_wait"], "can_resend_after_offline": True, "supports_driver_voice_mode": True, "can_store_raw_secrets_in_normal_memory": False, "can_store_sensitive_values_in_local_vault": True, "can_unlock_sensitive_action_without_oner": False}
+        return {"endpoint": "/api/mobile-permission-relay/package", "route": "/app/mobile-permission-relay", "alias": "/app/driver-voice-permissions", "can_resend_after_offline": True, "supports_driver_voice_mode": True, "can_store_sensitive_values_in_local_vault": True}
 
     def god_mode_local_vault_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/god-mode-vault/status", "route": "/app/god-mode-vault", "alias": "/app/vault-intake", "purpose": "Store real tokens, passwords, URLs and environment values in a local encrypted PC vault with labels, purpose, provider, project and reuse policy.", "intake_endpoint": "/api/god-mode-vault/intake-text", "references_endpoint": "/api/god-mode-vault/references", "token_plan_endpoint": "/api/god-mode-vault/plan-needed-token", "stores_encrypted_values_locally": True, "stores_raw_values_in_repo_or_normal_memory": False, "detects_placeholders": True, "supports_bulk_env_paste": True}
+        return {"endpoint": "/api/god-mode-vault/status", "route": "/app/god-mode-vault", "alias": "/app/vault-intake", "intake_endpoint": "/api/god-mode-vault/intake-text", "references_endpoint": "/api/god-mode-vault/references", "stores_encrypted_values_locally": True, "stores_raw_values_in_repo_or_normal_memory": False}
 
     def autonomous_ia_work_session_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/autonomous-ia-work-session/package", "route": "/app/autonomous-ia-work-session", "alias": "/app/ia-work-operator", "can_operate_while_oner_busy": True, "can_send_without_manual_provider_gate": False, "can_login_or_scrape_private_chats": False, "can_merge_without_oner_approval": False}
+        return {"endpoint": "/api/autonomous-ia-work-session/package", "route": "/app/autonomous-ia-work-session", "alias": "/app/ia-work-operator", "can_operate_while_oner_busy": True}
 
     def first_pc_install_ready_pack_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/first-pc-install-ready-pack/package", "route": "/app/first-pc-install-ready-pack", "alias": "/app/pc-install-ready", "canonical_local_url": "http://127.0.0.1:8000/app/home", "expected_executable": "GodModeDesktop.exe", "can_store_secrets_in_repo": False, "can_auto_update_without_gate": False}
+        return {"endpoint": "/api/first-pc-install-ready-pack/package", "route": "/app/first-pc-install-ready-pack", "alias": "/app/pc-install-ready", "canonical_local_url": "http://127.0.0.1:8000/app/home", "expected_executable": "GodModeDesktop.exe"}
 
     def god_mode_self_diagnosis_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/god-mode-self-diagnosis/package", "route": "/app/god-mode-self-diagnosis", "alias": "/app/self-fix-mission-control", "can_apply_fix_without_gate": False, "can_merge_without_oner_approval": False}
+        return {"endpoint": "/api/god-mode-self-diagnosis/package", "route": "/app/god-mode-self-diagnosis", "alias": "/app/self-fix-mission-control"}
 
     def operating_model(self) -> Dict[str, Any]:
-        return {"primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run GodModeDesktop.exe", "serve backend locally", "create work", "wait for mobile permissions", "resume after approval", "resend if mobile offline", "store and reuse vault references"]}, "primary_cockpit": {"device": "android_phone", "role": "popup_voice_permission_cockpit", "entrypoint": "/app/mobile-permission-relay", "responsibilities": ["receive popups", "approve/reject/fill when safe", "voice commands while driving", "sync after tunnels/offline"]}, "pc_cockpit": {"device": "home_pc_browser", "entrypoint": "/app/first-pc-install-ready-pack", "ia_work_operator": "/app/autonomous-ia-work-session", "permission_relay": "/app/mobile-permission-relay", "vault": "/app/god-mode-vault", "local_url": "http://127.0.0.1:8000/app/home"}}
+        return {"primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run GodModeDesktop.exe", "serve backend locally", "start safe autonomous loop", "wait for mobile permissions", "reuse vault references"]}, "primary_cockpit": {"device": "android_phone", "role": "popup_voice_permission_cockpit", "entrypoint": "/app/mobile-permission-relay"}, "pc_cockpit": {"device": "home_pc_browser", "entrypoint": "/app/first-pc-install-ready-pack", "first_loop": "/app/ia-operator-bridge", "local_url": "http://127.0.0.1:8000/app/home"}}
 
     def controlled_self_evolution_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/external-skills-lab-registry/package", "route": "/app/external-skills-lab-registry", "alias": "/app/skills-labs", "can_apply_code_without_gate": False}
+        return {"endpoint": "/api/external-skills-lab-registry/package", "route": "/app/external-skills-lab-registry", "alias": "/app/skills-labs"}
 
     def external_lab_snapshot_reader_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/external-lab-snapshot-reader/package", "route": "/app/external-lab-snapshot-reader", "alias": "/app/lab-snapshot-reader", "can_apply_candidate_without_gate": False}
+        return {"endpoint": "/api/external-lab-snapshot-reader/package", "route": "/app/external-lab-snapshot-reader", "alias": "/app/lab-snapshot-reader"}
 
     def native_skills_adoption_queue_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/native-skills-adoption-queue/package", "route": "/app/native-skills-adoption-queue", "alias": "/app/native-skills-runtime", "can_apply_code_without_gate": False}
+        return {"endpoint": "/api/native-skills-adoption-queue/package", "route": "/app/native-skills-adoption-queue", "alias": "/app/native-skills-runtime"}
 
     def first_pc_runtime_verification_model(self) -> Dict[str, Any]:
         return {"endpoint": "/api/first-pc-runtime-verification/package", "route": "/app/first-pc-runtime-verification"}
@@ -86,28 +90,28 @@ class GodModeGlobalStateService:
         return {"endpoint": "/api/repo-scanner-real-work-map/package", "route": "/app/repo-scanner-real-work-map"}
 
     def real_work_fast_path_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/real-work-fast-path/package", "route": "/app/real-work-fast-path", "default_groups": ["god_mode", "baribudos_platform", "proventil"]}
+        return {"endpoint": "/api/real-work-fast-path/package", "route": "/app/real-work-fast-path"}
 
     def project_tree_model(self) -> Dict[str, Any]:
-        return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "project_id": "GOD_MODE", "autorefresh_workflow": ".github/workflows/project-tree-autorefresh.yml"}
+        return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "project_id": "GOD_MODE"}
 
     def memory_model(self) -> Dict[str, Any]:
-        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["local encrypted vault", "vault references", "secret intake classifications", "mobile permission relay", "permission requests", "wait locks", "voice events", "autonomous IA work sessions", "provider work packets"]}}
+        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["first autonomous work loop", "bridge events", "packet bindings", "local encrypted vault", "mobile permission relay"]}}
 
     def reality_policy(self) -> Dict[str, Any]:
-        return {"status": "phase_205_mobile_permission_relay_driver_voice_vault", "principle": "PC brain can continue work, ask mobile permissions, store approved secrets in local encrypted vault, and reuse vault references per project/provider/purpose; mobile may be offline and sync later; driver mode uses voice and avoids touch while driving.", "assisted_session_merge_rule": "Assistant may merge when Oner explicitly says to continue/merge after green checks.", "blocked_runtime_autonomy": ["store raw secrets in repo or normal memory", "force driver interaction", "auto-fill credentials without gate", "merge/release/deploy/pay without approval", "private provider login automation"], "required": ["permission request", "mobile popup/card", "wait lock", "offline resend", "voice safe reply", "vault reference for sensitive values", "green checks", "AndreOS memory update"]}
+        return {"status": "phase_206_ia_operator_permission_vault_bridge", "principle": "God Mode can start the first safe autonomous loop and bind IA packets to vault references or mobile permission requests, but code application and final gates remain human-approved.", "blocked_runtime_autonomy": ["apply patches without PR", "merge/release/deploy without approval", "private provider login automation"], "required": ["autonomous loop", "packet binding", "vault reference or permission request", "response import", "task conversion"]}
 
     def backlog(self) -> Dict[str, Any]:
-        return {"high_priority_next": ["Wire IA Work Operator to Permission Relay", "Mobile push transport adapter", "Voice STT/TTS runtime adapter", "Vault reference binding to deploy/env writers"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets in repo", "Delete old phase smoke workflows when advancing"]}
+        return {"high_priority_next": ["Installable first-run autopilot page", "PC artifact direct download final guide", "Bridge task to PR plan generator", "Mobile push transport adapter"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets in repo", "Delete old phase smoke workflows when advancing"]}
 
     def module_registry(self) -> Dict[str, Any]:
         return module_registry_snapshot_service.package()
 
     def status(self) -> Dict[str, Any]:
-        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 204, "current_phase": 205, "canonical_cockpit_route": "/app/home", "mobile_permission_relay_route": "/app/mobile-permission-relay", "vault_route": "/app/god-mode-vault", "ia_work_operator_route": "/app/autonomous-ia-work-session", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "secrets_allowed_in_local_encrypted_vault": True}
+        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 205, "current_phase": 206, "canonical_cockpit_route": "/app/home", "ia_operator_bridge_route": "/app/ia-operator-bridge", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "secrets_allowed_in_local_encrypted_vault": True}
 
     def package(self) -> Dict[str, Any]:
-        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "real_work_fast_path_model": self.real_work_fast_path_model(), "repo_scanner_real_work_map_model": self.repo_scanner_real_work_map_model(), "github_repo_inventory_feed_model": self.github_repo_inventory_feed_model(), "conversation_source_import_feed_model": self.conversation_source_import_feed_model(), "provider_browser_local_launcher_model": self.provider_browser_local_launcher_model(), "first_pc_runtime_verification_model": self.first_pc_runtime_verification_model(), "first_pc_install_ready_pack_model": self.first_pc_install_ready_pack_model(), "god_mode_self_diagnosis_model": self.god_mode_self_diagnosis_model(), "autonomous_ia_work_session_model": self.autonomous_ia_work_session_model(), "mobile_permission_relay_model": self.mobile_permission_relay_model(), "god_mode_local_vault_model": self.god_mode_local_vault_model(), "controlled_self_evolution_model": self.controlled_self_evolution_model(), "external_lab_snapshot_reader_model": self.external_lab_snapshot_reader_model(), "native_skills_adoption_queue_model": self.native_skills_adoption_queue_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy(), "backlog": self.backlog()}
+        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "real_work_fast_path_model": self.real_work_fast_path_model(), "repo_scanner_real_work_map_model": self.repo_scanner_real_work_map_model(), "github_repo_inventory_feed_model": self.github_repo_inventory_feed_model(), "conversation_source_import_feed_model": self.conversation_source_import_feed_model(), "provider_browser_local_launcher_model": self.provider_browser_local_launcher_model(), "first_pc_runtime_verification_model": self.first_pc_runtime_verification_model(), "first_pc_install_ready_pack_model": self.first_pc_install_ready_pack_model(), "god_mode_self_diagnosis_model": self.god_mode_self_diagnosis_model(), "autonomous_ia_work_session_model": self.autonomous_ia_work_session_model(), "mobile_permission_relay_model": self.mobile_permission_relay_model(), "god_mode_local_vault_model": self.god_mode_local_vault_model(), "ia_operator_bridge_model": self.ia_operator_bridge_model(), "controlled_self_evolution_model": self.controlled_self_evolution_model(), "external_lab_snapshot_reader_model": self.external_lab_snapshot_reader_model(), "native_skills_adoption_queue_model": self.native_skills_adoption_queue_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy(), "backlog": self.backlog()}
 
 
 god_mode_global_state_service = GodModeGlobalStateService()
