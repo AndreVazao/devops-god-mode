@@ -1,0 +1,53 @@
+name: Phase 210 Final Install Use Pack Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/services/final_install_use_pack_service.py'
+      - 'backend/app/routes/final_install_use_pack.py'
+      - 'backend/app/routes/final_install_use_pack_frontend.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/final-install-use-pack.md'
+      - '.github/workflows/phase210-final-install-use-pack-smoke.yml'
+
+jobs:
+  phase210-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Phase 210 final install use contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files={
+            'service':Path('backend/app/services/final_install_use_pack_service.py'),
+            'route':Path('backend/app/routes/final_install_use_pack.py'),
+            'frontend':Path('backend/app/routes/final_install_use_pack_frontend.py'),
+            'global_state':Path('backend/app/services/god_mode_global_state_service.py'),
+            'docs':Path('docs/orchestration/final-install-use-pack.md'),
+          }
+          for label,path in files.items():
+              assert path.exists(), f'Missing {label}: {path}'
+          service=files['service'].read_text(encoding='utf-8')
+          for marker in ['class FinalInstallUsePackService','VERSION = "phase_210_v1"','final_readiness','apk_endpoint_contract','install_steps','start_now','192.168.1.81','192.168.1.61-101']:
+              assert marker in service, marker
+          route=files['route'].read_text(encoding='utf-8')
+          for endpoint in ['/status','/readiness','/apk-endpoint-contract','/install-steps','/start-now','/package']:
+              assert endpoint in route, endpoint
+          frontend=files['frontend'].read_text(encoding='utf-8')
+          for marker in ['God Mode Install & Use Now','/api/final-install-use/package','/api/final-install-use/start-now','/app/install-use-now','/app/final-ready']:
+              assert marker in frontend, marker
+          global_state=files['global_state'].read_text(encoding='utf-8')
+          for marker in ['current_phase": 210','latest_merged_phase": 209','final_install_use_model','/api/final-install-use/package','final_ready_route']:
+              assert marker in global_state, marker
+          docs=files['docs'].read_text(encoding='utf-8')
+          for marker in ['/api/final-install-use/package','/app/install-use-now','GodModeDesktop.exe','192.168.1.61','192.168.1.101','APK']:
+              assert marker in docs, marker
+          workflows=sorted(p.name for p in Path('.github/workflows').glob('phase*-*.yml'))
+          assert workflows == ['phase210-final-install-use-pack-smoke.yml'], workflows
+          print('phase 210 final install use contract passed')
+          PY
