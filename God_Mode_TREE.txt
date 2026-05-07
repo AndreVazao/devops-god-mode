@@ -2,6 +2,7 @@ devops-god-mode/
 ├─ .github/
 │  └─ workflows/
 │     ├─ android-real-build-progressive.yml
+│     ├─ project-tree-autorefresh.yml
 │     ├─ prune-old-artifacts-all-repos.yml
 │     ├─ universal-total-test.yml
 │     └─ windows-exe-real-build.yml
@@ -61,6 +62,8 @@ devops-god-mode/
 │  │  │  ├─ asset_derivative.py
 │  │  │  ├─ asset_workspace_sync.py
 │  │  │  ├─ automatic_project_classification.py
+│  │  │  ├─ autonomous_ia_work_session_operator_frontend.py
+│  │  │  ├─ autonomous_ia_work_session_operator.py
 │  │  │  ├─ autonomous_install_research_code.py
 │  │  │  ├─ autonomous_project_continuation.py
 │  │  │  ├─ browser_continuation_execution.py
@@ -80,15 +83,20 @@ devops-god-mode/
 │  │  │  ├─ chat_boot_briefing.py
 │  │  │  ├─ chat_inline_card_renderer_frontend.py
 │  │  │  ├─ chat_inline_card_renderer.py
+│  │  │  ├─ cockpit_runtime_ux.py
 │  │  │  ├─ context_aware_orchestration.py
 │  │  │  ├─ continuous_remote_execution.py
 │  │  │  ├─ conversation_bundle.py
+│  │  │  ├─ conversation_ledger_cockpit_review.py
 │  │  │  ├─ conversation_organization.py
 │  │  │  ├─ conversation_provider_linkage.py
 │  │  │  ├─ conversation_reconciliation.py
 │  │  │  ├─ conversation_repo_materialization.py
 │  │  │  ├─ conversation_repo_reconstruction.py
+│  │  │  ├─ conversation_requirement_ledger.py
 │  │  │  ├─ conversation_rollover_handoff.py
+│  │  │  ├─ conversation_source_import_feed_frontend.py
+│  │  │  ├─ conversation_source_import_feed.py
 │  │  │  ├─ daily_command_router.py
 │  │  │  ├─ dedup_project_intake_audit.py
 │  │  │  ├─ delivery_acknowledgment.py
@@ -116,10 +124,23 @@ devops-god-mode/
 │  │  │  ├─ external_asset_publish_execution.py
 │  │  │  ├─ external_chat_cleanup_archive.py
 │  │  │  ├─ external_fetch_runtime.py
+│  │  │  ├─ external_lab_snapshot_reader_frontend.py
+│  │  │  ├─ external_lab_snapshot_reader.py
 │  │  │  ├─ external_provider_bridge.py
+│  │  │  ├─ external_skills_lab_registry_frontend.py
+│  │  │  ├─ external_skills_lab_registry.py
 │  │  │  ├─ final_delivery.py
 │  │  │  ├─ final_install_readiness_v2.py
+│  │  │  ├─ final_install_use_pack_frontend.py
+│  │  │  ├─ final_install_use_pack.py
 │  │  │  ├─ final_summary.py
+│  │  │  ├─ first_install_pc_proof_center.py
+│  │  │  ├─ first_pc_autopilot_ready_flow_frontend.py
+│  │  │  ├─ first_pc_autopilot_ready_flow.py
+│  │  │  ├─ first_pc_install_ready_pack_frontend.py
+│  │  │  ├─ first_pc_install_ready_pack.py
+│  │  │  ├─ first_pc_runtime_verification_frontend.py
+│  │  │  ├─ first_pc_runtime_verification.py
 │  │  │  ├─ first_real_install_launcher.py
 │  │  │  ├─ first_real_run_checklist.py
 │  │  │  ├─ first_release_artifact_center_frontend.py
@@ -130,12 +151,19 @@ devops-god-mode/
 │  │  │  ├─ github_actions_connector.py
 │  │  │  ├─ github_approved_actions_executor.py
 │  │  │  ├─ github_memory_sync.py
+│  │  │  ├─ github_repo_inventory_feed_frontend.py
+│  │  │  ├─ github_repo_inventory_feed.py
 │  │  │  ├─ github_scan.py
 │  │  │  ├─ goal_planner.py
 │  │  │  ├─ god_mode_global_state.py
 │  │  │  ├─ god_mode_home_frontend.py
 │  │  │  ├─ god_mode_home.py
+│  │  │  ├─ god_mode_local_vault_frontend.py
+│  │  │  ├─ god_mode_local_vault.py
 │  │  │  ├─ god_mode_real_completion_scorecard.py
+│  │  │  ├─ god_mode_reality_audit.py
+│  │  │  ├─ god_mode_self_diagnosis_mission_control_frontend.py
+│  │  │  ├─ god_mode_self_diagnosis_mission_control.py
 │  │  │  ├─ godmode_diagnostics_frontend.py
 │  │  │  ├─ godmode_diagnostics.py
 │  │  │  ├─ godmode_remediation_frontend.py
@@ -143,6 +171,8 @@ devops-god-mode/
 │  │  │  ├─ guarded_deploy_promotion.py
 │  │  │  ├─ guided_mobile_command_center_frontend.py
 │  │  │  ├─ guided_mobile_command_center.py
+│  │  │  ├─ guided_provider_setup_wizard_frontend.py
+│  │  │  ├─ guided_provider_setup_wizard.py
 │  │  │  ├─ home_app_control_surface.py
 │  │  │  ├─ home_button_selftest.py
 │  │  │  ├─ home_command_wizard.py
@@ -151,6 +181,8 @@ devops-god-mode/
 │  │  │  ├─ home_operator_ux.py
 │  │  │  ├─ home_system_health.py
 │  │  │  ├─ home_visual_shell.py
+│  │  │  ├─ ia_operator_permission_vault_bridge_frontend.py
+│  │  │  ├─ ia_operator_permission_vault_bridge.py
 │  │  │  ├─ initial_inventory_project_graph.py
 │  │  │  ├─ install_first_run_guide.py
 │  │  │  ├─ install_readiness_final.py
@@ -163,6 +195,7 @@ devops-god-mode/
 │  │  │  ├─ intelligent_repo_merge.py
 │  │  │  ├─ intelligent_repo_state.py
 │  │  │  ├─ inter_provider_handoff_adaptation.py
+│  │  │  ├─ lab_best_of_work_ally.py
 │  │  │  ├─ learning_router_frontend.py
 │  │  │  ├─ learning_router.py
 │  │  │  ├─ live_session_control.py
@@ -172,6 +205,7 @@ devops-god-mode/
 │  │  │  ├─ local_bootstrap_backup.py
 │  │  │  ├─ local_cleanup_optimizer.py
 │  │  │  ├─ local_code_patch.py
+│  │  │  ├─ local_encrypted_vault_contract.py
 │  │  │  ├─ local_file_apply_runtime.py
 │  │  │  ├─ local_knowledge_rag_decision.py
 │  │  │  ├─ local_pc_runtime_orchestrator.py
@@ -196,11 +230,16 @@ devops-god-mode/
 │  │  │  ├─ mobile_cockpit_sync.py
 │  │  │  ├─ mobile_first_run_wizard_frontend.py
 │  │  │  ├─ mobile_first_run_wizard.py
+│  │  │  ├─ mobile_pc_pairing_remote_access_frontend.py
+│  │  │  ├─ mobile_pc_pairing_remote_access.py
+│  │  │  ├─ mobile_permission_relay_driver_voice_frontend.py
+│  │  │  ├─ mobile_permission_relay_driver_voice.py
 │  │  │  ├─ mobile_result_normalizer.py
 │  │  │  ├─ mobile_runtime_shell.py
 │  │  │  ├─ mobile_start_config_frontend.py
 │  │  │  ├─ mobile_start_config.py
 │  │  │  ├─ mobile_visual_approval.py
+│  │  │  ├─ module_registry_snapshot.py
 │  │  │  ├─ monetization_readiness_frontend.py
 │  │  │  ├─ monetization_readiness.py
 │  │  │  ├─ money_command_center_frontend.py
@@ -209,6 +248,8 @@ devops-god-mode/
 │  │  │  ├─ multi_ai_conversation_inventory.py
 │  │  │  ├─ multi_ai_intake_and_script_repair.py
 │  │  │  ├─ multi_file_parsing_placement.py
+│  │  │  ├─ native_skills_adoption_queue_frontend.py
+│  │  │  ├─ native_skills_adoption_queue.py
 │  │  │  ├─ new_project_start_intake.py
 │  │  │  ├─ obsidian_technical_sync.py
 │  │  │  ├─ offline_command_buffering_frontend.py
@@ -246,6 +287,7 @@ devops-god-mode/
 │  │  │  ├─ pc_mobile_pairing.py
 │  │  │  ├─ pc_mobile_runtime_topology.py
 │  │  │  ├─ pc_phone_bootstrap.py
+│  │  │  ├─ pc_provider_conversation_proof.py
 │  │  │  ├─ pipeline_persistence_executor.py
 │  │  │  ├─ platform_control_hardening.py
 │  │  │  ├─ platform_failure_triage.py
@@ -285,24 +327,33 @@ devops-god-mode/
 │  │  │  ├─ project_tree_autorefresh.py
 │  │  │  ├─ project_tree_sync_guard_frontend.py
 │  │  │  ├─ project_tree_sync_guard.py
+│  │  │  ├─ provider_broadcast_cockpit_frontend.py
+│  │  │  ├─ provider_browser_local_launcher_frontend.py
+│  │  │  ├─ provider_browser_local_launcher.py
+│  │  │  ├─ provider_browser_proof_link.py
 │  │  │  ├─ provider_connector_registry.py
 │  │  │  ├─ provider_delivery_router.py
 │  │  │  ├─ provider_deploy_execution.py
+│  │  │  ├─ provider_env_writers_dry_run.py
 │  │  │  ├─ provider_live_capability.py
 │  │  │  ├─ provider_onboarding_cockpit_frontend.py
 │  │  │  ├─ provider_onboarding_cockpit.py
 │  │  │  ├─ provider_onboarding_orchestrator.py
 │  │  │  ├─ provider_outcome_learning.py
+│  │  │  ├─ provider_prompt_broadcast_runtime.py
 │  │  │  ├─ provider_real_execution_guard.py
 │  │  │  ├─ provider_secret_sync.py
 │  │  │  ├─ provider_session_partition.py
 │  │  │  ├─ ready_to_use_home_check.py
 │  │  │  ├─ real_install_smoke_test.py
+│  │  │  ├─ real_local_encrypted_vault.py
 │  │  │  ├─ real_local_write.py
 │  │  │  ├─ real_operator_rehearsal.py
 │  │  │  ├─ real_orchestration_pipeline.py
 │  │  │  ├─ real_work_command_pipeline_frontend.py
 │  │  │  ├─ real_work_command_pipeline.py
+│  │  │  ├─ real_work_fast_path_frontend.py
+│  │  │  ├─ real_work_fast_path.py
 │  │  │  ├─ registry.py
 │  │  │  ├─ release_candidate_handoff.py
 │  │  │  ├─ remote_brain_linkage.py
@@ -313,6 +364,8 @@ devops-god-mode/
 │  │  │  ├─ repo_file_patch_hub.py
 │  │  │  ├─ repo_relationship_graph_frontend.py
 │  │  │  ├─ repo_relationship_graph.py
+│  │  │  ├─ repo_scanner_real_work_map_frontend.py
+│  │  │  ├─ repo_scanner_real_work_map.py
 │  │  │  ├─ repository_discovery_scout_frontend.py
 │  │  │  ├─ repository_discovery_scout.py
 │  │  │  ├─ request_orchestrator_frontend.py
@@ -331,8 +384,11 @@ devops-god-mode/
 │  │  │  ├─ self_update_manager.py
 │  │  │  ├─ self_update.py
 │  │  │  ├─ shared_secret_topology.py
+│  │  │  ├─ smol_godmode_reference_adapter.py
 │  │  │  ├─ spectacular_upgrade_advisor.py
 │  │  │  ├─ start_now_panel.py
+│  │  │  ├─ support_session_connector_frontend.py
+│  │  │  ├─ support_session_connector.py
 │  │  │  ├─ system_integrity_audit_frontend.py
 │  │  │  ├─ system_integrity_audit.py
 │  │  │  ├─ tenant_browser_onboarding_executor.py
@@ -343,6 +399,7 @@ devops-god-mode/
 │  │  │  ├─ unified_project_intake_orchestrator.py
 │  │  │  ├─ vault_deploy_env_planner_frontend.py
 │  │  │  ├─ vault_deploy_env_planner.py
+│  │  │  ├─ vault_deployment_binding.py
 │  │  │  ├─ workspace_publish_bridge.py
 │  │  │  └─ write_verify_rollback.py
 │  │  ├─ services/
@@ -378,6 +435,7 @@ devops-god-mode/
 │  │  │  ├─ asset_derivative_service.py
 │  │  │  ├─ asset_workspace_sync_service.py
 │  │  │  ├─ automatic_project_classification_service.py
+│  │  │  ├─ autonomous_ia_work_session_operator_service.py
 │  │  │  ├─ autonomous_install_research_code_service.py
 │  │  │  ├─ autonomous_project_continuation_service.py
 │  │  │  ├─ browser_continuation_execution_service.py
@@ -394,15 +452,19 @@ devops-god-mode/
 │  │  │  ├─ chat_autopilot_supervisor_service.py
 │  │  │  ├─ chat_boot_briefing_service.py
 │  │  │  ├─ chat_inline_card_renderer_service.py
+│  │  │  ├─ cockpit_runtime_ux_service.py
 │  │  │  ├─ context_aware_orchestration_service.py
 │  │  │  ├─ continuous_remote_execution_service.py
 │  │  │  ├─ conversation_bundle_service.py
+│  │  │  ├─ conversation_ledger_cockpit_review_service.py
 │  │  │  ├─ conversation_organization_service.py
 │  │  │  ├─ conversation_provider_linkage_service.py
 │  │  │  ├─ conversation_reconciliation_service.py
 │  │  │  ├─ conversation_repo_materialization_service.py
 │  │  │  ├─ conversation_repo_reconstruction_service.py
+│  │  │  ├─ conversation_requirement_ledger_service.py
 │  │  │  ├─ conversation_rollover_handoff_service.py
+│  │  │  ├─ conversation_source_import_feed_service.py
 │  │  │  ├─ daily_command_router_service.py
 │  │  │  ├─ dedup_project_intake_audit_service.py
 │  │  │  ├─ delivery_acknowledgment_service.py
@@ -429,10 +491,17 @@ devops-god-mode/
 │  │  │  ├─ external_asset_publish_execution_service.py
 │  │  │  ├─ external_chat_cleanup_archive_service.py
 │  │  │  ├─ external_fetch_runtime_service.py
+│  │  │  ├─ external_lab_snapshot_reader_service.py
 │  │  │  ├─ external_provider_bridge_service.py
+│  │  │  ├─ external_skills_lab_registry_service.py
 │  │  │  ├─ final_delivery_service.py
 │  │  │  ├─ final_install_readiness_v2_service.py
+│  │  │  ├─ final_install_use_pack_service.py
 │  │  │  ├─ final_summary_service.py
+│  │  │  ├─ first_install_pc_proof_center_service.py
+│  │  │  ├─ first_pc_autopilot_ready_flow_service.py
+│  │  │  ├─ first_pc_install_ready_pack_service.py
+│  │  │  ├─ first_pc_runtime_verification_service.py
 │  │  │  ├─ first_real_install_launcher_service.py
 │  │  │  ├─ first_real_run_checklist_service.py
 │  │  │  ├─ first_release_artifact_center_service.py
@@ -441,15 +510,21 @@ devops-god-mode/
 │  │  │  ├─ github_actions_connector_service.py
 │  │  │  ├─ github_approved_actions_executor_service.py
 │  │  │  ├─ github_memory_sync_service.py
+│  │  │  ├─ github_repo_inventory_feed_service.py
 │  │  │  ├─ github_service.py
 │  │  │  ├─ goal_planner_service.py
 │  │  │  ├─ god_mode_global_state_service.py
 │  │  │  ├─ god_mode_home_service.py
+│  │  │  ├─ god_mode_local_vault_service.py
 │  │  │  ├─ god_mode_real_completion_scorecard_service.py
+│  │  │  ├─ god_mode_reality_audit_service.py
+│  │  │  ├─ god_mode_secret_intake_classifier_service.py
+│  │  │  ├─ god_mode_self_diagnosis_mission_control_service.py
 │  │  │  ├─ godmode_diagnostics_service.py
 │  │  │  ├─ godmode_remediation_service.py
 │  │  │  ├─ guarded_deploy_promotion_service.py
 │  │  │  ├─ guided_mobile_command_center_service.py
+│  │  │  ├─ guided_provider_setup_wizard_service.py
 │  │  │  ├─ home_app_control_surface_service.py
 │  │  │  ├─ home_button_selftest_service.py
 │  │  │  ├─ home_command_wizard_service.py
@@ -458,6 +533,7 @@ devops-god-mode/
 │  │  │  ├─ home_operator_ux_service.py
 │  │  │  ├─ home_system_health_service.py
 │  │  │  ├─ home_visual_shell_service.py
+│  │  │  ├─ ia_operator_permission_vault_bridge_service.py
 │  │  │  ├─ initial_inventory_project_graph_service.py
 │  │  │  ├─ install_first_run_guide_service.py
 │  │  │  ├─ install_readiness_final_service.py
@@ -469,6 +545,7 @@ devops-god-mode/
 │  │  │  ├─ intelligent_repo_merge_service.py
 │  │  │  ├─ intelligent_repo_state_service.py
 │  │  │  ├─ inter_provider_handoff_adaptation_service.py
+│  │  │  ├─ lab_best_of_work_ally_service.py
 │  │  │  ├─ learning_router_service.py
 │  │  │  ├─ live_session_control_service.py
 │  │  │  ├─ local_ai_adapter_service.py
@@ -477,6 +554,7 @@ devops-god-mode/
 │  │  │  ├─ local_bootstrap_backup_service.py
 │  │  │  ├─ local_cleanup_optimizer_service.py
 │  │  │  ├─ local_code_patch_service.py
+│  │  │  ├─ local_encrypted_vault_contract_service.py
 │  │  │  ├─ local_file_apply_runtime_service.py
 │  │  │  ├─ local_knowledge_rag_decision_service.py
 │  │  │  ├─ local_pc_runtime_orchestrator_service.py
@@ -497,14 +575,19 @@ devops-god-mode/
 │  │  │  ├─ mobile_cockpit_command_surface_service.py
 │  │  │  ├─ mobile_cockpit_sync_service.py
 │  │  │  ├─ mobile_first_run_wizard_service.py
+│  │  │  ├─ mobile_pc_pairing_remote_access_service.py
+│  │  │  ├─ mobile_permission_popup_contract_service.py
+│  │  │  ├─ mobile_permission_relay_driver_voice_service.py
 │  │  │  ├─ mobile_result_normalizer_service.py
 │  │  │  ├─ mobile_start_config_service.py
 │  │  │  ├─ mobile_visual_approval_service.py
+│  │  │  ├─ module_registry_snapshot_service.py
 │  │  │  ├─ monetization_readiness_service.py
 │  │  │  ├─ money_command_center_service.py
 │  │  │  ├─ multi_ai_conversation_inventory_service.py
 │  │  │  ├─ multi_ai_intake_and_script_repair_service.py
 │  │  │  ├─ multi_file_parsing_placement_service.py
+│  │  │  ├─ native_skills_adoption_queue_service.py
 │  │  │  ├─ new_project_start_intake_service.py
 │  │  │  ├─ obsidian_technical_sync_service.py
 │  │  │  ├─ offline_command_buffering_service.py
@@ -534,6 +617,7 @@ devops-god-mode/
 │  │  │  ├─ pc_mobile_pairing_service.py
 │  │  │  ├─ pc_mobile_runtime_topology_service.py
 │  │  │  ├─ pc_phone_bootstrap_service.py
+│  │  │  ├─ pc_provider_conversation_proof_service.py
 │  │  │  ├─ pipeline_persistence_executor_service.py
 │  │  │  ├─ platform_control_hardening_service.py
 │  │  │  ├─ platform_failure_triage_service.py
@@ -568,22 +652,28 @@ devops-god-mode/
 │  │  │  ├─ project_recovery_write_submit_service.py
 │  │  │  ├─ project_tree_autorefresh_service.py
 │  │  │  ├─ project_tree_sync_guard_service.py
+│  │  │  ├─ provider_browser_local_launcher_service.py
+│  │  │  ├─ provider_browser_proof_link_service.py
 │  │  │  ├─ provider_completion_router_service.py
 │  │  │  ├─ provider_connector_registry_service.py
 │  │  │  ├─ provider_deploy_execution_service.py
+│  │  │  ├─ provider_env_writers_dry_run_service.py
 │  │  │  ├─ provider_live_capability_service.py
 │  │  │  ├─ provider_onboarding_cockpit_service.py
 │  │  │  ├─ provider_onboarding_orchestrator_service.py
 │  │  │  ├─ provider_outcome_learning_service.py
+│  │  │  ├─ provider_prompt_broadcast_runtime_service.py
 │  │  │  ├─ provider_real_execution_guard_service.py
 │  │  │  ├─ provider_secret_sync_service.py
 │  │  │  ├─ provider_session_partition_service.py
 │  │  │  ├─ ready_to_use_home_check_service.py
 │  │  │  ├─ real_install_smoke_test_service.py
+│  │  │  ├─ real_local_encrypted_vault_service.py
 │  │  │  ├─ real_local_write_service.py
 │  │  │  ├─ real_operator_rehearsal_service.py
 │  │  │  ├─ real_orchestration_pipeline_service.py
 │  │  │  ├─ real_work_command_pipeline_service.py
+│  │  │  ├─ real_work_fast_path_service.py
 │  │  │  ├─ registry_service.py
 │  │  │  ├─ release_candidate_handoff_service.py
 │  │  │  ├─ remote_brain_linkage_service.py
@@ -593,6 +683,7 @@ devops-god-mode/
 │  │  │  ├─ repo_file_patch_executor_service.py
 │  │  │  ├─ repo_file_patch_hub_service.py
 │  │  │  ├─ repo_relationship_graph_service.py
+│  │  │  ├─ repo_scanner_real_work_map_service.py
 │  │  │  ├─ repository_discovery_scout_service.py
 │  │  │  ├─ request_orchestrator_service.py
 │  │  │  ├─ request_worker_loop_service.py
@@ -607,8 +698,10 @@ devops-god-mode/
 │  │  │  ├─ self_update_manager_service.py
 │  │  │  ├─ self_update_service.py
 │  │  │  ├─ shared_secret_topology_service.py
+│  │  │  ├─ smol_godmode_reference_adapter_service.py
 │  │  │  ├─ spectacular_upgrade_advisor_service.py
 │  │  │  ├─ start_now_panel_service.py
+│  │  │  ├─ support_session_connector_service.py
 │  │  │  ├─ system_integrity_audit_service.py
 │  │  │  ├─ tenant_browser_onboarding_executor_service.py
 │  │  │  ├─ tenant_multirepo_linkage_service.py
@@ -617,6 +710,7 @@ devops-god-mode/
 │  │  │  ├─ tenant_scoped_vault_projection_service.py
 │  │  │  ├─ unified_project_intake_orchestrator_service.py
 │  │  │  ├─ vault_deploy_env_planner_service.py
+│  │  │  ├─ vault_deployment_binding_service.py
 │  │  │  ├─ workspace_publish_bridge_service.py
 │  │  │  └─ write_verify_rollback_service.py
 │  │  ├─ utils/
@@ -961,19 +1055,56 @@ devops-god-mode/
 │  │  └─ program-obsidian-runtime-policy.md
 │  ├─ orchestration/
 │  │  ├─ app-entrypoint-manifest.md
+│  │  ├─ autonomous-ia-work-session-operator.md
+│  │  ├─ cockpit-runtime-ux.md
+│  │  ├─ controlled-self-evolution-skills-labs.md
+│  │  ├─ conversation-ledger-cockpit-review.md
+│  │  ├─ conversation-requirement-ledger.md
+│  │  ├─ conversation-source-import-feed.md
 │  │  ├─ execution-modes-engine-v1.md
+│  │  ├─ external-lab-snapshot-reader.md
+│  │  ├─ final-install-use-pack.md
+│  │  ├─ first-install-pc-proof-center.md
+│  │  ├─ first-pc-autopilot-ready-flow.md
+│  │  ├─ first-pc-install-ready-pack.md
+│  │  ├─ first-pc-runtime-verification.md
 │  │  ├─ github-approved-actions-executor.md
+│  │  ├─ github-repo-inventory-feed.md
 │  │  ├─ god-mode-global-state.md
+│  │  ├─ god-mode-self-diagnosis-mission-control.md
+│  │  ├─ guided-provider-setup-wizard.md
 │  │  ├─ home-app-control-surface.md
 │  │  ├─ home-visual-shell.md
+│  │  ├─ ia-operator-permission-vault-bridge.md
+│  │  ├─ lab-best-of-work-ally.md
+│  │  ├─ lan-connection-discovery.md
+│  │  ├─ local-encrypted-vault-contract.md
 │  │  ├─ local-knowledge-rag-decision-v1.md
 │  │  ├─ memory-sync-runtime.md
+│  │  ├─ mobile-pc-pairing-remote-access.md
+│  │  ├─ mobile-permission-relay-driver-voice.md
+│  │  ├─ module-registry-snapshot.md
+│  │  ├─ native-skills-adoption-queue.md
 │  │  ├─ orchestration-playbooks-v1.md
+│  │  ├─ pc-provider-conversation-proof.md
 │  │  ├─ pipeline-persistence-low-risk-executor-v1.md
 │  │  ├─ playbook-templates-library-v1.md
 │  │  ├─ playbook-templates-library.md
+│  │  ├─ project-tree-autorefresh.md
+│  │  ├─ provider-browser-local-launcher.md
+│  │  ├─ provider-browser-proof-link.md
+│  │  ├─ provider-env-writers-dry-run.md
 │  │  ├─ provider-outcome-learning.md
-│  │  └─ real-orchestration-pipeline-v1.md
+│  │  ├─ provider-prompt-broadcast-runtime.md
+│  │  ├─ real-local-encrypted-vault.md
+│  │  ├─ real-orchestration-pipeline-v1.md
+│  │  ├─ real-work-fast-path.md
+│  │  ├─ reality-audit-first-install.md
+│  │  ├─ repo-scanner-real-work-map.md
+│  │  ├─ smol-godmode-reference-adapter.md
+│  │  ├─ support-session-connector.md
+│  │  ├─ vault-deployment-binding.md
+│  │  └─ visible-provider-broadcast-cockpit.md
 │  ├─ planning/
 │  │  └─ goal-planner-core.md
 │  ├─ research/
@@ -1174,10 +1305,13 @@ devops-god-mode/
 │  │        └─ INDEX.md
 │  └─ README.md
 ├─ scripts/
-│  └─ windows/
-│     ├─ start-god-mode-hybrid.ps1
-│     ├─ start-god-mode-local.ps1
-│     └─ start-mobile-shell-local.ps1
+│  ├─ windows/
+│  │  ├─ start-god-mode-hybrid.ps1
+│  │  ├─ start-god-mode-local.ps1
+│  │  └─ start-mobile-shell-local.ps1
+│  └─ generate_project_tree.py
+├─ tools/
+│  └─ pc_provider_conversation_probe.py
 ├─ .gitignore
 ├─ God_Mode_TREE.txt
 └─ README.md
