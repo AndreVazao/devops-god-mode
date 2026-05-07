@@ -22,11 +22,15 @@ PAIRING_STORE = AtomicJsonStore(
 
 REMOTE_PROVIDERS = ["cloudflare_tunnel", "tailscale", "ngrok", "manual_public_url"]
 KNOWN_HOME_PC_IPS = ["192.168.1.81"]
+KNOWN_HOME_PHONE_IPS = ["192.168.1.47"]
+LAN_SWEEP_BASE_IP = "192.168.1.81"
+LAN_SWEEP_RADIUS = 20
+LAN_SWEEP_PORT = 8000
 
 
 class MobilePcPairingRemoteAccessService:
     SERVICE_ID = "mobile_pc_pairing_remote_access"
-    VERSION = "phase_208_v1"
+    VERSION = "phase_209_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -39,9 +43,14 @@ class MobilePcPairingRemoteAccessService:
             "version": self.VERSION,
             "generated_at": self._now(),
             "known_home_pc_ips": KNOWN_HOME_PC_IPS,
+            "known_home_phone_ips": KNOWN_HOME_PHONE_IPS,
+            "lan_sweep_base_ip": LAN_SWEEP_BASE_IP,
+            "lan_sweep_radius": LAN_SWEEP_RADIUS,
+            "lan_sweep_range": self._lan_sweep_range(),
             "pairing_session_count": len(state.get("pairing_sessions", [])),
             "remote_profile_count": len(state.get("remote_profiles", [])),
             "supports_home_auto_pairing": True,
+            "supports_lan_sweep_candidates": True,
             "supports_remote_access_contract": True,
             "remote_access_requires_provider_or_public_url": True,
             "stores_remote_secrets_in_vault": True,
@@ -49,10 +58,11 @@ class MobilePcPairingRemoteAccessService:
 
     def create_pairing_session(self, tenant_id: str = "owner-andre", port: int = 8000, ttl_minutes: int = 30) -> Dict[str, Any]:
         local_ips = self._local_ips()
+        lan_candidates = self.lan_scan_candidates(port=port).get("lan_candidates", [])
         session_id = f"pairing-{uuid4().hex[:12]}"
         pairing_code = base64.urlsafe_b64encode(os.urandom(9)).decode("ascii").rstrip("=")
         expires_at = (datetime.now(timezone.utc) + timedelta(minutes=max(5, min(ttl_minutes, 1440)))).isoformat()
-        urls = [f"http://{ip}:{port}/app/mobile-permission-relay" for ip in local_ips]
+        urls = self._dedupe([item["url"] for item in lan_candidates] + [f"http://{ip}:{port}/app/mobile-permission-relay" for ip in local_ips])
         manifest = {
             "pairing_session_id": session_id,
             "pairing_code": pairing_code,
@@ -61,6 +71,11 @@ class MobilePcPairingRemoteAccessService:
             "expires_at": expires_at,
             "pc_name": socket.gethostname(),
             "known_home_pc_ips": KNOWN_HOME_PC_IPS,
+            "known_home_phone_ips": KNOWN_HOME_PHONE_IPS,
+            "lan_sweep_base_ip": LAN_SWEEP_BASE_IP,
+            "lan_sweep_radius": LAN_SWEEP_RADIUS,
+            "lan_sweep_range": self._lan_sweep_range(),
+            "lan_candidates": lan_candidates,
             "local_ips": local_ips,
             "port": port,
             "home_urls": urls,
@@ -72,12 +87,37 @@ class MobilePcPairingRemoteAccessService:
                 "/app/god-mode-vault",
                 "/app/mobile-pc-pairing",
             ],
-            "qr_payload": json.dumps({"type": "god_mode_pairing", "pairing_session_id": session_id, "code": pairing_code, "urls": urls, "known_home_pc_ips": KNOWN_HOME_PC_IPS}, ensure_ascii=False),
+            "qr_payload": json.dumps({"type": "god_mode_pairing", "pairing_session_id": session_id, "code": pairing_code, "urls": urls, "lan_candidates": lan_candidates, "known_home_pc_ips": KNOWN_HOME_PC_IPS, "known_home_phone_ips": KNOWN_HOME_PHONE_IPS}, ensure_ascii=False),
             "status": "active",
             "remote_profile_id": None,
         }
         self._store("pairing_sessions", manifest)
         return {"ok": True, "mode": "create_pairing_session", "pairing_session": manifest}
+
+    def lan_scan_candidates(self, port: int = LAN_SWEEP_PORT) -> Dict[str, Any]:
+        ip_order = self._lan_sweep_ips()
+        candidates = []
+        for rank, ip in enumerate(ip_order, start=1):
+            candidates.append({
+                "rank": rank,
+                "ip": ip,
+                "url": f"http://{ip}:{port}/app/mobile-permission-relay",
+                "health_url": f"http://{ip}:{port}/api/health",
+                "mode": "home_lan_sweep",
+                "priority": self._candidate_priority(ip),
+                "reason": self._candidate_reason(ip),
+            })
+        return {
+            "ok": True,
+            "mode": "lan_scan_candidates",
+            "base_ip": LAN_SWEEP_BASE_IP,
+            "radius": LAN_SWEEP_RADIUS,
+            "range": self._lan_sweep_range(),
+            "known_home_pc_ips": KNOWN_HOME_PC_IPS,
+            "known_home_phone_ips": KNOWN_HOME_PHONE_IPS,
+            "candidate_count": len(candidates),
+            "lan_candidates": candidates,
+        }
 
     def create_remote_access_plan(
         self,
@@ -156,9 +196,12 @@ class MobilePcPairingRemoteAccessService:
             "mode": "connection_manifest",
             "home": latest_session,
             "remote": ready_remote,
+            "lan_scan": self.lan_scan_candidates(port=int((latest_session or {}).get("port") or LAN_SWEEP_PORT)),
             "mobile_should_try_in_order": self._try_order(latest_session, ready_remote),
             "notes": [
                 "Dentro de casa, usar primeiro 192.168.1.81:8000 na mesma rede Wi-Fi.",
+                "Se o IP do PC mudar, o APK deve varrer 192.168.1.61 até 192.168.1.101.",
+                "Hint de telemóvel visto antes: 192.168.1.47; não é alvo do backend, mas ajuda a validar a gama da rede.",
                 "Da rua, usar HTTPS remoto via tunnel/mesh/public URL aprovado.",
                 "Para hoje, Tailscale é o caminho mais rápido e seguro; Cloudflare Tunnel é melhor para URL estável futura.",
             ],
@@ -173,13 +216,62 @@ class MobilePcPairingRemoteAccessService:
     def _try_order(self, session: Dict[str, Any] | None, remote: Dict[str, Any] | None) -> List[Dict[str, str]]:
         items: List[Dict[str, str]] = []
         home_urls = list((session or {}).get("home_urls", []))
-        preferred = "http://192.168.1.81:8000/app/mobile-permission-relay"
-        ordered_urls = [preferred] + [url for url in home_urls if url != preferred]
-        for url in ordered_urls:
+        sweep_urls = [candidate["url"] for candidate in self.lan_scan_candidates(port=int((session or {}).get("port") or LAN_SWEEP_PORT)).get("lan_candidates", [])]
+        for url in self._dedupe(sweep_urls + home_urls):
             items.append({"mode": "home_lan", "url": url})
         if remote and remote.get("mobile_entry_url"):
             items.append({"mode": "remote", "url": remote["mobile_entry_url"]})
         return items
+
+    def _candidate_priority(self, ip: str) -> str:
+        if ip in KNOWN_HOME_PC_IPS:
+            return "known_pc_first"
+        last = int(ip.rsplit(".", 1)[-1])
+        base_last = int(LAN_SWEEP_BASE_IP.rsplit(".", 1)[-1])
+        distance = abs(last - base_last)
+        if distance <= 3:
+            return "near_known_pc"
+        if distance <= 10:
+            return "medium_near_known_pc"
+        return "sweep_fallback"
+
+    def _candidate_reason(self, ip: str) -> str:
+        if ip in KNOWN_HOME_PC_IPS:
+            return "Known current PC IP provided by Oner."
+        if ip in KNOWN_HOME_PHONE_IPS:
+            return "Known previous phone IP hint; useful for network range validation, not expected PC target."
+        return f"LAN sweep candidate around {LAN_SWEEP_BASE_IP} +/- {LAN_SWEEP_RADIUS}."
+
+    def _lan_sweep_range(self) -> Dict[str, Any]:
+        prefix, base_last = self._split_ipv4(LAN_SWEEP_BASE_IP)
+        start = max(1, base_last - LAN_SWEEP_RADIUS)
+        end = min(254, base_last + LAN_SWEEP_RADIUS)
+        return {"prefix": prefix, "start": start, "end": end, "base_last_octet": base_last}
+
+    def _lan_sweep_ips(self) -> List[str]:
+        prefix, base_last = self._split_ipv4(LAN_SWEEP_BASE_IP)
+        start = max(1, base_last - LAN_SWEEP_RADIUS)
+        end = min(254, base_last + LAN_SWEEP_RADIUS)
+        ordered_last_octets = [base_last]
+        for distance in range(1, LAN_SWEEP_RADIUS + 1):
+            low = base_last - distance
+            high = base_last + distance
+            if start <= low <= end:
+                ordered_last_octets.append(low)
+            if start <= high <= end:
+                ordered_last_octets.append(high)
+        for hint in KNOWN_HOME_PHONE_IPS:
+            try:
+                hint_prefix, hint_last = self._split_ipv4(hint)
+                if hint_prefix == prefix and hint_last not in ordered_last_octets:
+                    ordered_last_octets.append(hint_last)
+            except Exception:
+                pass
+        return [f"{prefix}.{last}" for last in ordered_last_octets]
+
+    def _split_ipv4(self, ip: str) -> tuple[str, int]:
+        parts = ip.split(".")
+        return ".".join(parts[:3]), int(parts[3])
 
     def _remote_recommendation(self, provider: str) -> str:
         if provider == "tailscale":
@@ -219,6 +311,15 @@ class MobilePcPairingRemoteAccessService:
         ordered = [ip for ip in KNOWN_HOME_PC_IPS if ip in ips]
         ordered.extend(sorted(ip for ip in ips if ip not in set(ordered)))
         return ordered
+
+    def _dedupe(self, values: List[str]) -> List[str]:
+        seen = set()
+        result = []
+        for value in values:
+            if value not in seen:
+                seen.add(value)
+                result.append(value)
+        return result
 
     def _find(self, bucket: str, key: str, value: str) -> Dict[str, Any] | None:
         return next((item for item in PAIRING_STORE.load().get(bucket, []) if item.get(key) == value), None)
