@@ -92,6 +92,7 @@ PC God Mode brain
 → precisa de autorização / login / preenchimento / decisão
 → cria permission_request
 → cria mobile card / popup contract
+→ cria popup_contract JSON
 → cria wait_lock
 → mobile poll recebe pedido
 → Oner aprova/rejeita/preenche/fala
@@ -105,7 +106,7 @@ PC God Mode brain
 
 O padrão visual alvo é equivalente aos popups de autorização ChatGPT/GitHub usados durante desenvolvimento assistido.
 
-O popup deve mostrar:
+O `popup_contract` deve mostrar:
 
 - serviço/origem, por exemplo `GitHub`, `Provider`, `God Mode PC`, `Vault`;
 - ação, por exemplo `Update GitHub file`, `Delete workflow file`, `Create pull request`, `Provider login required`;
