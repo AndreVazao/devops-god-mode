@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.services.god_mode_local_vault_service import god_mode_local_vault_service
 from app.services.mobile_permission_popup_contract_service import mobile_permission_popup_contract_service
 from app.services.mobile_permission_relay_driver_voice_service import mobile_permission_relay_driver_voice_service
 
@@ -140,7 +141,7 @@ def mark_resend_pending(payload: OfflinePayload) -> dict[str, Any]:
 
 @router.post("/decide")
 def decide(payload: DecisionPayload) -> dict[str, Any]:
-    return mobile_permission_relay_driver_voice_service.decide_permission(
+    result = mobile_permission_relay_driver_voice_service.decide_permission(
         permission_request_id=payload.permission_request_id,
         decision=payload.decision,
         operator_note=payload.operator_note,
@@ -148,6 +149,36 @@ def decide(payload: DecisionPayload) -> dict[str, Any]:
         via=payload.via,
         tenant_id=payload.tenant_id,
     )
+    request = result.get("permission_request") or {}
+    normalized = str(payload.decision).lower().strip()
+    approved = normalized in {"approved", "approve", "ok", "sim", "yes"} or request.get("status") == "approved"
+    if approved and payload.form_values and request.get("requires_sensitive_input"):
+        vault_refs = []
+        schema = request.get("form_schema", []) or []
+        sensitive_fields = {str(field.get("name")): field for field in schema if field.get("sensitive")}
+        for field_name, field in sensitive_fields.items():
+            raw_value = payload.form_values.get(field_name)
+            if raw_value:
+                source_ref = request.get("source_ref") or {}
+                provider = str(source_ref.get("provider") or source_ref.get("type") or request.get("request_type") or "manual")
+                stored = god_mode_local_vault_service.store_secret(
+                    raw_secret=str(raw_value),
+                    label=f"{provider}:{request.get('project_id', 'GOD_MODE')}:{field_name}",
+                    purpose=f"{request.get('title', 'Permission request')} | {request.get('body', '')[:180]}",
+                    secret_kind=str(field.get("type") or "credential"),
+                    provider=provider,
+                    project_id=str(request.get("project_id") or "GOD_MODE"),
+                    scope="project",
+                    source_ref={"type": "mobile_permission_relay", "permission_request_id": payload.permission_request_id, "field": field_name, **source_ref},
+                    reuse_policy="reuse_for_same_provider_project_and_purpose",
+                    tenant_id=payload.tenant_id,
+                )
+                if stored.get("vault_reference"):
+                    vault_refs.append(stored["vault_reference"])
+        result["vault_references_created"] = vault_refs
+        result["sensitive_values_stored_in_vault"] = bool(vault_refs)
+        result["raw_secret_values_returned"] = False
+    return result
 
 
 @router.post("/voice-event")
