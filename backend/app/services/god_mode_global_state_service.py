@@ -8,7 +8,7 @@ from app.services.module_registry_snapshot_service import module_registry_snapsh
 
 class GodModeGlobalStateService:
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_202_v1"
+    VERSION = "phase_203_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -35,10 +35,10 @@ class GodModeGlobalStateService:
             (195, "GitHub Repo Inventory Connector + Real Work Scanner Feed"), (196, "Conversation Source Import Automation + Work Map Feed"),
             (197, "Provider Browser Proof Local Launcher + Capture Contract"), (198, "First PC Install Operator Guide + Runtime Verification Cockpit"),
             (199, "Controlled Self-Evolution + External Skills Lab Registry"), (200, "External Lab Snapshot Reader + Native Skill Candidate Planner"),
-            (201, "Native Skills Runtime + Candidate Adoption Queue"),
+            (201, "Native Skills Runtime + Candidate Adoption Queue"), (202, "First PC Install Ready Pack + One-Click Local Start Contract"),
         ]
         result = [{"phase": phase, "name": name, "status": "merged"} for phase, name in phases]
-        result.append({"phase": 202, "name": "First PC Install Ready Pack + One-Click Local Start Contract", "status": "in_progress"})
+        result.append({"phase": 203, "name": "God Mode Self-Diagnosis Mission Control + Fix-What-Is-Missing Queue", "status": "in_progress"})
         return result
 
     def controlled_self_evolution_model(self) -> Dict[str, Any]:
@@ -51,22 +51,24 @@ class GodModeGlobalStateService:
         return {"endpoint": "/api/native-skills-adoption-queue/package", "route": "/app/native-skills-adoption-queue", "alias": "/app/native-skills-runtime", "can_apply_code_without_gate": False, "can_merge_without_oner_approval": False}
 
     def first_pc_install_ready_pack_model(self) -> Dict[str, Any]:
+        return {"endpoint": "/api/first-pc-install-ready-pack/package", "route": "/app/first-pc-install-ready-pack", "alias": "/app/pc-install-ready", "canonical_local_url": "http://127.0.0.1:8000/app/home", "expected_executable": "GodModeDesktop.exe", "can_store_secrets_in_repo": False, "can_auto_update_without_gate": False}
+
+    def god_mode_self_diagnosis_model(self) -> Dict[str, Any]:
         return {
-            "endpoint": "/api/first-pc-install-ready-pack/package",
-            "route": "/app/first-pc-install-ready-pack",
-            "alias": "/app/pc-install-ready",
-            "purpose": "Aggregate install readiness, artifacts, runtime verification and one-click local start contract for the first real PC installation.",
-            "canonical_local_url": "http://127.0.0.1:8000/app/home",
-            "expected_executable": "GodModeDesktop.exe",
-            "can_store_secrets_in_repo": False,
-            "can_auto_update_without_gate": False,
+            "endpoint": "/api/god-mode-self-diagnosis/package",
+            "route": "/app/god-mode-self-diagnosis",
+            "alias": "/app/self-fix-mission-control",
+            "purpose": "Diagnose what is still missing for God Mode itself to become real, installable and self-improvable through gated PRs.",
+            "outputs": ["diagnostic_run", "gap list", "self_fix_queue_item", "PR planning brief", "mobile review card"],
+            "can_apply_fix_without_gate": False,
+            "can_merge_without_oner_approval": False,
         }
 
     def operating_model(self) -> Dict[str, Any]:
         return {
-            "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run GodModeDesktop.exe", "serve backend locally", "host cockpit", "evaluate labs", "prepare gated self-evolution"]},
+            "primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run GodModeDesktop.exe", "serve backend locally", "host cockpit", "diagnose missing God Mode pieces", "prepare gated self-evolution"]},
             "primary_cockpit": {"device": "android_phone", "role": "remote_operator_cockpit", "entrypoint": "/app/home", "responsibilities": ["review cards", "approve gates", "drive real work"]},
-            "pc_cockpit": {"device": "home_pc_browser", "entrypoint": "/app/first-pc-install-ready-pack", "local_url": "http://127.0.0.1:8000/app/home"},
+            "pc_cockpit": {"device": "home_pc_browser", "entrypoint": "/app/first-pc-install-ready-pack", "self_diagnosis": "/app/god-mode-self-diagnosis", "local_url": "http://127.0.0.1:8000/app/home"},
         }
 
     def first_pc_runtime_verification_model(self) -> Dict[str, Any]:
@@ -91,22 +93,22 @@ class GodModeGlobalStateService:
         return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "project_id": "GOD_MODE", "autorefresh_workflow": ".github/workflows/project-tree-autorefresh.yml"}
 
     def memory_model(self) -> Dict[str, Any]:
-        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["install ready pack", "external lab registry", "lab snapshot imports", "native skill candidates", "native skills adoption queue", "implementation plans", "controlled evolution cards"]}}
+        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["self diagnosis mission control", "self fix queue", "install ready pack", "external lab registry", "native skills adoption queue", "controlled evolution cards"]}}
 
     def reality_policy(self) -> Dict[str, Any]:
-        return {"status": "phase_202_first_pc_install_ready_pack", "principle": "God Mode should become installable and usable on the home PC quickly, while autonomous self-update/merge/release remains gated.", "assisted_session_merge_rule": "Assistant may merge when Oner explicitly says to continue/merge after green checks.", "blocked_runtime_autonomy": ["merge without Oner approval", "release without Oner approval", "store secrets", "blind external code copy", "auto-update without gate"], "required": ["artifacts", "local start contract", "runtime readiness", "PC cockpit", "green checks", "AndreOS memory update"]}
+        return {"status": "phase_203_self_diagnosis_mission_control", "principle": "God Mode should diagnose its own missing pieces and create a self-fix queue, but actual fixes remain PR/gate/test/approval controlled.", "assisted_session_merge_rule": "Assistant may merge when Oner explicitly says to continue/merge after green checks.", "blocked_runtime_autonomy": ["merge without Oner approval", "release without Oner approval", "store secrets", "blind external code copy", "auto-update without gate", "apply self-fix without PR"], "required": ["self diagnosis", "self-fix queue", "PR planning brief", "green checks", "AndreOS memory update"]}
 
     def backlog(self) -> Dict[str, Any]:
-        return {"high_priority_next": ["PC First Run Smoke Artifact Reader", "Candidate-to-PR Plan Generator", "Self-update staged installer path", "Mobile-to-PC connection guide"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets", "Use GOD_MODE_TREE.md as official tree artifact", "Delete old phase smoke workflows when advancing"]}
+        return {"high_priority_next": ["Self Fix Queue to PR Plan Generator", "PC First Run Outcome Recorder", "Self-update staged installer path", "Mobile-to-PC connection guide"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets", "Use GOD_MODE_TREE.md as official tree artifact", "Delete old phase smoke workflows when advancing"]}
 
     def module_registry(self) -> Dict[str, Any]:
         return module_registry_snapshot_service.package()
 
     def status(self) -> Dict[str, Any]:
-        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 201, "current_phase": 202, "canonical_cockpit_route": "/app/home", "pc_install_ready_pack_route": "/app/first-pc-install-ready-pack", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md"}
+        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 202, "current_phase": 203, "canonical_cockpit_route": "/app/home", "pc_install_ready_pack_route": "/app/first-pc-install-ready-pack", "self_diagnosis_route": "/app/god-mode-self-diagnosis", "mobile_first": True, "pc_brain": True, "secrets_allowed_in_memory": False, "official_tree_path": "docs/project-tree/GOD_MODE_TREE.md"}
 
     def package(self) -> Dict[str, Any]:
-        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "real_work_fast_path_model": self.real_work_fast_path_model(), "repo_scanner_real_work_map_model": self.repo_scanner_real_work_map_model(), "github_repo_inventory_feed_model": self.github_repo_inventory_feed_model(), "conversation_source_import_feed_model": self.conversation_source_import_feed_model(), "provider_browser_local_launcher_model": self.provider_browser_local_launcher_model(), "first_pc_runtime_verification_model": self.first_pc_runtime_verification_model(), "first_pc_install_ready_pack_model": self.first_pc_install_ready_pack_model(), "controlled_self_evolution_model": self.controlled_self_evolution_model(), "external_lab_snapshot_reader_model": self.external_lab_snapshot_reader_model(), "native_skills_adoption_queue_model": self.native_skills_adoption_queue_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy(), "backlog": self.backlog()}
+        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "project_tree_model": self.project_tree_model(), "real_work_fast_path_model": self.real_work_fast_path_model(), "repo_scanner_real_work_map_model": self.repo_scanner_real_work_map_model(), "github_repo_inventory_feed_model": self.github_repo_inventory_feed_model(), "conversation_source_import_feed_model": self.conversation_source_import_feed_model(), "provider_browser_local_launcher_model": self.provider_browser_local_launcher_model(), "first_pc_runtime_verification_model": self.first_pc_runtime_verification_model(), "first_pc_install_ready_pack_model": self.first_pc_install_ready_pack_model(), "god_mode_self_diagnosis_model": self.god_mode_self_diagnosis_model(), "controlled_self_evolution_model": self.controlled_self_evolution_model(), "external_lab_snapshot_reader_model": self.external_lab_snapshot_reader_model(), "native_skills_adoption_queue_model": self.native_skills_adoption_queue_model(), "module_registry": self.module_registry(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy(), "backlog": self.backlog()}
 
 
 god_mode_global_state_service = GodModeGlobalStateService()
