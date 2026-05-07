@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import base64
-import hashlib
 import json
 import os
 import socket
@@ -22,6 +21,7 @@ PAIRING_STORE = AtomicJsonStore(
 )
 
 REMOTE_PROVIDERS = ["cloudflare_tunnel", "tailscale", "ngrok", "manual_public_url"]
+KNOWN_HOME_PC_IPS = ["192.168.1.81"]
 
 
 class MobilePcPairingRemoteAccessService:
@@ -38,6 +38,7 @@ class MobilePcPairingRemoteAccessService:
             "service": self.SERVICE_ID,
             "version": self.VERSION,
             "generated_at": self._now(),
+            "known_home_pc_ips": KNOWN_HOME_PC_IPS,
             "pairing_session_count": len(state.get("pairing_sessions", [])),
             "remote_profile_count": len(state.get("remote_profiles", [])),
             "supports_home_auto_pairing": True,
@@ -59,6 +60,7 @@ class MobilePcPairingRemoteAccessService:
             "created_at": self._now(),
             "expires_at": expires_at,
             "pc_name": socket.gethostname(),
+            "known_home_pc_ips": KNOWN_HOME_PC_IPS,
             "local_ips": local_ips,
             "port": port,
             "home_urls": urls,
@@ -68,8 +70,9 @@ class MobilePcPairingRemoteAccessService:
                 "/app/today-ready",
                 "/app/ia-operator-bridge",
                 "/app/god-mode-vault",
+                "/app/mobile-pc-pairing",
             ],
-            "qr_payload": json.dumps({"type": "god_mode_pairing", "pairing_session_id": session_id, "code": pairing_code, "urls": urls}, ensure_ascii=False),
+            "qr_payload": json.dumps({"type": "god_mode_pairing", "pairing_session_id": session_id, "code": pairing_code, "urls": urls, "known_home_pc_ips": KNOWN_HOME_PC_IPS}, ensure_ascii=False),
             "status": "active",
             "remote_profile_id": None,
         }
@@ -78,7 +81,7 @@ class MobilePcPairingRemoteAccessService:
 
     def create_remote_access_plan(
         self,
-        provider: str = "cloudflare_tunnel",
+        provider: str = "tailscale",
         public_url: str = "",
         project_id: str = "GOD_MODE",
         tenant_id: str = "owner-andre",
@@ -95,6 +98,7 @@ class MobilePcPairingRemoteAccessService:
             "vault_reference_ids": [],
             "mobile_entry_url": f"{public_url.rstrip('/')}/app/mobile-permission-relay" if public_url.strip().startswith("https://") else "",
             "steps": self._remote_steps(provider),
+            "recommendation": self._remote_recommendation(provider),
             "security": {
                 "requires_oner_gate": True,
                 "store_provider_material_in_vault": True,
@@ -106,13 +110,13 @@ class MobilePcPairingRemoteAccessService:
         if not profile["public_url"]:
             permission = mobile_permission_relay_driver_voice_service.create_permission_request(
                 title=f"Configurar acesso remoto {provider}",
-                body="Para comandar o God Mode da rua, o PC precisa de um endereço remoto seguro. Escolhe/fornece o provider e dados quando estiveres parado.",
+                body="Para comandar o God Mode da rua, o PC precisa de um endereço remoto seguro. Recomendo Tailscale para uso rápido sem abrir portas no router. Cloudflare Tunnel fica melhor quando quiseres URL/domain estável.",
                 request_type="sensitive_fill",
                 project_id=project_id,
                 source_ref={"type": "remote_access_profile", "remote_profile_id": profile["remote_profile_id"], "provider": provider},
                 priority="high",
                 requires_sensitive_input=True,
-                form_schema=[{"name": "remote_public_url", "label": "URL pública HTTPS ou dados do túnel", "type": "text", "required": True, "sensitive": True}],
+                form_schema=[{"name": "remote_public_url", "label": "URL HTTPS remota ou dados do acesso remoto", "type": "text", "required": True, "sensitive": True}],
                 wait_for_response=True,
                 tenant_id=tenant_id,
             )
@@ -154,9 +158,9 @@ class MobilePcPairingRemoteAccessService:
             "remote": ready_remote,
             "mobile_should_try_in_order": self._try_order(latest_session, ready_remote),
             "notes": [
-                "Dentro de casa, usar IP local do PC na mesma rede Wi-Fi.",
+                "Dentro de casa, usar primeiro 192.168.1.81:8000 na mesma rede Wi-Fi.",
                 "Da rua, usar HTTPS remoto via tunnel/mesh/public URL aprovado.",
-                "Se o telemóvel perder rede, o relay fica em offline_wait/resend_pending.",
+                "Para hoje, Tailscale é o caminho mais rápido e seguro; Cloudflare Tunnel é melhor para URL estável futura.",
             ],
         }
 
@@ -168,23 +172,35 @@ class MobilePcPairingRemoteAccessService:
 
     def _try_order(self, session: Dict[str, Any] | None, remote: Dict[str, Any] | None) -> List[Dict[str, str]]:
         items: List[Dict[str, str]] = []
-        for url in (session or {}).get("home_urls", []):
+        home_urls = list((session or {}).get("home_urls", []))
+        preferred = "http://192.168.1.81:8000/app/mobile-permission-relay"
+        ordered_urls = [preferred] + [url for url in home_urls if url != preferred]
+        for url in ordered_urls:
             items.append({"mode": "home_lan", "url": url})
         if remote and remote.get("mobile_entry_url"):
             items.append({"mode": "remote", "url": remote["mobile_entry_url"]})
         return items
 
+    def _remote_recommendation(self, provider: str) -> str:
+        if provider == "tailscale":
+            return "Recommended for today: quick private access from phone to home PC without opening router ports. Requires sign-in on PC and phone."
+        if provider == "cloudflare_tunnel":
+            return "Best for stable HTTPS/domain later. Usually requires Cloudflare account and tunnel setup."
+        if provider == "ngrok":
+            return "Good for quick temporary HTTPS testing. Usually requires ngrok account/auth material for stable use."
+        return "Use only if you already have a secure HTTPS URL reaching the home PC."
+
     def _remote_steps(self, provider: str) -> List[str]:
         if provider == "cloudflare_tunnel":
             return ["Create/approve a Cloudflare Tunnel for the home PC.", "Map tunnel to local port 8000.", "Store tunnel material in the local vault.", "Use the HTTPS tunnel URL on the APK when outside home."]
         if provider == "tailscale":
-            return ["Install Tailscale on PC and phone.", "Approve both devices in the same tailnet.", "Use the PC tailnet address with port 8000."]
+            return ["Install Tailscale on PC and phone.", "Sign in/approve both devices in the same tailnet.", "Use the PC tailnet address with port 8000.", "No router port-forward is required."]
         if provider == "ngrok":
             return ["Create/approve ngrok tunnel for port 8000.", "Store auth material in local vault.", "Use generated HTTPS URL on mobile."]
         return ["Provide a stable HTTPS URL that reaches the God Mode PC backend.", "Store any required material in the vault."]
 
     def _local_ips(self) -> List[str]:
-        ips = {"127.0.0.1"}
+        ips = set(KNOWN_HOME_PC_IPS)
         try:
             hostname = socket.gethostname()
             for item in socket.getaddrinfo(hostname, None):
@@ -200,7 +216,9 @@ class MobilePcPairingRemoteAccessService:
             s.close()
         except Exception:
             pass
-        return sorted(ips)
+        ordered = [ip for ip in KNOWN_HOME_PC_IPS if ip in ips]
+        ordered.extend(sorted(ip for ip in ips if ip not in set(ordered)))
+        return ordered
 
     def _find(self, bucket: str, key: str, value: str) -> Dict[str, Any] | None:
         return next((item for item in PAIRING_STORE.load().get(bucket, []) if item.get(key) == value), None)
