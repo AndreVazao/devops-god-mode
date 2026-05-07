@@ -33,22 +33,22 @@ jobs:
           for label,path in files.items():
               assert path.exists(), f'Missing {label}: {path}'
           service=files['service'].read_text(encoding='utf-8')
-          for marker in ['class GuidedProviderSetupWizardService','VERSION = "phase_212_v1"','tailscale','cloudflare_tunnel','ngrok','manual_https','start_setup','capture_result','official_url','fields_to_collect','mobile_pc_pairing_remote_access_service.create_remote_access_plan']:
+          for marker in ['class GuidedProviderSetupWizardService','VERSION = "phase_212_v2"','tailscale','cloudflare_tunnel','ngrok','manual_https','start_setup','create_browser_assist_contract','capture_result','operator_contract','hard_stops','mobile_pc_pairing_remote_access_service.create_remote_access_plan']:
               assert marker in service, marker
           route=files['route'].read_text(encoding='utf-8')
-          for endpoint in ['/status','/providers','/start','/capture-result','/dashboard','/package']:
+          for endpoint in ['/status','/providers','/start','/browser-assist-contract','/capture-result','/dashboard','/package']:
               assert endpoint in route, endpoint
           assert 'prefix="/api/guided-provider-setup"' in route
           frontend=files['frontend'].read_text(encoding='utf-8')
-          for marker in ['Guided Provider Setup','/api/guided-provider-setup/start','/api/guided-provider-setup/capture-result','/app/guided-provider-setup','/app/setup-remote-access']:
+          for marker in ['Guided Provider Setup','/api/guided-provider-setup/start','/api/guided-provider-setup/browser-assist-contract','/api/guided-provider-setup/capture-result','/app/guided-provider-setup','/app/setup-remote-access']:
               assert marker in frontend, marker
           global_state=files['global_state'].read_text(encoding='utf-8')
           for marker in ['current_phase": 212','latest_merged_phase": 211','guided_provider_setup_model','/api/guided-provider-setup/package','guided_provider_setup_route']:
               assert marker in global_state, marker
           docs=files['docs'].read_text(encoding='utf-8')
-          for marker in ['/api/guided-provider-setup/package','/app/guided-provider-setup','Tailscale','Cloudflare Tunnel','Ngrok','O God Mode pode']:
+          for marker in ['/api/guided-provider-setup/package','/app/guided-provider-setup','Browser Assist Contract','Tailscale','Cloudflare Tunnel','Ngrok','Hard stops']:
               assert marker in docs, marker
           workflows=sorted(p.name for p in Path('.github/workflows').glob('phase*-*.yml'))
           assert workflows == ['phase212-guided-provider-setup-wizard-smoke.yml'], workflows
-          print('phase 212 guided provider setup contract passed')
+          print('phase 212 guided provider setup browser assist contract passed')
           PY
