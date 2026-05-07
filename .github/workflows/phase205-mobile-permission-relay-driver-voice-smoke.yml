@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'backend/app/services/mobile_permission_relay_driver_voice_service.py'
+      - 'backend/app/services/mobile_permission_popup_contract_service.py'
       - 'backend/app/routes/mobile_permission_relay_driver_voice.py'
       - 'backend/app/routes/mobile_permission_relay_driver_voice_frontend.py'
       - 'backend/app/services/god_mode_global_state_service.py'
@@ -26,6 +27,7 @@ jobs:
 
           files = {
               'service': Path('backend/app/services/mobile_permission_relay_driver_voice_service.py'),
+              'popup_contract_service': Path('backend/app/services/mobile_permission_popup_contract_service.py'),
               'route': Path('backend/app/routes/mobile_permission_relay_driver_voice.py'),
               'frontend': Path('backend/app/routes/mobile_permission_relay_driver_voice_frontend.py'),
               'global_state': Path('backend/app/services/god_mode_global_state_service.py'),
@@ -51,10 +53,15 @@ jobs:
           ]:
               assert marker in service, marker
 
+          popup = files['popup_contract_service'].read_text(encoding='utf-8')
+          for marker in ['class MobilePermissionPopupContractService', 'build_contract', 'popup_contract_id', 'A partilha de dados inclui', 'Confirmar', 'Recusar', 'requires_form_fill', 'raw_secret_values_stored']:
+              assert marker in popup, marker
+
           route = files['route'].read_text(encoding='utf-8')
-          for endpoint in ['/status', '/policy', '/create-request', '/mark-sent', '/mark-delivered', '/mark-offline-wait', '/mark-resend-pending', '/decide', '/voice-event', '/poll', '/wait-status', '/dashboard', '/package']:
+          for endpoint in ['/status', '/policy', '/create-request', '/popup-contract-examples', '/mark-sent', '/mark-delivered', '/mark-offline-wait', '/mark-resend-pending', '/decide', '/voice-event', '/poll', '/wait-status', '/dashboard', '/package']:
               assert endpoint in route, f'Missing endpoint {endpoint}'
           assert 'prefix="/api/mobile-permission-relay"' in route
+          assert 'mobile_permission_popup_contract_service.build_contract' in route
 
           frontend = files['frontend'].read_text(encoding='utf-8')
           for marker in ['Mobile Permission Relay', '/api/mobile-permission-relay/create-request', '/api/mobile-permission-relay/voice-event', '/app/mobile-permission-relay', '/app/driver-voice-permissions']:
@@ -65,7 +72,7 @@ jobs:
               assert marker in global_state, marker
 
           docs = files['docs'].read_text(encoding='utf-8')
-          for marker in ['/api/mobile-permission-relay/package', 'offline_wait', 'supports_driver_voice_mode=true', 'can_store_raw_secrets=false']:
+          for marker in ['/api/mobile-permission-relay/package', 'offline_wait', 'supports_driver_voice_mode=true', 'can_store_raw_secrets=false', 'popup_contract', 'A partilha de dados inclui']:
               assert marker in docs, marker
 
           workflow_dir = Path('.github/workflows')
