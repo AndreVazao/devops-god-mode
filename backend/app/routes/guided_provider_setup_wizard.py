@@ -22,6 +22,13 @@ class BrowserAssistPayload(BaseModel):
     tenant_id: str = "owner-andre"
 
 
+class ResumePayload(BaseModel):
+    browser_assist_contract_id: str
+    hard_stop_type: str = "mfa"
+    note: str = "Oner resolved original provider page and asked God Mode to continue."
+    tenant_id: str = "owner-andre"
+
+
 class CaptureResultPayload(BaseModel):
     setup_session_id: str
     values: dict[str, Any]
@@ -56,6 +63,16 @@ def browser_assist_contract(payload: BrowserAssistPayload) -> dict[str, Any]:
         setup_session_id=payload.setup_session_id,
         form_values=payload.form_values,
         operation=payload.operation,
+        tenant_id=payload.tenant_id,
+    )
+
+
+@router.post("/resume-after-human-step")
+def resume_after_human_step(payload: ResumePayload) -> dict[str, Any]:
+    return guided_provider_setup_wizard_service.resume_after_human_step(
+        browser_assist_contract_id=payload.browser_assist_contract_id,
+        hard_stop_type=payload.hard_stop_type,
+        note=payload.note,
         tenant_id=payload.tenant_id,
     )
 
