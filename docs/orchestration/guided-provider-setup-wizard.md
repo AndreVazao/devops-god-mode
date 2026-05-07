@@ -25,6 +25,7 @@ Providers suportados:
 /api/guided-provider-setup/providers
 /api/guided-provider-setup/start
 /api/guided-provider-setup/browser-assist-contract
+/api/guided-provider-setup/resume-after-human-step
 /api/guided-provider-setup/capture-result
 /api/guided-provider-setup/dashboard
 /api/guided-provider-setup/package
@@ -43,7 +44,11 @@ abre página oficial do provider
 → God Mode cria Browser Assist Contract
 → pede gate no Mobile Permission Relay
 → depois do gate, pode preencher a página oficial localmente
-→ pausa em MFA/captcha/device approval/consentimento/plano/billing
+→ se aparecer hard stop, mostra a página original do provider
+→ Oner resolve MFA/captcha/aprovação/termos/billing/security warning
+→ Oner clica “Já resolvi / continuar”
+→ God Mode regista resume event e pede novo gate
+→ God Mode continua do mesmo contrato/sessão
 → captura endpoint/config final
 → cria remote profile
 ```
@@ -57,12 +62,14 @@ abre página oficial do provider
 - preencher formulário oficial a partir de vault_reference depois do gate;
 - clicar em controlos seguros de próximo/continuar dentro do fluxo do provider;
 - pausar quando aparece etapa humana/risco;
+- mostrar a página original sem máscara durante hard stop;
+- retomar depois de o Oner resolver e clicar continuar;
 - capturar resultado final aprovado: IP Tailscale, MagicDNS, URL HTTPS, tunnel label;
 - criar remote profile.
 
 ## Hard stops obrigatórios
 
-O God Mode deve pausar e pedir input/approval quando aparecer:
+O God Mode deve mostrar a página original e esperar o Oner resolver quando aparecer:
 
 - MFA;
 - captcha;
@@ -71,6 +78,18 @@ O God Mode deve pausar e pedir input/approval quando aparecer:
 - provider terms/consentimento;
 - página inesperada;
 - security warning.
+
+Depois do Oner resolver, a UI tem botão:
+
+```txt
+Já resolvi / continuar
+```
+
+Esse botão chama:
+
+```txt
+/api/guided-provider-setup/resume-after-human-step
+```
 
 ## O que não pode fazer
 
@@ -95,10 +114,12 @@ Fluxo:
 5. Criar browser-assist-contract.
 6. Aprovar no telemóvel.
 7. God Mode preenche/avança localmente até hard stop.
-8. Instalar Tailscale no PC e Android se necessário.
-9. Aprovar ambos na mesma tailnet.
-10. Copiar/capturar IP Tailscale ou MagicDNS do PC.
-11. God Mode cria remote profile.
+8. Se aparecer MFA/captcha/etc., mostra página original.
+9. Oner resolve.
+10. Oner clica “Já resolvi / continuar”.
+11. God Mode retoma o fluxo.
+12. Captura IP Tailscale ou MagicDNS do PC.
+13. God Mode cria remote profile.
 ```
 
 ## Cloudflare Tunnel
@@ -125,4 +146,4 @@ O resultado alimenta:
 
 ## Segurança
 
-O Browser Assist é local, gated e auditável. O God Mode guarda campos sensíveis no Vault local encriptado e trabalha por referência. MFA/captcha/consentimento continuam humanos.
+O Browser Assist é local, gated e auditável. O God Mode guarda campos sensíveis no Vault local encriptado e trabalha por referência. MFA/captcha/consentimento continuam humanos e aparecem sempre na página original.
