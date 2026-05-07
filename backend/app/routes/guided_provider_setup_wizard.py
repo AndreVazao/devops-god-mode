@@ -15,6 +15,13 @@ class StartSetupPayload(BaseModel):
     tenant_id: str = "owner-andre"
 
 
+class BrowserAssistPayload(BaseModel):
+    setup_session_id: str
+    form_values: dict[str, Any]
+    operation: str = "signup_or_login"
+    tenant_id: str = "owner-andre"
+
+
 class CaptureResultPayload(BaseModel):
     setup_session_id: str
     values: dict[str, Any]
@@ -39,6 +46,16 @@ def providers() -> dict[str, Any]:
 def start_setup(payload: StartSetupPayload) -> dict[str, Any]:
     return guided_provider_setup_wizard_service.start_setup(
         provider=payload.provider,
+        tenant_id=payload.tenant_id,
+    )
+
+
+@router.post("/browser-assist-contract")
+def browser_assist_contract(payload: BrowserAssistPayload) -> dict[str, Any]:
+    return guided_provider_setup_wizard_service.create_browser_assist_contract(
+        setup_session_id=payload.setup_session_id,
+        form_values=payload.form_values,
+        operation=payload.operation,
         tenant_id=payload.tenant_id,
     )
 
