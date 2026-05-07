@@ -22,6 +22,8 @@ SUPPORT_STORE = AtomicJsonStore(
     default_factory=lambda: {"version": 1, "support_sessions": [], "proposed_actions": [], "audit_log": []},
 )
 
+INTEGRATION_NOTE = "Mobile Permission Relay gates every assisted support action."
+
 SAFE_ACTION_TYPES = {
     "read_diagnostics",
     "export_redacted_bundle",
@@ -65,6 +67,7 @@ class SupportSessionConnectorService:
             "version": self.VERSION,
             "generated_at": self._now(),
             "store_file": str(SUPPORT_FILE),
+            "integration_note": INTEGRATION_NOTE,
             "active_session_count": len(active),
             "total_session_count": len(state.get("support_sessions", [])),
             "proposed_action_count": len(state.get("proposed_actions", [])),
@@ -223,6 +226,7 @@ class SupportSessionConnectorService:
             "ok": True,
             "policy": {
                 "default_mode": "read_only",
+                "integration": INTEGRATION_NOTE,
                 "assisted_action_mode": True,
                 "all_actions_require_mobile_gate": True,
                 "session_has_ttl": True,
