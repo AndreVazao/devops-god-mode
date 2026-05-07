@@ -1,0 +1,76 @@
+name: Phase 205 Mobile Permission Relay Driver Voice Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/app/services/mobile_permission_relay_driver_voice_service.py'
+      - 'backend/app/routes/mobile_permission_relay_driver_voice.py'
+      - 'backend/app/routes/mobile_permission_relay_driver_voice_frontend.py'
+      - 'backend/app/services/god_mode_global_state_service.py'
+      - 'docs/orchestration/mobile-permission-relay-driver-voice.md'
+      - '.github/workflows/phase205-mobile-permission-relay-driver-voice-smoke.yml'
+
+jobs:
+  phase205-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate Phase 205 file contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = {
+              'service': Path('backend/app/services/mobile_permission_relay_driver_voice_service.py'),
+              'route': Path('backend/app/routes/mobile_permission_relay_driver_voice.py'),
+              'frontend': Path('backend/app/routes/mobile_permission_relay_driver_voice_frontend.py'),
+              'global_state': Path('backend/app/services/god_mode_global_state_service.py'),
+              'docs': Path('docs/orchestration/mobile-permission-relay-driver-voice.md'),
+          }
+          for label, path in files.items():
+              assert path.exists(), f'Missing {label}: {path}'
+
+          service = files['service'].read_text(encoding='utf-8')
+          for marker in [
+              'class MobilePermissionRelayDriverVoiceService',
+              'REQUEST_STATUSES',
+              'create_permission_request',
+              'wait_lock',
+              'mark_offline_wait',
+              'mark_resend_pending',
+              'register_voice_event',
+              'poll_pending_for_mobile',
+              'can_resend_after_offline',
+              'supports_driver_voice_mode',
+              'can_store_raw_secrets',
+              'mobile_approval_cockpit_v2_service.create_card',
+          ]:
+              assert marker in service, marker
+
+          route = files['route'].read_text(encoding='utf-8')
+          for endpoint in ['/status', '/policy', '/create-request', '/mark-sent', '/mark-delivered', '/mark-offline-wait', '/mark-resend-pending', '/decide', '/voice-event', '/poll', '/wait-status', '/dashboard', '/package']:
+              assert endpoint in route, f'Missing endpoint {endpoint}'
+          assert 'prefix="/api/mobile-permission-relay"' in route
+
+          frontend = files['frontend'].read_text(encoding='utf-8')
+          for marker in ['Mobile Permission Relay', '/api/mobile-permission-relay/create-request', '/api/mobile-permission-relay/voice-event', '/app/mobile-permission-relay', '/app/driver-voice-permissions']:
+              assert marker in frontend, marker
+
+          global_state = files['global_state'].read_text(encoding='utf-8')
+          for marker in ['current_phase": 205', 'latest_merged_phase": 204', 'mobile_permission_relay_model', '/api/mobile-permission-relay/package', 'mobile_permission_relay_route']:
+              assert marker in global_state, marker
+
+          docs = files['docs'].read_text(encoding='utf-8')
+          for marker in ['/api/mobile-permission-relay/package', 'offline_wait', 'supports_driver_voice_mode=true', 'can_store_raw_secrets=false']:
+              assert marker in docs, marker
+
+          workflow_dir = Path('.github/workflows')
+          phase_workflows = sorted(path.name for path in workflow_dir.glob('phase*-*.yml'))
+          assert phase_workflows == ['phase205-mobile-permission-relay-driver-voice-smoke.yml'], phase_workflows
+
+          print('phase 205 mobile permission relay driver voice file contract passed')
+          PY
