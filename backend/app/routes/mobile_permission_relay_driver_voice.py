@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.services.mobile_permission_popup_contract_service import mobile_permission_popup_contract_service
 from app.services.mobile_permission_relay_driver_voice_service import mobile_permission_relay_driver_voice_service
 
 router = APIRouter(prefix="/api/mobile-permission-relay", tags=["mobile-permission-relay"])
@@ -73,7 +74,7 @@ def policy() -> dict[str, Any]:
 
 @router.post("/create-request")
 def create_request(payload: PermissionRequestPayload) -> dict[str, Any]:
-    return mobile_permission_relay_driver_voice_service.create_permission_request(
+    result = mobile_permission_relay_driver_voice_service.create_permission_request(
         title=payload.title,
         body=payload.body,
         request_type=payload.request_type,
@@ -86,6 +87,17 @@ def create_request(payload: PermissionRequestPayload) -> dict[str, Any]:
         ttl_minutes=payload.ttl_minutes,
         tenant_id=payload.tenant_id,
     )
+    if result.get("permission_request"):
+        result["popup_contract"] = mobile_permission_popup_contract_service.build_contract(
+            permission_request=result["permission_request"],
+        )
+    return result
+
+
+@router.get("/popup-contract-examples")
+@router.post("/popup-contract-examples")
+def popup_contract_examples() -> dict[str, Any]:
+    return mobile_permission_popup_contract_service.example_contracts()
 
 
 @router.post("/mark-sent")
