@@ -8,10 +8,15 @@ on:
     paths:
       - 'backend/app/services/mobile_permission_relay_driver_voice_service.py'
       - 'backend/app/services/mobile_permission_popup_contract_service.py'
+      - 'backend/app/services/god_mode_local_vault_service.py'
+      - 'backend/app/services/god_mode_secret_intake_classifier_service.py'
       - 'backend/app/routes/mobile_permission_relay_driver_voice.py'
       - 'backend/app/routes/mobile_permission_relay_driver_voice_frontend.py'
+      - 'backend/app/routes/god_mode_local_vault.py'
+      - 'backend/app/routes/god_mode_local_vault_frontend.py'
       - 'backend/app/services/god_mode_global_state_service.py'
       - 'docs/orchestration/mobile-permission-relay-driver-voice.md'
+      - '.gitignore'
       - '.github/workflows/phase205-mobile-permission-relay-driver-voice-smoke.yml'
 
 jobs:
@@ -28,10 +33,15 @@ jobs:
           files = {
               'service': Path('backend/app/services/mobile_permission_relay_driver_voice_service.py'),
               'popup_contract_service': Path('backend/app/services/mobile_permission_popup_contract_service.py'),
+              'vault_service': Path('backend/app/services/god_mode_local_vault_service.py'),
+              'intake_service': Path('backend/app/services/god_mode_secret_intake_classifier_service.py'),
               'route': Path('backend/app/routes/mobile_permission_relay_driver_voice.py'),
+              'vault_route': Path('backend/app/routes/god_mode_local_vault.py'),
+              'vault_frontend': Path('backend/app/routes/god_mode_local_vault_frontend.py'),
               'frontend': Path('backend/app/routes/mobile_permission_relay_driver_voice_frontend.py'),
               'global_state': Path('backend/app/services/god_mode_global_state_service.py'),
               'docs': Path('docs/orchestration/mobile-permission-relay-driver-voice.md'),
+              'gitignore': Path('.gitignore'),
           }
           for label, path in files.items():
               assert path.exists(), f'Missing {label}: {path}'
@@ -57,27 +67,49 @@ jobs:
           for marker in ['class MobilePermissionPopupContractService', 'build_contract', 'popup_contract_id', 'A partilha de dados inclui', 'Confirmar', 'Recusar', 'requires_form_fill', 'raw_secret_values_stored']:
               assert marker in popup, marker
 
+          vault = files['vault_service'].read_text(encoding='utf-8')
+          for marker in ['class GodModeLocalVaultService', 'store_secret', 'create_token_generation_plan', 'reveal_for_runtime', 'stores_encrypted_values_locally', 'raw_secret_values_allowed_in_repo', 'vault_reference', 'approved_gate_required']:
+              assert marker in vault, marker
+
+          intake = files['intake_service'].read_text(encoding='utf-8')
+          for marker in ['class GodModeSecretIntakeClassifierService', 'ingest_text', 'PLACEHOLDER_MARKERS', 'PROVIDER_RULES', 'stored_vault_references', 'ignored_or_placeholder', 'plan_needed_token']:
+              assert marker in intake, marker
+
           route = files['route'].read_text(encoding='utf-8')
           for endpoint in ['/status', '/policy', '/create-request', '/popup-contract-examples', '/mark-sent', '/mark-delivered', '/mark-offline-wait', '/mark-resend-pending', '/decide', '/voice-event', '/poll', '/wait-status', '/dashboard', '/package']:
               assert endpoint in route, f'Missing endpoint {endpoint}'
           assert 'prefix="/api/mobile-permission-relay"' in route
           assert 'mobile_permission_popup_contract_service.build_contract' in route
+          assert 'god_mode_local_vault_service.store_secret' in route
+
+          vault_route = files['vault_route'].read_text(encoding='utf-8')
+          for endpoint in ['/status', '/store-secret', '/intake-text', '/plan-needed-token', '/references', '/reveal-for-runtime', '/intake-status']:
+              assert endpoint in vault_route, f'Missing vault endpoint {endpoint}'
+          assert 'prefix="/api/god-mode-vault"' in vault_route
+
+          vault_frontend = files['vault_frontend'].read_text(encoding='utf-8')
+          for marker in ['God Mode Local Vault', '/api/god-mode-vault/intake-text', '/api/god-mode-vault/plan-needed-token', '/app/god-mode-vault', '/app/vault-intake']:
+              assert marker in vault_frontend, marker
 
           frontend = files['frontend'].read_text(encoding='utf-8')
           for marker in ['Mobile Permission Relay', '/api/mobile-permission-relay/create-request', '/api/mobile-permission-relay/voice-event', '/app/mobile-permission-relay', '/app/driver-voice-permissions']:
               assert marker in frontend, marker
 
           global_state = files['global_state'].read_text(encoding='utf-8')
-          for marker in ['current_phase": 205', 'latest_merged_phase": 204', 'mobile_permission_relay_model', '/api/mobile-permission-relay/package', 'mobile_permission_relay_route']:
+          for marker in ['current_phase": 205', 'latest_merged_phase": 204', 'mobile_permission_relay_model', 'god_mode_local_vault_model', '/api/god-mode-vault/intake-text', 'vault_route']:
               assert marker in global_state, marker
 
           docs = files['docs'].read_text(encoding='utf-8')
-          for marker in ['/api/mobile-permission-relay/package', 'offline_wait', 'supports_driver_voice_mode=true', 'can_store_raw_secrets=false', 'popup_contract', 'A partilha de dados inclui']:
+          for marker in ['/api/mobile-permission-relay/package', '/api/god-mode-vault/intake-text', 'offline_wait', 'supports_driver_voice_mode=true', 'can_store_sensitive_values_in_local_vault=true', 'popup_contract', 'A partilha de dados inclui', 'Vault local / intake de segredos']:
               assert marker in docs, marker
+
+          gitignore = files['gitignore'].read_text(encoding='utf-8')
+          assert 'data/private/' in gitignore
+          assert 'backend/data/private/' in gitignore
 
           workflow_dir = Path('.github/workflows')
           phase_workflows = sorted(path.name for path in workflow_dir.glob('phase*-*.yml'))
           assert phase_workflows == ['phase205-mobile-permission-relay-driver-voice-smoke.yml'], phase_workflows
 
-          print('phase 205 mobile permission relay driver voice file contract passed')
+          print('phase 205 mobile permission relay driver voice + local vault file contract passed')
           PY
