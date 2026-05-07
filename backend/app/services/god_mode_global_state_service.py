@@ -8,7 +8,7 @@ from app.services.module_registry_snapshot_service import module_registry_snapsh
 
 class GodModeGlobalStateService:
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_208_v1"
+    VERSION = "phase_210_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -41,49 +41,36 @@ class GodModeGlobalStateService:
             (205, "Mobile Permission Relay + Driver Voice Mode + Offline Resend Queue + Local Vault Intake"),
             (206, "IA Operator Permission/Vault Bridge + First Autonomous Work Loop"),
             (207, "First PC Autopilot Install/Run Cockpit + Today Ready Flow"),
+            (208, "Mobile APK to PC Pairing + Remote Access Contract"),
+            (209, "LAN Connection Discovery Sweep"),
         ]
         result = [{"phase": phase, "name": name, "status": "merged"} for phase, name in phases]
-        result.append({"phase": 208, "name": "Mobile APK to PC Pairing + Remote Access Contract", "status": "in_progress"})
+        result.append({"phase": 210, "name": "Final Install & Use Pack + APK Auto Endpoint Contract", "status": "in_progress"})
         return result
 
+    def final_install_use_model(self) -> Dict[str, Any]:
+        return {"endpoint": "/api/final-install-use/package", "route": "/app/install-use-now", "alias": "/app/final-ready", "purpose": "Final page to install Windows EXE, install APK, connect phone, verify readiness and start God Mode real usage.", "ready_to_install_and_use": True, "apk_endpoint_contract": "/api/final-install-use/apk-endpoint-contract"}
+
     def mobile_pc_pairing_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/mobile-pc-pairing/package", "route": "/app/mobile-pc-pairing", "alias": "/app/connect-phone", "purpose": "Connect the Android APK to the home PC automatically on LAN and prepare approved remote access for outside home.", "supports_home_auto_pairing": True, "supports_remote_access_contract": True, "remote_access_requires_provider_or_public_url": True, "stores_remote_secrets_in_vault": True}
+        return {"endpoint": "/api/mobile-pc-pairing/package", "route": "/app/mobile-pc-pairing", "alias": "/app/connect-phone", "lan_sweep": "192.168.1.61-192.168.1.101", "known_pc": "192.168.1.81", "known_phone_hint": "192.168.1.47"}
 
     def today_ready_model(self) -> Dict[str, Any]:
         return {"endpoint": "/api/first-pc-autopilot-ready/package", "route": "/app/first-pc-autopilot-ready", "alias": "/app/today-ready", "canonical_local_url": "http://127.0.0.1:8000/app/home", "expected_executable": "GodModeDesktop.exe", "first_loop_route": "/app/ia-operator-bridge", "phone_pairing_route": "/app/mobile-pc-pairing"}
 
-    def ia_operator_bridge_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/ia-operator-bridge/package", "route": "/app/ia-operator-bridge", "alias": "/app/first-autonomous-work-loop"}
-
-    def mobile_permission_relay_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/mobile-permission-relay/package", "route": "/app/mobile-permission-relay", "alias": "/app/driver-voice-permissions"}
-
-    def god_mode_local_vault_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/god-mode-vault/status", "route": "/app/god-mode-vault", "alias": "/app/vault-intake"}
-
     def operating_model(self) -> Dict[str, Any]:
-        return {"primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run GodModeDesktop.exe", "expose LAN pairing", "prepare approved remote URL", "wait for mobile permissions", "reuse vault references"]}, "primary_cockpit": {"device": "android_phone", "role": "mobile apk cockpit", "entrypoint": "/app/connect-phone", "connection_modes": ["home_lan", "remote_https"]}, "pc_cockpit": {"device": "home_pc_browser", "entrypoint": "/app/first-pc-autopilot-ready", "pairing": "/app/mobile-pc-pairing", "local_url": "http://127.0.0.1:8000/app/home"}}
-
-    def first_pc_install_ready_pack_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/first-pc-install-ready-pack/package", "route": "/app/first-pc-install-ready-pack", "alias": "/app/pc-install-ready", "canonical_local_url": "http://127.0.0.1:8000/app/home", "expected_executable": "GodModeDesktop.exe"}
-
-    def project_tree_model(self) -> Dict[str, Any]:
-        return {"official_tree_path": "docs/project-tree/GOD_MODE_TREE.md", "project_id": "GOD_MODE"}
+        return {"primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run GodModeDesktop.exe", "open install-use-now", "connect APK", "start real usage", "wait for mobile permissions", "reuse vault references"]}, "primary_cockpit": {"device": "android_phone", "role": "mobile apk cockpit", "entrypoint": "/app/mobile-permission-relay", "connection_modes": ["last_working_endpoint", "home_lan_sweep", "remote_https"]}, "pc_cockpit": {"device": "home_pc_browser", "entrypoint": "/app/install-use-now", "local_url": "http://127.0.0.1:8000/app/home"}}
 
     def memory_model(self) -> Dict[str, Any]:
-        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["mobile pc pairing sessions", "remote access profiles", "local encrypted vault", "mobile permission relay"]}}
+        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["final install use readiness", "apk endpoint contract", "last working endpoint on APK", "local encrypted vault", "mobile permission relay"]}}
 
     def reality_policy(self) -> Dict[str, Any]:
-        return {"status": "phase_208_mobile_pc_pairing_remote_access", "principle": "The APK can connect at home via LAN URLs and outside home via approved HTTPS tunnel/mesh/public URL; remote material is stored only in local vault.", "blocked_runtime_autonomy": ["open router ports blindly", "publish unsafe HTTP endpoint to internet", "store remote access material in repo", "start paid tunnel without approval"], "required": ["LAN pairing manifest", "remote access plan", "mobile retry order", "vault storage for remote material"]}
-
-    def backlog(self) -> Dict[str, Any]:
-        return {"high_priority_next": ["APK connection manifest consumer", "Cloudflare/Tailscale setup wizard", "Bridge task to PR plan generator"], "always": ["Update AndreOS memory after merged phases", "Never store raw secrets in repo", "Delete old phase smoke workflows when advancing"]}
+        return {"status": "phase_210_final_install_use_ready", "principle": "God Mode is ready for first real install and use through a final cockpit, Windows EXE, Android APK, LAN sweep, remote contract, vault and autopilot start.", "blocked_runtime_autonomy": ["open router ports blindly", "publish unsafe HTTP endpoint to internet", "store sensitive material in repo", "merge/release/deploy without approval"], "required": ["install-use-now", "Windows EXE", "Android APK", "connection manifest", "vault", "start autopilot"]}
 
     def status(self) -> Dict[str, Any]:
-        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 207, "current_phase": 208, "canonical_cockpit_route": "/app/home", "today_ready_route": "/app/first-pc-autopilot-ready", "mobile_pc_pairing_route": "/app/mobile-pc-pairing", "mobile_first": True, "pc_brain": True}
+        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 209, "current_phase": 210, "canonical_cockpit_route": "/app/home", "final_ready_route": "/app/install-use-now", "mobile_first": True, "pc_brain": True}
 
     def package(self) -> Dict[str, Any]:
-        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "mobile_pc_pairing_model": self.mobile_pc_pairing_model(), "today_ready_model": self.today_ready_model(), "ia_operator_bridge_model": self.ia_operator_bridge_model(), "mobile_permission_relay_model": self.mobile_permission_relay_model(), "god_mode_local_vault_model": self.god_mode_local_vault_model(), "first_pc_install_ready_pack_model": self.first_pc_install_ready_pack_model(), "project_tree_model": self.project_tree_model(), "module_registry": module_registry_snapshot_service.package(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy(), "backlog": self.backlog()}
+        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "final_install_use_model": self.final_install_use_model(), "mobile_pc_pairing_model": self.mobile_pc_pairing_model(), "today_ready_model": self.today_ready_model(), "module_registry": module_registry_snapshot_service.package(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy()}
 
 
 god_mode_global_state_service = GodModeGlobalStateService()
