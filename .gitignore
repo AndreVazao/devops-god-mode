@@ -12,3 +12,5 @@ backend/.pytest_cache/
 backend/.mypy_cache/
 frontend/dist/
 frontend/node_modules/
+data/private/
+backend/data/private/
