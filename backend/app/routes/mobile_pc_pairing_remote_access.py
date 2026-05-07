@@ -36,6 +36,11 @@ def status() -> dict[str, Any]:
     return mobile_pc_pairing_remote_access_service.status()
 
 
+@router.get("/lan-scan-candidates")
+def lan_scan_candidates(port: int = 8000) -> dict[str, Any]:
+    return mobile_pc_pairing_remote_access_service.lan_scan_candidates(port=port)
+
+
 @router.post("/create-pairing-session")
 def create_pairing_session(payload: PairingPayload) -> dict[str, Any]:
     return mobile_pc_pairing_remote_access_service.create_pairing_session(
