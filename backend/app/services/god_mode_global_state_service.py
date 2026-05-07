@@ -8,7 +8,7 @@ from app.services.module_registry_snapshot_service import module_registry_snapsh
 
 class GodModeGlobalStateService:
     SERVICE_ID = "god_mode_global_state"
-    VERSION = "phase_211_v1"
+    VERSION = "phase_212_v1"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -44,45 +44,48 @@ class GodModeGlobalStateService:
             (208, "Mobile APK to PC Pairing + Remote Access Contract"),
             (209, "LAN Connection Discovery Sweep"),
             (210, "Final Install & Use Pack + APK Auto Endpoint Contract"),
+            (211, "Temporary Assisted Support Session Connector"),
         ]
         result = [{"phase": phase, "name": name, "status": "merged"} for phase, name in phases]
-        result.append({"phase": 211, "name": "Temporary Assisted Support Session Connector", "status": "in_progress"})
+        result.append({"phase": 212, "name": "Guided Provider Setup Wizard", "status": "in_progress"})
         return result
 
-    def support_session_model(self) -> Dict[str, Any]:
+    def guided_provider_setup_model(self) -> Dict[str, Any]:
         return {
-            "endpoint": "/api/support-session/package",
-            "route": "/app/support-session",
-            "alias": "/app/temporary-support",
-            "purpose": "Temporary support/test session connector with redacted diagnostics and assisted actions through mobile approval gates.",
-            "session_has_ttl": True,
-            "read_only_by_default": True,
-            "assisted_action_mode": True,
-            "can_execute_without_mobile_gate": False,
-            "raw_secret_exposure_allowed": False,
-            "revocable": True,
+            "endpoint": "/api/guided-provider-setup/package",
+            "route": "/app/guided-provider-setup",
+            "alias": "/app/setup-remote-access",
+            "purpose": "Guided official-provider setup for Tailscale, Cloudflare Tunnel, Ngrok and manual HTTPS without storing account passwords.",
+            "can_open_official_pages": True,
+            "can_mask_steps_with_guidance": True,
+            "can_auto_type_credentials": False,
+            "can_bypass_mfa": False,
+            "stores_final_endpoint_or_vault_reference": True,
         }
 
+    def support_session_model(self) -> Dict[str, Any]:
+        return {"endpoint": "/api/support-session/package", "route": "/app/support-session", "alias": "/app/temporary-support", "read_only_by_default": True, "assisted_action_mode": True, "can_execute_without_mobile_gate": False}
+
     def final_install_use_model(self) -> Dict[str, Any]:
-        return {"endpoint": "/api/final-install-use/package", "route": "/app/install-use-now", "alias": "/app/final-ready", "ready_to_install_and_use": True}
+        return {"endpoint": "/api/final-install-use/package", "route": "/app/install-use-now", "alias": "/app/final-ready", "ready_to_install_and_use": True, "guided_remote_setup": "/app/setup-remote-access"}
 
     def mobile_pc_pairing_model(self) -> Dict[str, Any]:
         return {"endpoint": "/api/mobile-pc-pairing/package", "route": "/app/mobile-pc-pairing", "alias": "/app/connect-phone", "lan_sweep": "192.168.1.61-192.168.1.101", "known_pc": "192.168.1.81", "known_phone_hint": "192.168.1.47"}
 
     def operating_model(self) -> Dict[str, Any]:
-        return {"primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run GodModeDesktop.exe", "open install-use-now", "create temporary support session if needed", "connect APK", "start real usage", "wait for mobile permissions", "reuse vault references"]}, "primary_cockpit": {"device": "android_phone", "role": "mobile apk cockpit", "entrypoint": "/app/mobile-permission-relay", "connection_modes": ["last_working_endpoint", "home_lan_sweep", "remote_https"]}, "pc_cockpit": {"device": "home_pc_browser", "entrypoint": "/app/install-use-now", "support": "/app/support-session", "local_url": "http://127.0.0.1:8000/app/home"}}
+        return {"primary_brain": {"device": "home_pc", "role": "powerful_backend_runtime", "responsibilities": ["run GodModeDesktop.exe", "open install-use-now", "guide provider setup", "connect APK", "start real usage", "wait for mobile permissions", "reuse vault references"]}, "primary_cockpit": {"device": "android_phone", "role": "mobile apk cockpit", "entrypoint": "/app/mobile-permission-relay", "connection_modes": ["last_working_endpoint", "home_lan_sweep", "remote_https"]}, "pc_cockpit": {"device": "home_pc_browser", "entrypoint": "/app/install-use-now", "guided_setup": "/app/guided-provider-setup", "support": "/app/support-session", "local_url": "http://127.0.0.1:8000/app/home"}}
 
     def memory_model(self) -> Dict[str, Any]:
-        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["temporary support sessions", "redacted diagnostics", "support action proposals", "mobile permission gates", "local encrypted vault references"]}}
+        return {"github_memory": {"repo": "AndreVazao/andreos-memory", "must_not_store": ["tokens", "passwords", "cookies", "api_keys", "raw env values"]}, "god_mode_runtime": {"stores": ["guided provider setup sessions", "final remote endpoint", "remote access profile", "vault references only when explicitly approved"]}}
 
     def reality_policy(self) -> Dict[str, Any]:
-        return {"status": "phase_211_support_session_connector", "principle": "Temporary support access is diagnostic/read-only by default and any assisted action requires explicit mobile approval, TTL, audit log and revocation.", "blocked_runtime_autonomy": ["persistent public admin panel", "remote access without expiry", "raw secret exposure", "write/apply/command without mobile gate", "merge/release/deploy without approval"], "required": ["support-session", "redacted diagnostics", "propose action", "mobile permission relay", "revoke session"]}
+        return {"status": "phase_212_guided_provider_setup", "principle": "God Mode can guide official provider setup and collect the final endpoint, but login/password/MFA remains in the official provider page/app and is not automated or stored.", "blocked_runtime_autonomy": ["auto type account password", "bypass MFA", "scrape private account pages", "store provider account password", "change DNS without approval"], "required": ["guided-provider-setup", "official provider URL", "manual login", "capture final endpoint", "remote profile or vault reference"]}
 
     def status(self) -> Dict[str, Any]:
-        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 210, "current_phase": 211, "canonical_cockpit_route": "/app/home", "final_ready_route": "/app/install-use-now", "support_session_route": "/app/support-session", "mobile_first": True, "pc_brain": True}
+        return {"ok": True, "service": self.SERVICE_ID, "version": self.VERSION, "generated_at": self._now(), "latest_merged_phase": 211, "current_phase": 212, "canonical_cockpit_route": "/app/home", "final_ready_route": "/app/install-use-now", "guided_provider_setup_route": "/app/guided-provider-setup", "mobile_first": True, "pc_brain": True}
 
     def package(self) -> Dict[str, Any]:
-        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "support_session_model": self.support_session_model(), "final_install_use_model": self.final_install_use_model(), "mobile_pc_pairing_model": self.mobile_pc_pairing_model(), "module_registry": module_registry_snapshot_service.package(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy()}
+        return {"status": self.status(), "implemented_phases": self.implemented_phases(), "operating_model": self.operating_model(), "guided_provider_setup_model": self.guided_provider_setup_model(), "support_session_model": self.support_session_model(), "final_install_use_model": self.final_install_use_model(), "mobile_pc_pairing_model": self.mobile_pc_pairing_model(), "module_registry": module_registry_snapshot_service.package(), "memory_model": self.memory_model(), "reality_policy": self.reality_policy()}
 
 
 god_mode_global_state_service = GodModeGlobalStateService()
