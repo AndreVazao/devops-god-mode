@@ -14,7 +14,7 @@ DATA_DIR = Path("data")
 SETUP_FILE = DATA_DIR / "guided_provider_setup_wizard.json"
 SETUP_STORE = AtomicJsonStore(
     SETUP_FILE,
-    default_factory=lambda: {"version": 1, "setup_sessions": [], "browser_assist_contracts": [], "captured_results": [], "audit_log": []},
+    default_factory=lambda: {"version": 1, "setup_sessions": [], "browser_assist_contracts": [], "human_resume_events": [], "captured_results": [], "audit_log": []},
 )
 
 PROVIDERS = {
@@ -29,7 +29,8 @@ PROVIDERS = {
             "Show God Mode popup with only required fields.",
             "Store approved access fields in the local vault.",
             "Fill provider page from vault reference after Oner gate.",
-            "Pause for MFA, captcha, device approval or provider consent.",
+            "If MFA/captcha/device approval appears, reveal the original provider page to Oner.",
+            "After Oner resolves the original page, resume browser assist from the same session.",
             "Capture the final PC Tailscale IP or MagicDNS name.",
         ],
         "fields_to_collect": ["account_email", "account_secret", "pc_tailscale_ip_or_magicdns", "tailnet_label"],
@@ -46,7 +47,8 @@ PROVIDERS = {
             "Show God Mode popup with required account/setup fields.",
             "Store approved access fields in the local vault.",
             "Fill provider page from vault reference after Oner gate.",
-            "Pause for MFA, captcha, billing, DNS or consent screens.",
+            "If MFA/captcha/billing/DNS/consent appears, reveal the original provider page to Oner.",
+            "After Oner resolves the original page, resume browser assist from the same session.",
             "Capture the final public HTTPS URL.",
         ],
         "fields_to_collect": ["account_email", "account_secret", "public_https_url", "tunnel_name", "hostname"],
@@ -63,7 +65,8 @@ PROVIDERS = {
             "Show God Mode popup with required fields.",
             "Store approved access fields in the local vault.",
             "Fill provider page from vault reference after Oner gate.",
-            "Pause for MFA, captcha, plan choice or consent screens.",
+            "If MFA/captcha/plan choice/consent appears, reveal the original provider page to Oner.",
+            "After Oner resolves the original page, resume browser assist from the same session.",
             "Capture generated HTTPS URL.",
         ],
         "fields_to_collect": ["account_email", "account_secret", "public_https_url", "tunnel_label"],
@@ -82,11 +85,12 @@ PROVIDERS = {
 }
 
 SENSITIVE_FIELD_HINTS = {"account_secret", "secret", "token", "cookie", "private", "mfa_code", "recovery_code"}
+HARD_STOPS = ["mfa", "captcha", "device_approval", "billing", "provider_terms", "unexpected_page", "security_warning"]
 
 
 class GuidedProviderSetupWizardService:
     SERVICE_ID = "guided_provider_setup_wizard"
-    VERSION = "phase_212_v2"
+    VERSION = "phase_212_v3"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -100,11 +104,14 @@ class GuidedProviderSetupWizardService:
             "generated_at": self._now(),
             "setup_session_count": len(state.get("setup_sessions", [])),
             "browser_assist_contract_count": len(state.get("browser_assist_contracts", [])),
+            "human_resume_event_count": len(state.get("human_resume_events", [])),
             "captured_result_count": len(state.get("captured_results", [])),
             "supported_providers": list(PROVIDERS.keys()),
             "can_open_official_pages": True,
             "can_mask_steps_with_popup": True,
             "can_fill_provider_forms_after_user_gate": True,
+            "can_reveal_original_page_on_hard_stop": True,
+            "can_resume_after_human_resolution": True,
             "can_store_account_fields_in_local_vault": True,
             "can_store_result_in_vault_or_remote_profile": True,
             "can_bypass_mfa_or_captcha": False,
@@ -137,7 +144,8 @@ class GuidedProviderSetupWizardService:
                 "god_mode_popup_collects_required_fields": True,
                 "store_sensitive_fields_in_local_vault": True,
                 "fill_official_form_from_vault_reference_after_gate": True,
-                "pause_for_mfa_captcha_device_approval_or_consent": True,
+                "on_hard_stop_show_original_provider_page": True,
+                "after_human_resolution_continue_from_same_session": True,
                 "capture_only_final_endpoint_and_profile": True,
                 "do_not_store_raw_values_in_repo_or_normal_memory": True,
             },
@@ -146,7 +154,7 @@ class GuidedProviderSetupWizardService:
         self._audit("start_setup", session["setup_session_id"], provider, tenant_id)
         permission = mobile_permission_relay_driver_voice_service.create_permission_request(
             title=f"Guided setup: {spec['display_name']}",
-            body=f"God Mode vai abrir o provider oficial, mostrar popup só com campos necessários, guardar no Vault e preencher localmente depois do teu gate. MFA/captcha/consentimento ficam sempre para ti.",
+            body=f"God Mode vai abrir o provider oficial, mostrar popup só com campos necessários, guardar no Vault e preencher localmente depois do teu gate. Se aparecer MFA/captcha/consentimento, mostra a página original e depois continua.",
             request_type="approval",
             project_id="GOD_MODE",
             source_ref={"type": "guided_provider_setup", "setup_session_id": session["setup_session_id"], "provider": provider},
@@ -209,10 +217,18 @@ class GuidedProviderSetupWizardService:
                 "Fill normal fields from popup values.",
                 "Fill sensitive fields from local vault references after approval.",
                 "Click safe next/continue controls only for this provider setup flow.",
-                "Pause and ask Oner for MFA, captcha, device approval, plan choice, billing or consent screens.",
+                "When hard stop appears, reveal original provider page to Oner.",
+                "After Oner resolves the original provider page, resume browser assist from same session.",
                 "Capture final endpoint/profile and store it in God Mode.",
             ],
-            "hard_stops": ["mfa", "captcha", "device_approval", "billing", "provider_terms", "unexpected_page", "security_warning"],
+            "hard_stops": HARD_STOPS,
+            "hard_stop_behavior": {
+                "show_original_provider_page": True,
+                "hide_mask_until_resolved": True,
+                "oner_clicks_continue_after_resolution": True,
+                "resume_same_contract_after_resolution": True,
+                "record_resume_event": True,
+            },
             "can_execute_without_oner_gate": False,
             "can_read_raw_vault_values_in_response": False,
         }
@@ -221,7 +237,7 @@ class GuidedProviderSetupWizardService:
         self._audit("create_browser_assist_contract", contract["browser_assist_contract_id"], provider, tenant_id)
         permission = mobile_permission_relay_driver_voice_service.create_permission_request(
             title=f"Executar browser assist: {session.get('display_name')}",
-            body="God Mode recebeu os campos no popup, guardou campos sensíveis no Vault e pede aprovação para preencher/avançar no provider oficial localmente. Vai pausar em MFA/captcha/consentimento.",
+            body="God Mode recebeu os campos no popup, guardou campos sensíveis no Vault e pede aprovação para preencher/avançar no provider oficial localmente. Em hard stop mostra a página original e retoma quando resolveres.",
             request_type="blocking_decision",
             project_id="GOD_MODE",
             source_ref={"type": "guided_provider_browser_assist", "setup_session_id": setup_session_id, "browser_assist_contract_id": contract["browser_assist_contract_id"], "provider": provider},
@@ -233,6 +249,46 @@ class GuidedProviderSetupWizardService:
         )
         contract["permission_request_id"] = permission.get("permission_request", {}).get("permission_request_id")
         return {"ok": True, "mode": "create_browser_assist_contract", "browser_assist_contract": contract, "permission_request": permission}
+
+    def resume_after_human_step(
+        self,
+        browser_assist_contract_id: str,
+        hard_stop_type: str,
+        note: str = "Oner resolved original provider page and asked God Mode to continue.",
+        tenant_id: str = "owner-andre",
+    ) -> Dict[str, Any]:
+        contract = self._find("browser_assist_contracts", "browser_assist_contract_id", browser_assist_contract_id)
+        if not contract:
+            return {"ok": False, "error": "browser_assist_contract_not_found", "browser_assist_contract_id": browser_assist_contract_id}
+        event = {
+            "human_resume_event_id": f"human-resume-{uuid4().hex[:12]}",
+            "browser_assist_contract_id": browser_assist_contract_id,
+            "setup_session_id": contract.get("setup_session_id"),
+            "provider": contract.get("provider"),
+            "hard_stop_type": hard_stop_type if hard_stop_type in HARD_STOPS else "other",
+            "note": str(note)[:1000],
+            "created_at": self._now(),
+            "tenant_id": tenant_id,
+            "status": "resume_requested_after_original_page_resolution",
+            "next_behavior": "continue_browser_assist_from_same_contract",
+        }
+        self._store("human_resume_events", event)
+        self._patch_item("browser_assist_contracts", "browser_assist_contract_id", browser_assist_contract_id, {"status": "resume_requested", "last_human_resume_event_id": event["human_resume_event_id"], "updated_at": self._now()})
+        self._audit("resume_after_human_step", browser_assist_contract_id, hard_stop_type, tenant_id)
+        permission = mobile_permission_relay_driver_voice_service.create_permission_request(
+            title="Continuar browser assist",
+            body=f"Confirmaste que resolveste {event['hard_stop_type']} na página original. God Mode pede gate para continuar o mesmo fluxo assistido.",
+            request_type="blocking_decision",
+            project_id="GOD_MODE",
+            source_ref={"type": "guided_provider_resume_after_human_step", "browser_assist_contract_id": browser_assist_contract_id, "human_resume_event_id": event["human_resume_event_id"]},
+            priority="high",
+            requires_sensitive_input=False,
+            form_schema=[],
+            wait_for_response=True,
+            tenant_id=tenant_id,
+        )
+        event["permission_request_id"] = permission.get("permission_request", {}).get("permission_request_id")
+        return {"ok": True, "mode": "resume_after_human_step", "human_resume_event": event, "permission_request": permission}
 
     def capture_result(
         self,
@@ -296,6 +352,7 @@ class GuidedProviderSetupWizardService:
             "providers": PROVIDERS,
             "setup_sessions": state.get("setup_sessions", [])[-100:],
             "browser_assist_contracts": state.get("browser_assist_contracts", [])[-100:],
+            "human_resume_events": state.get("human_resume_events", [])[-100:],
             "captured_results": state.get("captured_results", [])[-100:],
             "audit_log": state.get("audit_log", [])[-100:],
         }
