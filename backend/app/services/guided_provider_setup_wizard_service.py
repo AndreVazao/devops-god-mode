@@ -14,7 +14,7 @@ DATA_DIR = Path("data")
 SETUP_FILE = DATA_DIR / "guided_provider_setup_wizard.json"
 SETUP_STORE = AtomicJsonStore(
     SETUP_FILE,
-    default_factory=lambda: {"version": 1, "setup_sessions": [], "captured_results": [], "audit_log": []},
+    default_factory=lambda: {"version": 1, "setup_sessions": [], "browser_assist_contracts": [], "captured_results": [], "audit_log": []},
 )
 
 PROVIDERS = {
@@ -25,15 +25,15 @@ PROVIDERS = {
         "download_mobile_url": "https://tailscale.com/download/android",
         "recommended_for": "Quick private phone-to-home-PC access without router port forwarding.",
         "safe_steps": [
-            "Open official Tailscale page.",
-            "Create/sign in to Tailscale using the official browser/app.",
-            "Install Tailscale on the home PC and Android phone.",
-            "Approve both devices in the same tailnet.",
-            "Copy the PC Tailscale IP or MagicDNS name into God Mode.",
-            "God Mode stores the resulting endpoint/profile, not the login password.",
+            "Open official Tailscale page in controlled local browser.",
+            "Show God Mode popup with only required fields.",
+            "Store approved access fields in the local vault.",
+            "Fill provider page from vault reference after Oner gate.",
+            "Pause for MFA, captcha, device approval or provider consent.",
+            "Capture the final PC Tailscale IP or MagicDNS name.",
         ],
-        "fields_to_collect": ["pc_tailscale_ip_or_magicdns", "tailnet_label"],
-        "blocked": ["auto type password", "bypass MFA", "scrape private account pages", "store account password"],
+        "fields_to_collect": ["account_email", "account_secret", "pc_tailscale_ip_or_magicdns", "tailnet_label"],
+        "browser_assist_supported": True,
     },
     "cloudflare_tunnel": {
         "display_name": "Cloudflare Tunnel",
@@ -42,15 +42,15 @@ PROVIDERS = {
         "download_mobile_url": "",
         "recommended_for": "Stable HTTPS URL/domain for future remote access.",
         "safe_steps": [
-            "Open official Cloudflare dashboard.",
-            "Sign in manually.",
-            "Create a tunnel for the home PC.",
-            "Map public hostname to local port 8000.",
-            "Paste the final HTTPS URL into God Mode.",
-            "Store tunnel material only in the local vault if needed.",
+            "Open official Cloudflare dashboard in controlled local browser.",
+            "Show God Mode popup with required account/setup fields.",
+            "Store approved access fields in the local vault.",
+            "Fill provider page from vault reference after Oner gate.",
+            "Pause for MFA, captcha, billing, DNS or consent screens.",
+            "Capture the final public HTTPS URL.",
         ],
-        "fields_to_collect": ["public_https_url", "tunnel_name", "hostname"],
-        "blocked": ["auto type password", "bypass MFA", "change DNS without approval", "store account password"],
+        "fields_to_collect": ["account_email", "account_secret", "public_https_url", "tunnel_name", "hostname"],
+        "browser_assist_supported": True,
     },
     "ngrok": {
         "display_name": "Ngrok",
@@ -59,14 +59,15 @@ PROVIDERS = {
         "download_mobile_url": "",
         "recommended_for": "Temporary remote HTTPS tests.",
         "safe_steps": [
-            "Open official ngrok page.",
-            "Sign in manually.",
-            "Create a tunnel for local port 8000.",
-            "Paste generated HTTPS URL into God Mode.",
-            "Store auth material in local vault only if explicitly provided.",
+            "Open official ngrok page in controlled local browser.",
+            "Show God Mode popup with required fields.",
+            "Store approved access fields in the local vault.",
+            "Fill provider page from vault reference after Oner gate.",
+            "Pause for MFA, captcha, plan choice or consent screens.",
+            "Capture generated HTTPS URL.",
         ],
-        "fields_to_collect": ["public_https_url", "tunnel_label"],
-        "blocked": ["auto type password", "bypass MFA", "store account password"],
+        "fields_to_collect": ["account_email", "account_secret", "public_https_url", "tunnel_label"],
+        "browser_assist_supported": True,
     },
     "manual_https": {
         "display_name": "Manual HTTPS URL",
@@ -76,14 +77,16 @@ PROVIDERS = {
         "recommended_for": "When the Oner already has a secure HTTPS endpoint reaching the God Mode PC.",
         "safe_steps": ["Paste final HTTPS URL.", "God Mode saves it as remote profile."],
         "fields_to_collect": ["public_https_url", "label"],
-        "blocked": ["store account password", "publish unsafe HTTP endpoint"],
+        "browser_assist_supported": False,
     },
 }
+
+SENSITIVE_FIELD_HINTS = {"account_secret", "secret", "token", "cookie", "private", "mfa_code", "recovery_code"}
 
 
 class GuidedProviderSetupWizardService:
     SERVICE_ID = "guided_provider_setup_wizard"
-    VERSION = "phase_212_v1"
+    VERSION = "phase_212_v2"
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -96,13 +99,16 @@ class GuidedProviderSetupWizardService:
             "version": self.VERSION,
             "generated_at": self._now(),
             "setup_session_count": len(state.get("setup_sessions", [])),
+            "browser_assist_contract_count": len(state.get("browser_assist_contracts", [])),
             "captured_result_count": len(state.get("captured_results", [])),
             "supported_providers": list(PROVIDERS.keys()),
             "can_open_official_pages": True,
-            "can_mask_steps_with_guidance": True,
+            "can_mask_steps_with_popup": True,
+            "can_fill_provider_forms_after_user_gate": True,
+            "can_store_account_fields_in_local_vault": True,
             "can_store_result_in_vault_or_remote_profile": True,
-            "can_auto_type_credentials": False,
-            "can_bypass_mfa": False,
+            "can_bypass_mfa_or_captcha": False,
+            "can_run_without_oner_gate": False,
         }
 
     def providers(self) -> Dict[str, Any]:
@@ -117,28 +123,30 @@ class GuidedProviderSetupWizardService:
             "tenant_id": tenant_id,
             "provider": provider,
             "display_name": spec["display_name"],
-            "status": "guided_manual_login_required",
+            "status": "browser_assist_ready" if spec.get("browser_assist_supported") else "manual_capture_ready",
             "official_url": spec["official_url"],
             "download_pc_url": spec["download_pc_url"],
             "download_mobile_url": spec["download_mobile_url"],
             "recommended_for": spec["recommended_for"],
             "safe_steps": spec["safe_steps"],
             "fields_to_collect": spec["fields_to_collect"],
-            "blocked": spec["blocked"],
-            "browser_contract": {
+            "browser_assist_supported": spec.get("browser_assist_supported", False),
+            "operator_contract": {
                 "open_official_url": spec["official_url"],
-                "show_guidance_overlay": True,
-                "user_enters_login_directly_on_provider": True,
-                "god_mode_stores_password": False,
-                "god_mode_reads_private_provider_pages": False,
-                "after_login_capture_only_final_endpoint": True,
+                "official_page_can_be_minimized_or_side_panel": True,
+                "god_mode_popup_collects_required_fields": True,
+                "store_sensitive_fields_in_local_vault": True,
+                "fill_official_form_from_vault_reference_after_gate": True,
+                "pause_for_mfa_captcha_device_approval_or_consent": True,
+                "capture_only_final_endpoint_and_profile": True,
+                "do_not_store_raw_values_in_repo_or_normal_memory": True,
             },
         }
         self._store("setup_sessions", session)
         self._audit("start_setup", session["setup_session_id"], provider, tenant_id)
         permission = mobile_permission_relay_driver_voice_service.create_permission_request(
             title=f"Guided setup: {spec['display_name']}",
-            body=f"God Mode vai guiar o setup oficial de {spec['display_name']}. O login fica no browser/app oficial. Depois só guardamos endpoint/resultados aprovados.",
+            body=f"God Mode vai abrir o provider oficial, mostrar popup só com campos necessários, guardar no Vault e preencher localmente depois do teu gate. MFA/captcha/consentimento ficam sempre para ti.",
             request_type="approval",
             project_id="GOD_MODE",
             source_ref={"type": "guided_provider_setup", "setup_session_id": session["setup_session_id"], "provider": provider},
@@ -149,6 +157,82 @@ class GuidedProviderSetupWizardService:
             tenant_id=tenant_id,
         )
         return {"ok": True, "mode": "start_guided_provider_setup", "setup_session": session, "permission_request": permission}
+
+    def create_browser_assist_contract(
+        self,
+        setup_session_id: str,
+        form_values: Dict[str, Any],
+        operation: str = "signup_or_login",
+        tenant_id: str = "owner-andre",
+    ) -> Dict[str, Any]:
+        session = self._find("setup_sessions", "setup_session_id", setup_session_id)
+        if not session:
+            return {"ok": False, "error": "setup_session_not_found", "setup_session_id": setup_session_id}
+        provider = str(session.get("provider") or "tailscale")
+        vault_refs = []
+        public_values: Dict[str, Any] = {}
+        for key, value in (form_values or {}).items():
+            key_text = str(key)[:120]
+            if self._is_sensitive_field(key_text):
+                if str(value or "").strip():
+                    stored = god_mode_local_vault_service.store_secret(
+                        raw_secret=str(value),
+                        label=f"{provider}:{key_text}:browser-assist",
+                        purpose=f"Provider browser assist field for {provider}",
+                        secret_kind="provider_browser_assist_field",
+                        provider=provider,
+                        project_id="GOD_MODE",
+                        scope="provider_setup_browser_assist",
+                        source_ref={"type": "guided_provider_setup_browser_assist", "setup_session_id": setup_session_id, "field": key_text},
+                        reuse_policy="reuse_for_same_provider_after_oner_gate",
+                        tenant_id=tenant_id,
+                    )
+                    vault_refs.append({"field": key_text, "vault_reference": stored.get("vault_reference")})
+                public_values[key_text] = "[VAULT_REFERENCE]"
+            else:
+                public_values[key_text] = str(value)[:1000]
+        contract = {
+            "browser_assist_contract_id": f"browser-assist-{uuid4().hex[:12]}",
+            "setup_session_id": setup_session_id,
+            "created_at": self._now(),
+            "tenant_id": tenant_id,
+            "provider": provider,
+            "operation": operation,
+            "status": "pending_mobile_gate",
+            "official_url": session.get("official_url"),
+            "browser_window_strategy": "open_official_page_local_and_keep_god_mode_popup_visible",
+            "popup_fields": public_values,
+            "vault_references": vault_refs,
+            "operator_steps": [
+                "Open official provider URL locally.",
+                "Keep God Mode popup visible with only required fields/status.",
+                "Fill normal fields from popup values.",
+                "Fill sensitive fields from local vault references after approval.",
+                "Click safe next/continue controls only for this provider setup flow.",
+                "Pause and ask Oner for MFA, captcha, device approval, plan choice, billing or consent screens.",
+                "Capture final endpoint/profile and store it in God Mode.",
+            ],
+            "hard_stops": ["mfa", "captcha", "device_approval", "billing", "provider_terms", "unexpected_page", "security_warning"],
+            "can_execute_without_oner_gate": False,
+            "can_read_raw_vault_values_in_response": False,
+        }
+        self._store("browser_assist_contracts", contract)
+        self._patch_item("setup_sessions", "setup_session_id", setup_session_id, {"status": "browser_assist_contract_created", "last_browser_assist_contract_id": contract["browser_assist_contract_id"]})
+        self._audit("create_browser_assist_contract", contract["browser_assist_contract_id"], provider, tenant_id)
+        permission = mobile_permission_relay_driver_voice_service.create_permission_request(
+            title=f"Executar browser assist: {session.get('display_name')}",
+            body="God Mode recebeu os campos no popup, guardou campos sensíveis no Vault e pede aprovação para preencher/avançar no provider oficial localmente. Vai pausar em MFA/captcha/consentimento.",
+            request_type="blocking_decision",
+            project_id="GOD_MODE",
+            source_ref={"type": "guided_provider_browser_assist", "setup_session_id": setup_session_id, "browser_assist_contract_id": contract["browser_assist_contract_id"], "provider": provider},
+            priority="high",
+            requires_sensitive_input=False,
+            form_schema=[],
+            wait_for_response=True,
+            tenant_id=tenant_id,
+        )
+        contract["permission_request_id"] = permission.get("permission_request", {}).get("permission_request_id")
+        return {"ok": True, "mode": "create_browser_assist_contract", "browser_assist_contract": contract, "permission_request": permission}
 
     def capture_result(
         self,
@@ -211,6 +295,7 @@ class GuidedProviderSetupWizardService:
             "status": self.status(),
             "providers": PROVIDERS,
             "setup_sessions": state.get("setup_sessions", [])[-100:],
+            "browser_assist_contracts": state.get("browser_assist_contracts", [])[-100:],
             "captured_results": state.get("captured_results", [])[-100:],
             "audit_log": state.get("audit_log", [])[-100:],
         }
@@ -226,11 +311,15 @@ class GuidedProviderSetupWizardService:
             return f"http://{value}:8000" if value else ""
         return str(values.get("public_https_url") or values.get("url") or "").strip().rstrip("/")
 
+    def _is_sensitive_field(self, key: str) -> bool:
+        lowered = key.lower()
+        return any(hint in lowered for hint in SENSITIVE_FIELD_HINTS)
+
     def _sanitize_values(self, values: Dict[str, Any]) -> Dict[str, Any]:
         sanitized = {}
         for key, value in (values or {}).items():
             key_text = str(key)[:120]
-            if any(word in key_text.lower() for word in ["password", "token", "secret", "cookie", "private"]):
+            if self._is_sensitive_field(key_text):
                 sanitized[key_text] = "[REDACTED_STORED_ONLY_IF_EXPLICIT]"
             else:
                 sanitized[key_text] = str(value)[:1000]
