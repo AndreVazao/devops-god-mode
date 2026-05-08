@@ -32,7 +32,7 @@ class FirstPcInstallReadyPackService:
         "Download the latest Windows EXE artifact from the Windows EXE Build workflow.",
         "Extract the artifact on the home PC.",
         "Run GodModeDesktop.exe.",
-        "Wait until the browser opens /app/home or open http://127.0.0.1:8000/app/home manually.",
+        "Wait until the browser opens /app/home or open http://127.0.0.1:8787/app/home manually.",
         "Open /app/first-pc-install-ready-pack and confirm the readiness pack.",
         "Use /app/github-repo-inventory-feed to import or seed repos.",
         "Use /app/conversation-source-import-feed to paste important project conversation/context.",
@@ -55,7 +55,7 @@ class FirstPcInstallReadyPackService:
             "ready_for_first_pc_install": len(blockers) == 0,
             "blocker_count": len(blockers),
             "blockers": blockers,
-            "canonical_local_url": "http://127.0.0.1:8000/app/home",
+            "canonical_local_url": "http://127.0.0.1:8787/app/home",
             "install_ready_pack_route": "/app/first-pc-install-ready-pack",
             "can_store_secrets_in_repo": False,
             "can_auto_update_without_gate": False,
@@ -68,9 +68,9 @@ class FirstPcInstallReadyPackService:
             "goal": "Give the home PC a clear first-run contract for GodModeDesktop.exe without storing secrets or doing risky automation.",
             "desktop_entrypoint": {
                 "expected_executable": "GodModeDesktop.exe",
-                "expected_backend_port": 8000,
-                "canonical_local_home": "http://127.0.0.1:8000/app/home",
-                "fallback_health": "http://127.0.0.1:8000/health",
+                "expected_backend_port": 8787,
+                "canonical_local_home": "http://127.0.0.1:8787/app/home",
+                "fallback_health": "http://127.0.0.1:8787/health",
             },
             "first_start_steps": self.FIRST_LOCAL_START_STEPS,
             "success_signals": [
@@ -138,7 +138,7 @@ class FirstPcInstallReadyPackService:
         status = pack.get("status", {})
         checks = [
             {"id": "desktop_exe_contract", "label": "GodModeDesktop.exe contract exists", "ok": True, "detail": pack["one_click_local_start_contract"]["desktop_entrypoint"]},
-            {"id": "canonical_home", "label": "Canonical local home defined", "ok": True, "detail": "http://127.0.0.1:8000/app/home"},
+            {"id": "canonical_home", "label": "Canonical local home defined", "ok": True, "detail": "http://127.0.0.1:8787/app/home"},
             {"id": "essential_routes", "label": "Essential routes listed", "ok": len(self.ESSENTIAL_LOCAL_ROUTES) >= 8, "detail": self.ESSENTIAL_LOCAL_ROUTES},
             {"id": "readiness_pack", "label": "Ready pack generated", "ok": True, "detail": status},
             {"id": "secrets_policy", "label": "Secrets blocked from repo/memory", "ok": True, "detail": pack["secrets_policy"]},

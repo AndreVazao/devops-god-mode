@@ -32,7 +32,7 @@ class ApkPcPairingWizardService:
     code. It stores only hashes of pairing tokens, never passwords/API keys.
     """
 
-    DEFAULT_PORT = 8000
+    DEFAULT_PORT = 8787
     TOKEN_TTL_MINUTES = 15
 
     def _now(self) -> datetime:

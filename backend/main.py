@@ -53,6 +53,9 @@ def health() -> Dict[str, str]:
 
 @app.get('/api/system/config')
 def config_status() -> Dict[str, Any]:
+    import platform
+    import sys
+
     return {
         'runtime_mode': 'pc_mobile_local_first',
         'local_brain': 'pc',
@@ -63,4 +66,10 @@ def config_status() -> Dict[str, Any]:
         'github': bool(settings.GITHUB_TOKEN),
         'openai': bool(settings.OPENAI_KEY),
         'loaded_route_modules': len(LOADED_ROUTE_MODULES),
+        'technical_info': {
+            'python_version': sys.version,
+            'platform': platform.platform(),
+            'architecture': platform.machine(),
+            'api_modules_loaded': LOADED_ROUTE_MODULES,
+        },
     }

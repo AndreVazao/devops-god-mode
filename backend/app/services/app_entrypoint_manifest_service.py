@@ -15,8 +15,8 @@ class AppEntrypointManifestService:
     SERVICE_ID = "app_entrypoint_manifest"
     VERSION = "phase_174_v1"
     CANONICAL_ROUTE = "/app/home"
-    LOCAL_BASE_URL = "http://127.0.0.1:8000"
-    BACKEND_PORT = 8000
+    LOCAL_BASE_URL = "http://127.0.0.1:8787"
+    BACKEND_PORT = 8787
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -68,7 +68,7 @@ class AppEntrypointManifestService:
                 "expected_constant": "ENTRY_ROUTE",
                 "default_route": self.CANONICAL_ROUTE,
                 "default_base_url": self.LOCAL_BASE_URL,
-                "physical_phone_note": "Use the PC LAN backend URL, for example http://192.168.x.x:8000, then open /app/home.",
+                "physical_phone_note": "Use the PC LAN backend URL, for example http://192.168.x.x:8787, then open /app/home.",
             },
             "browser": {
                 "default_route": self.CANONICAL_ROUTE,

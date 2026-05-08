@@ -150,7 +150,7 @@ class FirstReleaseArtifactCenterService:
             {
                 "step": 4,
                 "title": "Configurar URL do PC no APK",
-                "detail": "No APK, trocar o URL base para o IP do PC, por exemplo http://192.168.1.50:8000, e abrir /app/apk-start.",
+                "detail": "No APK, trocar o URL base para o IP do PC, por exemplo http://192.168.1.50:8787, e abrir /app/apk-start.",
                 "artifact_id": "android_apk",
             },
             {

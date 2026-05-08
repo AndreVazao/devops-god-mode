@@ -57,7 +57,7 @@ class FinalInstallUsePackService:
             "mode": "apk_endpoint_contract",
             "generated_at": self._now(),
             "manifest_endpoint": "/api/mobile-pc-pairing/connection-manifest",
-            "recommended_start_url_home": "http://192.168.1.81:8000/app/mobile-permission-relay",
+            "recommended_start_url_home": "http://192.168.1.81:8787/app/mobile-permission-relay",
             "lan_sweep_endpoint": "/api/mobile-pc-pairing/lan-scan-candidates",
             "fallback_routes": [
                 "/app/mobile-permission-relay",
@@ -85,14 +85,14 @@ class FinalInstallUsePackService:
             "pc": [
                 {"step": 1, "title": "Download Windows artifact", "action": "Open GitHub Actions → Windows EXE Build → latest green run → download godmode-windows-exe."},
                 {"step": 2, "title": "Extract and run", "action": "Extract ZIP and open GodModeDesktop.exe."},
-                {"step": 3, "title": "Open final ready page", "action": "Go to http://127.0.0.1:8000/app/install-use-now."},
+                {"step": 3, "title": "Open final ready page", "action": "Go to http://127.0.0.1:8787/app/install-use-now."},
                 {"step": 4, "title": "Pair phone", "action": "Open /app/connect-phone and create pairing. PC LAN sweep includes 192.168.1.61-101."},
                 {"step": 5, "title": "Add Vault material if needed", "action": "Open /app/god-mode-vault and paste .env/URLs/access material only if needed."},
                 {"step": 6, "title": "Start Autopilot", "action": "Open /app/today-ready and press Start Autopilot."},
             ],
             "phone": [
                 {"step": 1, "title": "Install APK artifact", "action": "Install latest godmode-android-webview-apk from Android APK Build."},
-                {"step": 2, "title": "Home connection", "action": "Try http://192.168.1.81:8000/app/mobile-permission-relay. If it fails, use LAN sweep manifest."},
+                {"step": 2, "title": "Home connection", "action": "Try http://192.168.1.81:8787/app/mobile-permission-relay. If it fails, use LAN sweep manifest."},
                 {"step": 3, "title": "Remote connection", "action": "For outside home, configure Tailscale/Cloudflare/Ngrok/manual HTTPS URL in /app/connect-phone."},
                 {"step": 4, "title": "Use cockpit", "action": "Use /app/mobile-permission-relay for approvals and /app/driver-voice-permissions for voice mode."},
             ],

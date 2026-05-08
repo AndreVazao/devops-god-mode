@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 class PcLinkHelperService:
     """Mobile-first helper to connect the APK/WebView to the PC backend."""
 
-    DEFAULT_PORT = 8000
+    DEFAULT_PORT = 8787
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()

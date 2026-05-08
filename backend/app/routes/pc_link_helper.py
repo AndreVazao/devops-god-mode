@@ -16,12 +16,12 @@ async def post_status():
 
 
 @router.get('/panel')
-async def panel(port: int = 8000):
+async def panel(port: int = 8787):
     return pc_link_helper_service.build_panel(port=port)
 
 
 @router.post('/panel')
-async def post_panel(port: int = 8000):
+async def post_panel(port: int = 8787):
     return pc_link_helper_service.build_panel(port=port)
 
 

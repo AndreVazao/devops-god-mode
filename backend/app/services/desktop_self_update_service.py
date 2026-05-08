@@ -135,7 +135,7 @@ class DesktopSelfUpdateService:
             "phase": CURRENT_PHASE,
             "channel": DEFAULT_CHANNEL,
             "generated_at": _utc_now(),
-            "backend_port": 8000,
+            "backend_port": 8787,
             "health_path": "/health",
             "home_path": "/app/home",
             "update_capabilities": {

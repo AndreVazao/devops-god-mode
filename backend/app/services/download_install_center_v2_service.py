@@ -37,7 +37,7 @@ class DownloadInstallCenterV2Service:
     """
 
     SHARE_TTL_MINUTES = 60
-    DEFAULT_PORT = 8000
+    DEFAULT_PORT = 8787
     ARTIFACTS = [
         {
             "id": "windows_exe",

@@ -5,7 +5,7 @@ import socket
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-DEFAULT_PORT = int(os.environ.get("PORT", os.environ.get("GODMODE_PORT", "8000")))
+DEFAULT_PORT = int(os.environ.get("PORT", os.environ.get("GODMODE_PORT", "8787")))
 
 
 class PcMobilePairingService:

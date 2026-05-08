@@ -167,7 +167,7 @@ class AutonomousInstallResearchCodeService:
         context = memory_context_router_service.prepare_project_context(
             project_id=project,
             source="autonomous_research_plan",
-            max_chars=8000,
+            max_chars=8787,
         ).get("context_pack")
         queries = self._build_queries(project, topic, objective)
         sources = [source for source in self.RESEARCH_SOURCES if include_google or source["id"] != "google_web"]

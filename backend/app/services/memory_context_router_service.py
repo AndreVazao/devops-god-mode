@@ -120,7 +120,7 @@ class MemoryContextRouterService:
         project_id: str,
         source: str = "existing_or_new_project",
         idea: Optional[str] = None,
-        max_chars: int = 8000,
+        max_chars: int = 8787,
     ) -> Dict[str, Any]:
         normalized = project_id.strip().upper().replace("-", "_").replace(" ", "_") or "GOD_MODE"
         memory_core_service.create_project(normalized)
@@ -165,7 +165,7 @@ class MemoryContextRouterService:
             project_id=project_id,
             source="new_project_start_intake",
             idea=idea,
-            max_chars=8000,
+            max_chars=8787,
         )
 
     def prepare_priority_projects(self, limit: int = 12) -> Dict[str, Any]:

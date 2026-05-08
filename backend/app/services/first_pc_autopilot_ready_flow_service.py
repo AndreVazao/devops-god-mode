@@ -28,7 +28,7 @@ class FirstPcAutopilotReadyFlowService:
             "generated_at": self._now(),
             "ready_score": checks.get("ready_score"),
             "is_today_ready": checks.get("is_today_ready"),
-            "canonical_pc_url": "http://127.0.0.1:8000/app/home",
+            "canonical_pc_url": "http://127.0.0.1:8787/app/home",
             "today_ready_route": "/app/first-pc-autopilot-ready",
             "first_loop_route": "/app/ia-operator-bridge",
         }
@@ -53,7 +53,7 @@ class FirstPcAutopilotReadyFlowService:
             "pc_steps": [
                 {"step": 1, "title": "Download latest Windows EXE artifact", "route": "/app/artifacts-center", "note": "Usar o artifact Windows EXE mais recente das Actions verdes."},
                 {"step": 2, "title": "Run GodModeDesktop.exe", "route": "local", "note": "Abrir no PC de casa. O backend deve arrancar localmente e abrir cockpit."},
-                {"step": 3, "title": "Open Home", "route": "http://127.0.0.1:8000/app/home", "note": "Cockpit canónico."},
+                {"step": 3, "title": "Open Home", "route": "http://127.0.0.1:8787/app/home", "note": "Cockpit canónico."},
                 {"step": 4, "title": "Open Today Ready", "route": "/app/first-pc-autopilot-ready", "note": "Ver readiness e próximos botões."},
                 {"step": 5, "title": "Open Vault Intake", "route": "/app/god-mode-vault", "note": "Colar .env/chaves/URLs que queiras que o God Mode classifique e guarde."},
                 {"step": 6, "title": "Start First Autonomous Loop", "route": "/app/ia-operator-bridge", "note": "Iniciar o primeiro ciclo de trabalho autónomo seguro."},
@@ -75,7 +75,7 @@ class FirstPcAutopilotReadyFlowService:
             "ready": checks.get("is_today_ready"),
             "ready_score": checks.get("ready_score"),
             "expected_executable": "GodModeDesktop.exe",
-            "canonical_local_url": "http://127.0.0.1:8000/app/home",
+            "canonical_local_url": "http://127.0.0.1:8787/app/home",
             "must_open_routes": [
                 "/app/home",
                 "/app/first-pc-autopilot-ready",
