@@ -132,11 +132,34 @@ class HomeVisualShellService:
     button.low { border-color: rgba(100,168,255,.55); }
     button.approval_required { border-color: rgba(255,157,77,.7); }
     button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      margin-top: 20px;
+    }
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
     }
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .technical-data {
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      border-radius: 22px;
+      padding: 18px;
+      font-size: 13px;
+    }
+    .technical-data h3 { margin: 0 0 12px; font-size: 15px; color: var(--blue); text-transform: uppercase; }
+    .data-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .data-row:last-child { border: 0; }
+    .data-label { color: var(--muted); }
+    .endpoint-debug { font-family: monospace; background: #000; padding: 4px 6px; border-radius: 6px; font-size: 11px; margin-bottom: 8px; color: var(--orange); }
     .card {
       background: linear-gradient(180deg, rgba(17,28,46,.96), rgba(10,17,30,.96));
       border: 1px solid var(--stroke);
@@ -232,14 +255,33 @@ class HomeVisualShellService:
 
     <div class=\"toolbar\">
       <button class=\"safe\" onclick=\"loadCockpit()\">Atualizar cockpit</button>
+      <button class=\"safe\" onclick=\"openEndpoint('/api/system/config')\">System Config</button>
       <button class=\"safe\" onclick=\"openEndpoint('/api/home-control-surface/package')\">Ver package</button>
-      <button class=\"safe\" onclick=\"openEndpoint('/api/home-control-surface/buttons')\">Ver botões</button>
       <button class=\"safe\" onclick=\"openEndpoint('/health')\">Health</button>
     </div>
 
-    <section class=\"grid\" id=\"cards\"><div class=\"empty\">A carregar módulos...</div></section>
+    <div class=\"main-grid\">
+      <div class=\"content-area\">
+        <section class=\"grid\" id=\"cards\"><div class=\"empty\">A carregar módulos...</div></section>
+        <section class=\"output\"><pre id=\"output\">Sem output ainda.</pre></section>
+      </div>
 
-    <section class=\"output\"><pre id=\"output\">Sem output ainda.</pre></section>
+      <aside class=\"side-panel\">
+        <div class=\"technical-data\">
+          <h3>Diagnóstico do Sistema</h3>
+          <div id=\"sysInfo\">
+            <div class=\"empty\">A carregar info técnica...</div>
+          </div>
+        </div>
+        <div class=\"technical-data\">
+          <h3>Estatísticas</h3>
+          <div id=\"statsInfo\">
+             <div class=\"data-row\"><span class=\"data-label\">Módulos</span><span id=\"statModules\">—</span></div>
+             <div class=\"data-row\"><span class=\"data-label\">Botões</span><span id=\"statButtons\">—</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 
   <div class=\"modal-backdrop\" id=\"modalBackdrop\">
@@ -283,13 +325,23 @@ class HomeVisualShellService:
     async function loadCockpit() {
       $('cards').innerHTML = '<div class=\"empty\">A carregar módulos...</div>';
       try {
-        const pkg = await fetchJson(API_PACKAGE);
+        const [pkg, config] = await Promise.all([
+           fetchJson(API_PACKAGE),
+           fetchJson('/api/system/config')
+        ]);
+
         const panel = pkg.panel || {};
         const modules = panel.modules || [];
         $('subtitle').textContent = panel.description || 'Cockpit operacional';
         $('globalDot').className = dotClass(panel.traffic_light || 'yellow');
         $('globalStatus').textContent = (panel.traffic_light || 'yellow').toUpperCase();
+
         renderModules(modules);
+        renderTechnicalInfo(config);
+
+        $('statModules').textContent = modules.length;
+        $('statButtons').textContent = pkg.buttons?.button_count || 0;
+
         setOutput({ loaded: true, status: pkg.status, modules: modules.length, buttons: pkg.buttons?.button_count });
       } catch (err) {
         $('globalDot').className = dotClass('red');
@@ -315,7 +367,6 @@ class HomeVisualShellService:
           </div>
           <div class=\"meta\">
             <span class=\"tag\">${escapeHtml(module.id)}</span>
-            <span class=\"tag\">${escapeHtml(module.panel_endpoint || '')}</span>
             <span class=\"tag\">${escapeHtml(module.traffic_light || 'yellow')}</span>
           </div>
           <div class=\"buttons\">
@@ -327,7 +378,23 @@ class HomeVisualShellService:
 
     function buttonHtml(btn) {
       const risk = btn.risk || 'safe';
-      return `<button class=\"${escapeHtml(risk)}\" onclick='prepareAction(${JSON.stringify(btn)})'>${escapeHtml(btn.label || btn.id)}</button>`;
+      return `
+        <div style=\"width: 100%\">
+          <div class=\"endpoint-debug\">${escapeHtml(btn.method)} ${escapeHtml(btn.endpoint)}</div>
+          <button class=\"${escapeHtml(risk)}\" style=\"width: 100%\" onclick='prepareAction(${JSON.stringify(btn)})'>${escapeHtml(btn.label || btn.id)}</button>
+        </div>
+      `;
+    }
+
+    function renderTechnicalInfo(config) {
+       const info = config.technical_info || {};
+       $('sysInfo').innerHTML = `
+          <div class=\"data-row\"><span class=\"data-label\">Runtime</span><span>${escapeHtml(config.runtime_mode)}</span></div>
+          <div class=\"data-row\"><span class=\"data-label\">Brain</span><span>${escapeHtml(config.local_brain)}</span></div>
+          <div class=\"data-row\"><span class=\"data-label\">Platform</span><span>${escapeHtml(info.platform || 'unknown')}</span></div>
+          <div class=\"data-row\"><span class=\"data-label\">Python</span><span>${escapeHtml((info.python_version || '').split(' ')[0])}</span></div>
+          <div class=\"data-row\"><span class=\"data-label\">Modules</span><span>${(info.api_modules_loaded || []).length}</span></div>
+       `;
     }
 
     function prepareAction(btn) {
