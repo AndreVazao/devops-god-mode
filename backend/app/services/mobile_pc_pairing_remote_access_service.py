@@ -25,7 +25,7 @@ KNOWN_HOME_PC_IPS = ["192.168.1.81"]
 KNOWN_HOME_PHONE_IPS = ["192.168.1.47"]
 LAN_SWEEP_BASE_IP = "192.168.1.81"
 LAN_SWEEP_RADIUS = 20
-LAN_SWEEP_PORT = 8000
+LAN_SWEEP_PORT = 8787
 
 
 class MobilePcPairingRemoteAccessService:
@@ -185,7 +185,25 @@ class MobilePcPairingRemoteAccessService:
             self._patch_remote_profile(remote_profile_id, {"vault_reference_ids": list(set((profile.get("vault_reference_ids") or []) + [ref.get("vault_item_id")]))})
         return {"ok": True, "mode": "store_remote_material", "vault_reference": ref, "remote_profile": self._find("remote_profiles", "remote_profile_id", remote_profile_id)}
 
+    def _refresh_tailscale_profile(self, tenant_id: str) -> None:
+        try:
+            from app.services.private_tunnel_center_service import private_tunnel_center_service
+            report = private_tunnel_center_service.build_tunnel_report(include_pairing=False)
+            tailscale_ip = report.get("providers", [{}])[0].get("detected_ip")
+            if tailscale_ip:
+                public_url = f"http://{tailscale_ip}:{LAN_SWEEP_PORT}"
+                state = PAIRING_STORE.load()
+                existing = next((p for p in state.get("remote_profiles", []) if p.get("tenant_id") == tenant_id and p.get("provider") == "tailscale"), None)
+                if existing:
+                    if existing.get("public_url") != public_url:
+                        self._patch_remote_profile(existing["remote_profile_id"], {"public_url": public_url, "status": "ready", "mobile_entry_url": f"{public_url}/app/home"})
+                else:
+                    self.create_remote_access_plan(provider="tailscale", public_url=public_url, tenant_id=tenant_id)
+        except Exception:
+            pass
+
     def connection_manifest(self, tenant_id: str = "owner-andre") -> Dict[str, Any]:
+        self._refresh_tailscale_profile(tenant_id)
         state = PAIRING_STORE.load()
         sessions = [s for s in state.get("pairing_sessions", []) if s.get("tenant_id") == tenant_id and s.get("status") == "active"]
         profiles = [p for p in state.get("remote_profiles", []) if p.get("tenant_id") == tenant_id]

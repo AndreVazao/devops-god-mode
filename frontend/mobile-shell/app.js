@@ -354,6 +354,37 @@ async function syncReconstruction(reconstructionId) {
   }
 }
 
+async function autoUpdateConnection() {
+  try {
+    const data = await fetchJson(`${getBaseUrl()}/api/mobile-pc-pairing/connection-manifest`);
+    if (!data.ok) return;
+
+    const currentUrl = getBaseUrl();
+    const tryList = data.mobile_should_try_in_order || [];
+
+    // If current URL is already working and in the list, we might not want to jump unless it's a better mode
+    // For now, let's just pick the first one that responds to /health
+    for (const item of tryList) {
+       try {
+         const health = await fetch(`${item.url.replace(/\/$/, "")}/health`, { signal: AbortSignal.timeout(2000) });
+         if (health.ok) {
+           if (item.url.replace(/\/$/, "") !== currentUrl) {
+              apiInput.value = item.url;
+              saveUrls();
+              refreshStatus();
+              setQuickSummary(`Ligação auto-sincronizada: ${item.mode}`);
+           }
+           break;
+         }
+       } catch (e) {
+         continue;
+       }
+    }
+  } catch (e) {
+    console.error("Auto-sync failed", e);
+  }
+}
+
 async function refreshStatus() {
   connectionBadge.textContent = "a validar";
   connectionBadge.className = "badge badge-warning";
@@ -368,6 +399,10 @@ async function refreshStatus() {
     connectionBadge.className = "badge badge-success";
     setQuickSummary(`Ligação OK em ${getBaseUrl()}`);
     refreshCriticalAction();
+    // Only auto-update if we are not manually overriding
+    if (presetSelect.value !== "manual") {
+       autoUpdateConnection();
+    }
   } catch (error) {
     backendStatusValue.textContent = "erro";
     backendProfileValue.textContent = String(error.message).slice(0, 80);

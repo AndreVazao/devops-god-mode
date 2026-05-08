@@ -14,7 +14,7 @@ from urllib.parse import quote
 import qrcode
 import qrcode.image.svg
 
-DEFAULT_PORT = int(os.environ.get("PORT", os.environ.get("GODMODE_PORT", "8000")))
+DEFAULT_PORT = int(os.environ.get("PORT", os.environ.get("GODMODE_PORT", os.environ.get("GOD_MODE_BACKEND_PORT", "8787"))))
 
 
 class PrivateTunnelCenterService:

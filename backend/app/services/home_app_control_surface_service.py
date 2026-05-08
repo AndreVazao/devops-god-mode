@@ -300,6 +300,7 @@ class HomeAppControlSurfaceService:
                 self._button("home_latest", "Último estado Home", "GET", "/api/home-control-surface/latest", "safe"),
                 self._button("home_buttons", "Manifesto de botões", "GET", "/api/home-control-surface/buttons", "safe"),
                 self._button("home_package", "Pacote Home/App", "GET", "/api/home-control-surface/package", "safe"),
+                self._button("home_sync_conn", "Sincronizar Ligação Mobile", "GET", "/api/mobile-pc-pairing/connection-manifest", "safe"),
             ],
         )
 
