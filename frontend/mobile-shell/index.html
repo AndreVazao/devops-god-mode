@@ -19,6 +19,17 @@
         <button id="refreshStatusBtn" class="ghost-btn">Atualizar</button>
       </header>
 
+      <section id="criticalActionSection" class="panel hero-panel" style="display: none; border-color: var(--accent); background: rgba(94, 234, 212, 0.05);">
+        <div class="panel-title-row">
+          <h2 style="color: var(--accent);">Próxima Ação Crítica</h2>
+          <span class="badge badge-success">prioridade</span>
+        </div>
+        <div id="criticalActionCard" class="card" style="margin-top: 12px; background: #111827; border: 1px solid #1e293b; padding: 16px; border-radius: 14px;">
+           <p id="criticalActionLabel" class="value" style="font-size: 18px; margin-bottom: 12px;">Carregando...</p>
+           <button id="criticalActionBtn" class="primary-btn" style="width: 100%;">Executar Agora</button>
+        </div>
+      </section>
+
       <section class="panel hero-panel">
         <div class="panel-title-row">
           <h2>Modo</h2>
@@ -40,27 +51,36 @@
           </div>
         </div>
 
-        <div class="grid two-col">
-          <label class="field">
-            <span>Fonte de backend</span>
-            <select id="backendPresetSelect">
-              <option value="render">Render</option>
-              <option value="local_pc">PC local</option>
-              <option value="private_tunnel">Túnel privado/free</option>
-              <option value="manual">Manual</option>
-            </select>
-          </label>
+        <details style="margin: 12px 0;">
+          <summary style="cursor: pointer; color: var(--muted); font-size: 14px;">Configurações de conexão</summary>
+          <div class="grid two-col" style="margin-top: 12px;">
+            <label class="field">
+              <span>Fonte de backend</span>
+              <select id="backendPresetSelect">
+                <option value="render">Render</option>
+                <option value="local_pc">PC local</option>
+                <option value="private_tunnel">Túnel privado/free</option>
+                <option value="manual">Manual</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>URL shell local/túnel</span>
+              <input id="shellUrlInput" type="url" placeholder="http://127.0.0.1:4173 ou URL do túnel" />
+            </label>
+          </div>
 
           <label class="field">
-            <span>URL shell local/túnel</span>
-            <input id="shellUrlInput" type="url" placeholder="http://127.0.0.1:4173 ou URL do túnel" />
+            <span>API base</span>
+            <input id="apiBaseInput" type="url" placeholder="https://devops-god-mode-backend.onrender.com" />
           </label>
-        </div>
 
-        <label class="field">
-          <span>API base</span>
-          <input id="apiBaseInput" type="url" placeholder="https://devops-god-mode-backend.onrender.com" />
-        </label>
+          <div class="action-row compact-row wrap-row">
+            <button id="applyPresetBtn" class="secondary-btn">Aplicar preset</button>
+            <button id="saveApiBtn" class="secondary-btn">Guardar URLs</button>
+            <button id="statusBtn" class="secondary-btn">Testar /ops/status</button>
+          </div>
+        </details>
 
         <div class="status-grid grid three-col">
           <div>
@@ -77,11 +97,6 @@
           </div>
         </div>
 
-        <div class="action-row compact-row wrap-row">
-          <button id="applyPresetBtn" class="secondary-btn">Aplicar preset</button>
-          <button id="saveApiBtn" class="secondary-btn">Guardar URLs</button>
-          <button id="statusBtn" class="secondary-btn">Testar /ops/status</button>
-        </div>
       </section>
 
       <section class="panel approvals-panel">
