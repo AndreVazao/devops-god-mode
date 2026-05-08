@@ -367,6 +367,7 @@ async function refreshStatus() {
     connectionBadge.textContent = "online";
     connectionBadge.className = "badge badge-success";
     setQuickSummary(`Ligação OK em ${getBaseUrl()}`);
+    refreshCriticalAction();
   } catch (error) {
     backendStatusValue.textContent = "erro";
     backendProfileValue.textContent = String(error.message).slice(0, 80);
@@ -408,6 +409,36 @@ async function runExecutionPipeline() {
     { title: "Provider", value: (data.provider_route || {}).selected_provider?.provider_id || "none" },
   ]);
   setQuickSummary(`Pipeline real gerado para ${data.repo || "repo desconhecida"}`);
+}
+
+async function refreshCriticalAction() {
+  const section = q("#criticalActionSection");
+  const label = q("#criticalActionLabel");
+  const btn = q("#criticalActionBtn");
+
+  try {
+    const data = await fetchJson(`${getBaseUrl()}/api/mobile-cockpit/next-critical-action`);
+    const action = data.next_critical_action;
+
+    if (action) {
+      section.style.display = "block";
+      label.textContent = action.label;
+      btn.onclick = () => {
+         fetchJson(`${getBaseUrl()}/api/mobile-cockpit/quick-actions/advance`, {
+           method: "POST",
+           body: JSON.stringify({ action_id: action.action_id })
+         }).then(() => {
+            setQuickSummary(`Ação ${action.action_id} executada.`);
+            refreshCriticalAction();
+            refreshStatus();
+         }).catch(err => setQuickSummary("Erro ao executar ação crítica: " + err.message));
+      };
+    } else {
+      section.style.display = "none";
+    }
+  } catch (e) {
+    section.style.display = "none";
+  }
 }
 
 function copySummary() {

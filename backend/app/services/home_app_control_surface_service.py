@@ -147,11 +147,22 @@ class HomeAppControlSurfaceService:
             "ok": True,
             "service": self.SERVICE_ID,
             "target": "pc_desktop_launcher",
-            "title": "DevOps God Mode Control Surface",
+            "title": "DevOps God Mode Technical Control Surface",
             "default_endpoint": "/api/home-control-surface/package",
-            "window": {"width": 1280, "height": 820, "theme": "dark", "auto_start_backend": True},
+            "window": {"width": 1440, "height": 900, "theme": "dark", "auto_start_backend": True},
+            "technical_overview": {
+                "expose_raw_endpoints": True,
+                "allow_payload_editing": True,
+                "show_system_diagnostics": True,
+            },
             "panels": [
-                {"id": module["id"], "label": module["label"], "endpoint": module["panel_endpoint"], "buttons": len(module.get("buttons", []))}
+                {
+                    "id": module["id"],
+                    "label": module["label"],
+                    "endpoint": module["panel_endpoint"],
+                    "buttons": len(module.get("buttons", [])),
+                    "raw_status": module["status"],
+                }
                 for module in self.modules()
             ],
         }
