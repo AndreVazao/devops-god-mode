@@ -191,6 +191,7 @@ class MobilePcPairingRemoteAccessService:
             report = private_tunnel_center_service.build_tunnel_report(include_pairing=False)
             tailscale_provider = next((p for p in report.get("providers", []) if p.get("provider_id") == "tailscale"), None)
             tailscale_ip = (tailscale_provider or {}).get("detected_ip")
+            tailscale_ip = report.get("providers", [{}])[0].get("detected_ip")
             if tailscale_ip:
                 public_url = f"http://{tailscale_ip}:{LAN_SWEEP_PORT}"
                 state = PAIRING_STORE.load()
