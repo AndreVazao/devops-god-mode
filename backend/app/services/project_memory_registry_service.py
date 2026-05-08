@@ -247,7 +247,7 @@ class ProjectMemoryRegistryService:
                 project_id=project["project_id"],
                 source="project_memory_registry_sync",
                 idea=idea,
-                max_chars=8000,
+                max_chars=8787,
             )
             results.append({
                 "project_id": project["project_id"],

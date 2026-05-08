@@ -12,7 +12,7 @@ class PrepareProjectContextRequest(BaseModel):
     project_id: str
     source: str = "existing_or_new_project"
     idea: Optional[str] = None
-    max_chars: int = 8000
+    max_chars: int = 8787
 
 
 class HandoffPlanRequest(BaseModel):

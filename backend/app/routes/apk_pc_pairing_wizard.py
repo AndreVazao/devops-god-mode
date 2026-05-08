@@ -7,7 +7,7 @@ router = APIRouter(prefix="/api/apk-pc-pairing", tags=["apk-pc-pairing"])
 
 
 class PairingStartRequest(BaseModel):
-    port: int = 8000
+    port: int = 8787
     label: str = "God Mode PC"
 
 

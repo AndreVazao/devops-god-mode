@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/mobile-pc-pairing", tags=["mobile-pc-pairing"])
 
 class PairingPayload(BaseModel):
     tenant_id: str = "owner-andre"
-    port: int = 8000
+    port: int = 8787
     ttl_minutes: int = 30
 
 
@@ -37,7 +37,7 @@ def status() -> dict[str, Any]:
 
 
 @router.get("/lan-scan-candidates")
-def lan_scan_candidates(port: int = 8000) -> dict[str, Any]:
+def lan_scan_candidates(port: int = 8787) -> dict[str, Any]:
     return mobile_pc_pairing_remote_access_service.lan_scan_candidates(port=port)
 
 

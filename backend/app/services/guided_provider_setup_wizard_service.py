@@ -365,7 +365,7 @@ class GuidedProviderSetupWizardService:
             value = str(values.get("pc_tailscale_ip_or_magicdns") or "").strip()
             if value.startswith("http://") or value.startswith("https://"):
                 return value.rstrip("/")
-            return f"http://{value}:8000" if value else ""
+            return f"http://{value}:8787" if value else ""
         return str(values.get("public_https_url") or values.get("url") or "").strip().rstrip("/")
 
     def _is_sensitive_field(self, key: str) -> bool:

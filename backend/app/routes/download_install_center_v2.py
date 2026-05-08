@@ -20,7 +20,7 @@ class ShareRequest(BaseModel):
     channel: str = "auto"
     filename: Optional[str] = None
     local_path: Optional[str] = None
-    port: int = 8000
+    port: int = 8787
 
 
 class TransferPlanRequest(BaseModel):

@@ -56,7 +56,7 @@ class MobilePcPairingRemoteAccessService:
             "stores_remote_secrets_in_vault": True,
         }
 
-    def create_pairing_session(self, tenant_id: str = "owner-andre", port: int = 8000, ttl_minutes: int = 30) -> Dict[str, Any]:
+    def create_pairing_session(self, tenant_id: str = "owner-andre", port: int = 8787, ttl_minutes: int = 30) -> Dict[str, Any]:
         local_ips = self._local_ips()
         lan_candidates = self.lan_scan_candidates(port=port).get("lan_candidates", [])
         session_id = f"pairing-{uuid4().hex[:12]}"
@@ -189,6 +189,8 @@ class MobilePcPairingRemoteAccessService:
         try:
             from app.services.private_tunnel_center_service import private_tunnel_center_service
             report = private_tunnel_center_service.build_tunnel_report(include_pairing=False)
+            tailscale_provider = next((p for p in report.get("providers", []) if p.get("provider_id") == "tailscale"), None)
+            tailscale_ip = (tailscale_provider or {}).get("detected_ip")
             tailscale_ip = report.get("providers", [{}])[0].get("detected_ip")
             if tailscale_ip:
                 public_url = f"http://{tailscale_ip}:{LAN_SWEEP_PORT}"
@@ -217,7 +219,7 @@ class MobilePcPairingRemoteAccessService:
             "lan_scan": self.lan_scan_candidates(port=int((latest_session or {}).get("port") or LAN_SWEEP_PORT)),
             "mobile_should_try_in_order": self._try_order(latest_session, ready_remote),
             "notes": [
-                "Dentro de casa, usar primeiro 192.168.1.81:8000 na mesma rede Wi-Fi.",
+                "Dentro de casa, usar primeiro 192.168.1.81:8787 na mesma rede Wi-Fi.",
                 "Se o IP do PC mudar, o APK deve varrer 192.168.1.61 até 192.168.1.101.",
                 "Hint de telemóvel visto antes: 192.168.1.47; não é alvo do backend, mas ajuda a validar a gama da rede.",
                 "Da rua, usar HTTPS remoto via tunnel/mesh/public URL aprovado.",
@@ -302,11 +304,11 @@ class MobilePcPairingRemoteAccessService:
 
     def _remote_steps(self, provider: str) -> List[str]:
         if provider == "cloudflare_tunnel":
-            return ["Create/approve a Cloudflare Tunnel for the home PC.", "Map tunnel to local port 8000.", "Store tunnel material in the local vault.", "Use the HTTPS tunnel URL on the APK when outside home."]
+            return ["Create/approve a Cloudflare Tunnel for the home PC.", "Map tunnel to local port 8787.", "Store tunnel material in the local vault.", "Use the HTTPS tunnel URL on the APK when outside home."]
         if provider == "tailscale":
-            return ["Install Tailscale on PC and phone.", "Sign in/approve both devices in the same tailnet.", "Use the PC tailnet address with port 8000.", "No router port-forward is required."]
+            return ["Install Tailscale on PC and phone.", "Sign in/approve both devices in the same tailnet.", "Use the PC tailnet address with port 8787.", "No router port-forward is required."]
         if provider == "ngrok":
-            return ["Create/approve ngrok tunnel for port 8000.", "Store auth material in local vault.", "Use generated HTTPS URL on mobile."]
+            return ["Create/approve ngrok tunnel for port 8787.", "Store auth material in local vault.", "Use generated HTTPS URL on mobile."]
         return ["Provide a stable HTTPS URL that reaches the God Mode PC backend.", "Store any required material in the vault."]
 
     def _local_ips(self) -> List[str]:

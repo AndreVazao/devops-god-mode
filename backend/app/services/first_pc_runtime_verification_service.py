@@ -60,7 +60,7 @@ class FirstPcRuntimeVerificationService:
                 "Descarregar o artifact Windows EXE mais recente da GitHub Actions.",
                 "Extrair o bundle se vier compactado.",
                 "Executar GodModeDesktop.exe.",
-                "Confirmar que abre /app/home ou abrir manualmente http://127.0.0.1:8000/app/home.",
+                "Confirmar que abre /app/home ou abrir manualmente http://127.0.0.1:8787/app/home.",
                 "Abrir /app/github-repo-inventory-feed e carregar seed/import manual dos repos.",
                 "Abrir /app/repo-scanner-real-work-map e confirmar grupos/frentes.",
                 "Abrir /app/conversation-source-import-feed e colar uma conversa curta com labels Oner:/Assistant:.",

@@ -110,7 +110,7 @@ class FirstInstallPcProofCenterService:
                 "open_pc_home",
                 "Abrir /app/home no PC",
                 "operator_action_required",
-                "Depois do EXE iniciar, abrir http://127.0.0.1:8000/app/home ou IP LAN do PC.",
+                "Depois do EXE iniciar, abrir http://127.0.0.1:8787/app/home ou IP LAN do PC.",
                 endpoint="/app/home",
             ),
             self._check(
