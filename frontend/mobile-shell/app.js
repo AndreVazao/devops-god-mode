@@ -90,19 +90,10 @@ function applyPreset() {
 
 function buildPayload() {
   return {
-    text: q("#textInput").value,
-    repo_full_name: q("#repoInput").value,
-    preferred_path: q("#pathInput").value,
-    proposed_branch: q("#branchInput").value,
-    registry_context: {
-      ecosystem_key: "baribudos-ecosystem",
-      related_repos: getRelatedRepos(),
-    },
-    desired_visibility: q("#visibilityInput").value,
-    lifecycle_mode: q("#lifecycleInput").value,
-    build_strategy: "github_actions_free_public",
-    product_ready: false,
-    base_branch: q("#baseBranchInput").value,
+    goal: q("#textInput").value,
+    repo: q("#repoInput").value,
+    context: `Preferred path: ${q("#pathInput").value} | Branch: ${q("#branchInput").value} | Base: ${q("#baseBranchInput").value}`,
+    priority: "normal",
   };
 }
 
@@ -234,9 +225,6 @@ function renderExecutionCards(executions) {
         <button class="secondary-btn" data-sync-execution="${execution.execution_id}">Sync estado</button>
       </div>
     `;
-
-    executionCards.appendChild(card);
-  });
 
     executionCards.appendChild(card);
   });
@@ -372,10 +360,10 @@ async function refreshStatus() {
   presetValue.textContent = presetSelect.value;
   try {
     const root = await fetchJson(`${getBaseUrl()}/`);
-    const ops = await fetchJson(`${getBaseUrl()}/ops/status`);
+    const ops = await fetchJson(`${getBaseUrl()}/api/system/config`);
     backendStatusValue.textContent = root.status || "ok";
-    backendProfileValue.textContent = ops.profile || root.profile || "desconhecido";
-    profileBadge.textContent = ops.profile || "backend";
+    backendProfileValue.textContent = ops.runtime_mode || root.profile || "desconhecido";
+    profileBadge.textContent = ops.local_brain || "backend";
     connectionBadge.textContent = "online";
     connectionBadge.className = "badge badge-success";
     setQuickSummary(`Ligação OK em ${getBaseUrl()}`);
@@ -389,33 +377,37 @@ async function refreshStatus() {
 }
 
 async function runCockpit() {
-  const data = await fetchJson(`${getBaseUrl()}/ops/mobile-cockpit`, {
+  const data = await fetchJson(`${getBaseUrl()}/api/real-orchestration/simulate`, {
     method: "POST",
     body: JSON.stringify(buildPayload()),
   });
   cockpitOutput.textContent = JSON.stringify(data, null, 2);
-  headlineBox.textContent = data.headline || data.next_step || "Ainda sem resposta.";
-  renderDecision(data.decision);
-  renderCards(data.compact_cards || []);
-  setQuickSummary(`${data.headline || "Cockpit gerado"} | preset: ${presetSelect.value}`);
+  const summary = data.operator_summary || "Simulação concluída.";
+  headlineBox.textContent = summary;
+  renderDecision(data.ok ? "ok" : "rejeita");
+  renderCards([
+    { title: "ID Pipeline", value: data.pipeline_id },
+    { title: "Steps Ready", value: (data.ready_to_execute_safe_steps || []).length },
+    { title: "Gates", value: (data.execution_gates || {}).gate_count },
+  ]);
+  setQuickSummary(`Cockpit simulado | Pipeline: ${data.pipeline_id}`);
 }
 
 async function runExecutionPipeline() {
-  const data = await fetchJson(`${getBaseUrl()}/ops/execution-pipeline`, {
+  const data = await fetchJson(`${getBaseUrl()}/api/real-orchestration/run`, {
     method: "POST",
     body: JSON.stringify(buildPayload()),
   });
   executionOutput.textContent = JSON.stringify(data, null, 2);
-  headlineBox.textContent = data.next_step || (data.approval_shell || {}).headline || "Pipeline gerado.";
-  renderDecision((data.approval_shell || {}).decision);
-  const summary = (data.approval_shell || {}).compact_summary || {};
+  const summary = data.operator_summary || "Pipeline gerado.";
+  headlineBox.textContent = summary;
+  renderDecision(data.ok ? "ok" : "rejeita");
   renderCards([
-    { title: "Repo alvo", value: summary.repo },
-    { title: "Ficheiro alvo", value: summary.path },
-    { title: "Branch", value: summary.branch },
-    { title: "Operação", value: summary.operation },
+    { title: "Repo alvo", value: data.repo || "n/a" },
+    { title: "ID Pipeline", value: data.pipeline_id },
+    { title: "Provider", value: (data.provider_route || {}).selected_provider?.provider_id || "none" },
   ]);
-  setQuickSummary(`Pipeline gerado para ${summary.repo || "repo desconhecida"}`);
+  setQuickSummary(`Pipeline real gerado para ${data.repo || "repo desconhecida"}`);
 }
 
 function copySummary() {

@@ -1,0 +1,23 @@
+{
+  "sources": [
+    {
+      "source_id": "source_browser_web_services",
+      "source_type": "browser_web_service",
+      "display_name": "Browser Web Services",
+      "source_status": "ready_for_intake"
+    },
+    {
+      "source_id": "source_drive_like_storage",
+      "source_type": "drive_like_storage",
+      "display_name": "Drive Like Storage",
+      "source_status": "planned_ready"
+    },
+    {
+      "source_id": "source_github_asset_repo",
+      "source_type": "github_repository",
+      "display_name": "GitHub Asset Publishing",
+      "source_status": "ready_for_repo_publish"
+    }
+  ],
+  "staged_assets": []
+}

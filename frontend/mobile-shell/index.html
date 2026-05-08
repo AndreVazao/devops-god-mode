@@ -34,7 +34,10 @@
       <section class="panel status-panel">
         <div class="panel-title-row">
           <h2>Backend</h2>
-          <span id="profileBadge" class="badge badge-info">preset</span>
+          <div>
+            <span class="helper-text" style="font-size: 12px; margin-right: 4px;">Source:</span>
+            <span id="profileBadge" class="badge badge-info">preset</span>
+          </div>
         </div>
 
         <div class="grid two-col">
@@ -196,12 +199,12 @@ AndreVazao/baribudos-studio-website</textarea>
         </div>
       </section>
 
-      <section class="panel outputs-panel">
-        <div class="panel-title-row">
-          <h2>JSON</h2>
-          <span class="badge badge-info">debug</span>
-        </div>
-        <div class="stacked-outputs">
+      <details class="panel outputs-panel">
+        <summary class="panel-title-row" style="cursor: pointer; list-style: none;">
+          <h2>JSON / Debug</h2>
+          <span class="badge badge-info">expandir</span>
+        </summary>
+        <div class="stacked-outputs" style="margin-top: 16px;">
           <div>
             <h3>Execution pipeline</h3>
             <pre id="executionOutput" class="output-box"></pre>
@@ -215,7 +218,7 @@ AndreVazao/baribudos-studio-website</textarea>
             <pre id="quickSummaryOutput" class="output-box">Sem resumo ainda.</pre>
           </div>
         </div>
-      </section>
+      </details>
     </div>
 
     <script src="./app.js"></script>
