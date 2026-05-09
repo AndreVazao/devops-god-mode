@@ -1,5 +1,6 @@
 from .local_executor_service import execute_code
 from .github_write_agent import create_branch, commit_all, push_branch
+from .autonomous_dev_loop_service import run_dev_loop
 from typing import Dict, Any
 
 def run_task(task: Dict[str, Any]) -> Dict[str, Any]:
@@ -10,6 +11,9 @@ def run_task(task: Dict[str, Any]) -> Dict[str, Any]:
         if not code:
             return {"error": "no code provided"}
         return execute_code(code)
+
+    if action == "dev_loop":
+        return run_dev_loop(task)
 
     if action == "git_commit":
         branch = task.get("branch", "auto-branch")
