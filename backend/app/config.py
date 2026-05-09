@@ -14,6 +14,8 @@ else:
 class Settings:
     GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
     OPENAI_KEY = os.getenv("OPENAI_KEY")
+    RELAY_URL = os.getenv("RELAY_URL")
+    RELAY_TOKEN = os.getenv("RELAY_TOKEN")
 
 
 settings = Settings()

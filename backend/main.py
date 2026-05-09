@@ -3,14 +3,24 @@ from __future__ import annotations
 import importlib
 import pkgutil
 from typing import Any, Dict, List
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import routes
 from app.config import settings
+from app.services.relay_worker_service import start_worker
 
-app = FastAPI(title='DevOps God Mode')
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    start_worker()
+    yield
+    # Shutdown logic (if any)
+
+app = FastAPI(title='DevOps God Mode', lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],
