@@ -1,5 +1,7 @@
 import subprocess
+import requests
 from typing import List
+from app.config import settings
 
 REPO_PATH = "."
 
@@ -18,8 +20,28 @@ def create_branch(name: str):
         return run(["git", "checkout", "-b", name])
 
 def commit_all(message: str):
-    run(["git", "add", "."])
+    run(["git", "add", "-A"])
     return run(["git", "commit", "-m", message])
 
 def push_branch(name: str):
     return run(["git", "push", "origin", name])
+
+def create_pull_request(branch: str):
+    token = settings.GITHUB_TOKEN
+    repo = settings.GITHUB_REPO
+    url = f"https://api.github.com/repos/{repo}/pulls"
+
+    data = {
+        "title": f"Auto PR {branch}",
+        "head": branch,
+        "base": "main",
+        "body": "Autonomous Dev Loop PR"
+    }
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    r = requests.post(url, json=data, headers=headers)
+    return r.json()

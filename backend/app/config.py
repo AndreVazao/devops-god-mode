@@ -13,6 +13,7 @@ else:
 
 class Settings:
     GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    GITHUB_REPO = os.getenv("GITHUB_REPO", "AndreVazao/devops-god-mode")
     OPENAI_KEY = os.getenv("OPENAI_KEY")
     RELAY_URL = os.getenv("RELAY_URL")
     RELAY_TOKEN = os.getenv("RELAY_TOKEN")
