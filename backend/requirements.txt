@@ -5,3 +5,5 @@ pydantic
 python-dotenv
 qrcode
 requests
+faiss-cpu
+sentence-transformers
