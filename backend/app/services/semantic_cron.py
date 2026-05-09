@@ -1,8 +1,11 @@
 import time
 import threading
+from app.config import settings
 from app.services.semantic_index_builder import build_index
 
-def start_semantic_cron(repo_path="./repos", interval=3600):
+def start_semantic_cron(repo_path=None, interval=3600):
+    if repo_path is None:
+        repo_path = settings.REPOS_PATH
     def run():
         while True:
             try:

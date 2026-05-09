@@ -446,6 +446,38 @@ async function runExecutionPipeline() {
   setQuickSummary(`Pipeline real gerado para ${data.repo || "repo desconhecida"}`);
 }
 
+async function runSetupValidation() {
+  const statusDiv = q("#setupEnvStatus");
+  const list = q("#setupEnvList");
+  statusDiv.style.display = "block";
+  list.innerHTML = "<li>A validar...</li>";
+
+  try {
+    const data = await fetchJson(`${getBaseUrl()}/api/system/setup-validation`);
+    list.innerHTML = "";
+
+    const items = [
+      { label: "Paths", ...data.paths },
+      { label: "Relay", ...data.relay },
+      { label: "GitHub", ...data.github },
+    ];
+
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      li.style.marginBottom = "4px";
+      const icon = item.status === "ok" ? "✔" : item.status === "missing" ? "⚠" : "❌";
+      const color = item.status === "ok" ? "var(--accent)" : item.status === "missing" ? "var(--warning)" : "var(--danger)";
+      li.innerHTML = `<span style="color: ${color}">${icon} ${item.label}:</span> ${item.details}`;
+      list.appendChild(li);
+    });
+
+    setQuickSummary("Validação de ambiente concluída.");
+  } catch (e) {
+    list.innerHTML = `<li style="color: var(--danger)">Erro ao validar: ${e.message}</li>`;
+    setQuickSummary("Erro na validação de ambiente.");
+  }
+}
+
 async function refreshCriticalAction() {
   const section = q("#criticalActionSection");
   const label = q("#criticalActionLabel");
@@ -533,6 +565,7 @@ q("#executionBtn").onclick = () => runExecutionPipeline().catch((error) => {
   renderCards([]);
   setQuickSummary("Erro ao gerar pipeline.");
 });
+q("#setupEnvBtn").onclick = runSetupValidation;
 q("#copySummaryBtn").onclick = copySummary;
 q("#approveOkBtn").onclick = () => setQuickSummary("Aprovação rápida: OK");
 q("#approveChangeBtn").onclick = () => setQuickSummary("Aprovação rápida: ALTERA");

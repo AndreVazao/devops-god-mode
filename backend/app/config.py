@@ -17,6 +17,8 @@ class Settings:
     OPENAI_KEY = os.getenv("OPENAI_KEY")
     RELAY_URL = os.getenv("RELAY_URL")
     RELAY_TOKEN = os.getenv("RELAY_TOKEN")
+    SEMANTIC_INDEX_PATH = os.getenv("SEMANTIC_INDEX_PATH", "./semantic_index")
+    REPOS_PATH = os.getenv("REPOS_PATH", "./repos")
 
 
 settings = Settings()
