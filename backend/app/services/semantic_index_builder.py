@@ -2,6 +2,7 @@ import os
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from app.config import settings
 from .code_chunker import chunk_code
 
 MODEL = SentenceTransformer("all-MiniLM-L6-v2")
@@ -9,7 +10,10 @@ MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 index = None
 metadata = []
 
-def build_index(repo_path="./repos"):
+def build_index(repo_path=None):
+    if repo_path is None:
+        repo_path = settings.REPOS_PATH
+
     global index, metadata
 
     new_vectors = []
