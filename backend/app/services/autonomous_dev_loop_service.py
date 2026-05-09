@@ -2,10 +2,17 @@ import time
 from .github_write_agent import create_branch, commit_all, push_branch, create_pull_request
 from .ci_monitor_service import wait_for_ci, get_ci_logs, get_latest_run_id
 from .ai_fix_service import generate_fix, apply_fix
+from .code_suggester import suggest_code
 
 MAX_RETRIES = 3
 
 def run_dev_loop(task: dict):
+    suggestions = suggest_code(task.get("description", ""))
+    if suggestions:
+        print(f"[DEV LOOP] Found {len(suggestions)} semantic suggestions.")
+        # Logging first suggestion for traceability
+        print(f"[DEV LOOP] Top suggestion from: {suggestions[0]['file']}")
+
     phase_number = task.get("phase_number", int(time.time()))
     branch_name = f"phase-{phase_number}-auto"
 
