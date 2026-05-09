@@ -11,6 +11,7 @@ hiddenimports += collect_submodules('starlette')
 hiddenimports += collect_submodules('pydantic')
 hiddenimports += collect_submodules('httpx')
 hiddenimports += collect_submodules('qrcode')
+hiddenimports += collect_submodules('requests')
 
 a = Analysis(
     ['godmode_desktop_launcher.py'],
