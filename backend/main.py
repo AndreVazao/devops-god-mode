@@ -15,12 +15,14 @@ from app import routes
 from app.config import settings
 from app.services.relay_worker_service import start_worker
 from app.services.semantic_cron import start_semantic_cron
+from app.evolution.self_evolution_engine import start_evolution_engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup logic
     start_worker()
     start_semantic_cron()
+    start_evolution_engine()
     yield
     # Shutdown logic (if any)
 

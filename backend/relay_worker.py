@@ -46,6 +46,17 @@ def send_response(data):
 def execute_logic(task):
     print("TASK RECEIVED:", task)
 
+    # Handle evolution approval specifically
+    if task.get("action") == "approve":
+        try:
+            from app.evolution.approval import approve_locally
+            plan_id = task.get("payload", {}).get("plan_id")
+            if plan_id:
+                approve_locally(plan_id)
+                return {"status": "approved_locally", "plan_id": plan_id}
+        except ImportError:
+            pass
+
     # Handle setup_env specifically if needed, or let it flow to orchestrator
     if task.get("action") == "setup_env":
         # Example of handling a specific action
