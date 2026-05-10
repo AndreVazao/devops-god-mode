@@ -353,11 +353,81 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-// Start polling for responses
-setInterval(sync, 2000);
-
 // Global Exposure
 window.goBack = goBack;
 window.setupEnv = setupEnv;
 window.sendMessage = sendMessage;
 window.newChat = newChat;
+
+// Phase 227: Production Approval Popups
+function showPopup({ title, message, actions }) {
+  console.log(`🔔 Popup: ${title} - ${message}`);
+
+  // Create modal elements
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:10000; padding:20px;";
+
+  const modal = document.createElement("div");
+  modal.className = "modal-content";
+  modal.style.cssText = "background:#1e1e2e; border:1px solid #313244; border-radius:12px; width:100%; max-width:400px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.5);";
+
+  modal.innerHTML = `
+    <h3 style="margin-top:0; color:#f38ba8;">${title}</h3>
+    <p style="color:#cdd6f4; line-height:1.5;">${message}</p>
+    <div class="modal-actions" style="display:flex; gap:12px; margin-top:24px;">
+    </div>
+  `;
+
+  const actionContainer = modal.querySelector(".modal-actions");
+
+  return new Promise((resolve) => {
+    actions.forEach(label => {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.className = "btn";
+      btn.style.flex = "1";
+      if (label === "Aprovar") btn.style.background = "#a6e3a1";
+      if (label === "Cancelar") btn.style.background = "#f38ba8";
+
+      btn.onclick = () => {
+        document.body.removeChild(overlay);
+        resolve(label);
+      };
+      actionContainer.appendChild(btn);
+    });
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  });
+}
+
+// Intercept critical messages for popup display
+const originalSync = sync;
+window.sync = async function() {
+  const responses = await fetchResponses();
+
+  if (responses.length > 0) {
+    for (const r of responses) {
+      // Check for approval-like responses that might need a popup
+      const result = r.result || {};
+      if (result.action === "deploy_vercel" || (typeof result === "string" && result.includes("Confirmar deploy"))) {
+         const decision = await showPopup({
+           title: "Deploy produção",
+           message: "Confirmar deploy para Vercel?",
+           actions: ["Aprovar", "Cancelar"]
+         });
+
+         if (decision === "Aprovar") {
+           await sendTask("approve", { plan_id: result.plan_id || r.id });
+         }
+      }
+    }
+  }
+  return originalSync();
+};
+
+window.showPopup = showPopup;
+
+// Start polling for responses (using the augmented sync if redefined)
+setInterval(() => window.sync ? window.sync() : sync(), 2000);

@@ -13,7 +13,17 @@ def run_action(action: str, payload: Optional[Dict[str, Any]] = None) -> Dict[st
     """
     print(f"▶️ [SafeExecutor] Action: {action}")
 
-    if requires_approval(action):
+    if action == "deploy_vercel":
+        from app.evolution.approval import wait_for_approval
+        if not wait_for_approval({
+            "title": "Deploy Produção",
+            "action": "deploy",
+            "message": "Deploy to production?",
+            "type": "critical"
+        }):
+             return {"status": "rejected", "action": action}
+
+    elif requires_approval(action):
         print(f"⛔ [SafeExecutor] Waiting approval: {action}")
         # wait_for_approval expects a plan-like dict
         plan = {
