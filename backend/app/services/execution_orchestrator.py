@@ -2,6 +2,7 @@ from .local_executor_service import execute_code
 from .github_write_agent import create_branch, commit_all, push_branch
 from .autonomous_dev_loop_service import run_dev_loop
 from app.brain.god_brain import think
+from app.brain.operational_state import add_goal
 from typing import Dict, Any
 
 def run_task(task: Dict[str, Any]) -> Dict[str, Any]:
@@ -21,6 +22,12 @@ def run_task(task: Dict[str, Any]) -> Dict[str, Any]:
         if not goal:
             return {"error": "no goal provided for think action"}
         return think(goal)
+
+    if action == "goal":
+        text = task.get("payload", {}).get("text") or task.get("text")
+        if not text:
+            return {"error": "no text provided for goal action"}
+        return {"status": "goal_added", "state": add_goal(text)}
 
     if action == "git_commit":
         branch = task.get("branch", "auto-branch")

@@ -16,6 +16,7 @@ from app.config import settings
 from app.services.relay_worker_service import start_worker
 from app.services.semantic_cron import start_semantic_cron
 from app.evolution.self_evolution_engine import start_evolution_engine
+from app.brain.operational_loop import start_operational_brain
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,6 +24,7 @@ async def lifespan(app: FastAPI):
     start_worker()
     start_semantic_cron()
     start_evolution_engine()
+    start_operational_brain()
     yield
     # Shutdown logic (if any)
 
