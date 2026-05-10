@@ -24,11 +24,6 @@ body {
   overflow-x: hidden;
 }
 
-button:active {
-  transform: scale(0.95);
-  opacity: 0.8;
-}
-
 .loader-overlay {
   position: fixed;
   inset: 0;
@@ -70,6 +65,9 @@ button:active {
 .sidebar-header {
   padding: 20px;
   border-bottom: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .sidebar-content {
@@ -292,18 +290,6 @@ input, textarea, select {
 .compact-card .label { font-size: 11px; color: var(--muted); }
 .compact-card .value { font-weight: 600; }
 
-.action-buttons { display: flex; gap: 8px; }
-.decision-btn {
-  flex: 1;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  background: #0f172a;
-  color: var(--text);
-  font-weight: 600;
-  cursor: pointer;
-}
-
 .output-box {
   background: #020617;
   padding: 16px;
@@ -314,24 +300,10 @@ input, textarea, select {
   overflow-x: auto;
 }
 
-.approval-card, .execution-card {
-  background: #0f172a;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  border: 1px solid #334155;
-}
-
-.approval-card-top, .execution-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
 .chat-panel {
   display: flex;
   flex-direction: column;
-  max-height: 500px;
-  margin-bottom: 16px;
+  max-height: 600px;
 }
 
 .chat-messages {
@@ -345,7 +317,7 @@ input, textarea, select {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 200px;
+  min-height: 250px;
 }
 
 .msg {
@@ -356,45 +328,24 @@ input, textarea, select {
   line-height: 1.4;
 }
 
-.msg.system {
-  align-self: center;
-  background: rgba(148, 163, 184, 0.1);
-  color: #94a3b8;
-  font-size: 12px;
-  border: 1px solid #1e293b;
-}
-
 .msg.user {
   align-self: flex-end;
   background: #2563eb;
   color: #fff;
 }
 
-.msg.bot {
+.msg.bot, .msg.gm {
   align-self: flex-start;
   background: #1e293b;
   color: #e2e8f0;
 }
 
-.msg.approval {
-  align-self: flex-start;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid #f59e0b;
-  color: #fde68a;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.msg.approval .actions {
-  display: flex;
-  gap: 8px;
-}
-
-.msg.approval button {
-  padding: 6px 12px;
+.msg.system {
+  align-self: center;
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
   font-size: 12px;
-  border-radius: 8px;
+  border: 1px solid #1e293b;
 }
 
 .chat-input-row {
@@ -406,23 +357,24 @@ input, textarea, select {
   flex: 1;
 }
 
-.value {
-  font-weight: 600;
-}
-
-.approval-details {
-  background: #020617;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 11px;
-  margin-bottom: 12px;
-  max-height: 100px;
-  overflow-y: auto;
-}
-
 @media (max-width: 600px) {
   .sidebar-nav {
     display: none;
   }
   .two-col { grid-template-columns: 1fr; }
+}
+
+/* Phase 222 UI Enhancements */
+button {
+  transition: 0.2s;
+}
+
+button:active {
+  transform: scale(0.95);
+  opacity: 0.7;
+}
+
+body.loading .app-shell {
+  opacity: 0.5;
+  pointer-events: none;
 }

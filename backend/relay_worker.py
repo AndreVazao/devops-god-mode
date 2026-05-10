@@ -10,126 +10,80 @@ try:
     from app.services.execution_orchestrator import run_task
     from app.config import settings
     HAS_BACKEND = True
+    RELAY_URL = settings.RELAY_URL
+    TOKEN = settings.RELAY_TOKEN
 except ImportError:
     print("Backend modules not found. Running in standalone mock mode.")
     HAS_BACKEND = False
-
-RELAY_URL = os.getenv("RELAY_URL", "https://devops-god-mode.vercel.app/api")
-TOKEN = os.getenv("RELAY_TOKEN", "GODMODE_SECURE_TOKEN")
+    RELAY_URL = os.getenv("RELAY_URL", "https://devops-god-mode.vercel.app/api")
+    TOKEN = os.getenv("RELAY_TOKEN", "GODMODE_SECURE_TOKEN")
 
 HEADERS = {
     "Authorization": f"Bearer {TOKEN}"
 }
 
-def fetch_tasks():
+def pull_tasks():
     try:
-        # User requested /pull for pulling tasks in FIX 3
+        # Use POST /api/pull as defined in the new relay
         r = requests.post(f"{RELAY_URL}/pull", headers=HEADERS, timeout=10)
         if r.status_code == 200:
             return r.json()
+        else:
+            print(f"Error pulling tasks: {r.status_code} - {r.text}")
     except Exception as e:
-        print(f"Error fetching tasks: {e}")
+        print(f"Connection error pulling tasks: {e}")
     return []
 
 def send_response(data):
     try:
-        # User requested /respond for sending responses in FIX 3
-        requests.post(f"{RELAY_URL}/respond", json=data, headers=HEADERS, timeout=10)
+        # Use POST /api/respond as defined in the new relay
+        r = requests.post(f"{RELAY_URL}/respond", json=data, headers=HEADERS, timeout=10)
+        if r.status_code != 200:
+            print(f"Error sending response: {r.status_code} - {r.text}")
     except Exception as e:
-        print(f"Error sending response: {e}")
+        print(f"Connection error sending response: {e}")
 
 def execute_logic(task):
+    print("TASK RECEIVED:", task)
+
+    # Handle setup_env specifically if needed, or let it flow to orchestrator
+    if task.get("action") == "setup_env":
+        # Example of handling a specific action
+        return {"status": "setup_triggered", "details": "Environment setup initialized on PC"}
+
     if HAS_BACKEND:
         try:
             return run_task(task)
         except Exception as e:
             return {"error": str(e), "status": "failed"}
     else:
-        return {"status": "done", "mock": True}
+        # Standalone mock mode logic
+        return {
+            "task": task,
+            "status": "done",
+            "mock": True
+        }
 
 if __name__ == "__main__":
-    print(f"Starting sync worker. Relay: {RELAY_URL}")
+    if not RELAY_URL:
+        print("CRITICAL: RELAY_URL not configured. Check your .env file.")
+        sys.exit(1)
+
+    print(f"Starting Production Relay Worker. Relay: {RELAY_URL}")
     while True:
-        tasks = fetch_tasks()
+        tasks = pull_tasks()
 
-        for t in tasks:
-            print("Executing:", t)
+        for task in tasks:
+            result = execute_logic(task)
 
-            # The task might be wrapped in an object or be the object itself
-            # Depending on how it was pushed.
-
-            result = execute_logic(t)
-
+            # Wrap result as requested or expected by mobile
             response_payload = {
-                "task_id": t.get("id") or t.get("payload", {}).get("pipeline_id"),
+                "task": task,
                 "result": result,
-                "status": "done"
+                "status": "done",
+                "timestamp": time.time()
             }
 
             send_response(response_payload)
 
-        time.sleep(3)
-import time
-import requests
-import os
-
-RELAY_URL = os.getenv("RELAY_URL")
-TOKEN = os.getenv("RELAY_TOKEN")
-
-def pull_tasks():
-    headers = {}
-    if TOKEN:
-        headers["Authorization"] = f"Bearer {TOKEN}"
-    r = requests.get(f"{RELAY_URL}/pull-tasks", headers=headers)
-    return r.json().get("tasks", [])
-
-
-def push_result(result):
-    headers = {}
-    if TOKEN:
-        headers["Authorization"] = f"Bearer {TOKEN}"
-    requests.post(f"{RELAY_URL}/push-result", json=result, headers=headers)
-
-
-def execute(task):
-    print("Executar:", task)
-
-    if task.get("action") == "ping":
-        return {"status": "pong"}
-
-    if task.get("action") == "run_code":
-        try:
-            # Note: exec() is dangerous, used here as requested for the prototype
-            exec(task["code"])
-            return {"status": "done"}
-        except Exception as e:
-            return {"error": str(e)}
-
-    if task.get("action") == "chat":
-        return {"type": "chat_response", "message": f"PC recebeu: {task.get('message')}"}
-
-    return {"status": "unknown"}
-
-
-def loop():
-    print(f"Worker ligado ao relay: {RELAY_URL}")
-
-    while True:
-        try:
-            tasks = pull_tasks()
-
-            for t in tasks:
-                result = execute(t)
-                push_result(result)
-
-        except Exception as e:
-            print("Erro:", e)
-
         time.sleep(2)
-
-
-if __name__ == "__main__":
-    if not RELAY_URL:
-        print("Erro: RELAY_URL não configurada.")
-    else:
-        loop()
