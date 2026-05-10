@@ -17,6 +17,10 @@ class Settings:
     OPENAI_KEY = os.getenv("OPENAI_KEY")
     RELAY_URL = os.getenv("RELAY_URL")
     RELAY_TOKEN = os.getenv("RELAY_TOKEN")
+    VERCEL_TOKEN = os.getenv("VERCEL_TOKEN")
+    VERCEL_ORG_ID = os.getenv("VERCEL_ORG_ID")
+    VERCEL_PROJECT_ID = os.getenv("VERCEL_PROJECT_ID")
+    APP_HEALTH_URL = os.getenv("APP_HEALTH_URL")
     SEMANTIC_INDEX_PATH = os.getenv("SEMANTIC_INDEX_PATH", "./semantic_index")
     REPOS_PATH = os.getenv("REPOS_PATH", "./repos")
 
