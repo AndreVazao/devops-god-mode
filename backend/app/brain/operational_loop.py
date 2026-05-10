@@ -8,19 +8,28 @@ from typing import Dict, Any
 from app.brain.operational_state import load_state, save_state
 from app.brain.priority_engine import prioritize
 from app.brain.task_generator import generate_tasks
-from app.brain.execution_controller import execute_tasks
+# Replacing direct execute_tasks with SafeExecutor and BudgetManager logic
+from app.brain.safe_executor import run_action
+from app.brain.budget_manager import check_budget
+from app.brain.learner import record
 
 INTERVAL = 30  # Seconds between loops
 
 def run_loop():
     """
     Main Operational Brain Loop.
-    Decides, prioritizes, and executes tasks autonomously.
+    Decides, prioritizes, and executes tasks autonomously with safety gates.
     """
-    print("🧠 [OperationalBrain] Operational Loop ACTIVE")
+    print("🤖 [OperationalBrain] Controlled Autonomy Mode ACTIVE")
 
     while True:
         try:
+            # 0. Check Budget
+            if not check_budget():
+                print("⏸ [OperationalBrain] Budget limit reached. Resting...")
+                time.sleep(60)
+                continue
+
             state = load_state()
 
             # 1. Prioritize Goals
@@ -33,16 +42,35 @@ def run_loop():
 
             # 2. Pick the top priority goal
             current_goal = prioritized_goals[0]
-            print(f"🎯 [OperationalBrain] Current Goal: {current_goal.get('text')}")
+            print(f"🎯 [OperationalBrain] Goal: {current_goal.get('text')}")
 
             # 3. Generate Tasks for this goal
             tasks = generate_tasks(current_goal)
 
-            # 4. Execute Tasks
-            results = execute_tasks(tasks)
+            # 4. Execute Tasks Safely
+            results = []
+            for task in tasks:
+                action = task.get("type") or task.get("action")
+                payload = task
+
+                try:
+                    result = run_action(action, payload)
+                    results.append({
+                        "task": action,
+                        "status": result.get("status", "success"),
+                        "result": result
+                    })
+                    record(action, result.get("status") != "error")
+                except Exception as e:
+                    print(f"❌ [OperationalBrain] Error executing {action}: {e}")
+                    results.append({
+                        "task": action,
+                        "status": "error",
+                        "message": str(e)
+                    })
+                    record(action, False)
 
             # 5. Update State: Goal is now completed (or needs further steps)
-            # Find the goal in the original state to update its status
             now_iso = datetime.now(timezone.utc).isoformat()
             for goal in state.get("goals", []):
                 if goal.get("id") == current_goal.get("id"):
