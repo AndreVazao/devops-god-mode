@@ -13,11 +13,26 @@
       <header class="topbar">
         <div>
           <div class="eyebrow">DevOps God Mode</div>
-          <h1>Mobile Handsfree Shell</h1>
+          <h1 style="display: flex; align-items: center; gap: 8px;">Mobile Shell <span id="unreadBadge" class="badge badge-danger" style="display:none; font-size: 14px; min-width: 24px; height: 24px; padding: 0;">0</span></h1>
           <p class="subtitle">Hands-free no trânsito, assisted quando estás parado, e pronto para PC local + túnel.</p>
         </div>
         <button id="refreshStatusBtn" class="ghost-btn">Atualizar</button>
       </header>
+
+      <section id="chatSection" class="panel chat-panel">
+        <div class="panel-title-row">
+          <h2>Chat <span id="chatStatus" class="badge badge-neutral">offline</span></h2>
+          <span id="chatProjectId" class="helper-text">project-x</span>
+        </div>
+        <div id="chatMessages" class="chat-messages">
+          <!-- Mensagens renderizadas aqui -->
+          <div class="msg system">Bem-vindo ao God Mode Chat.</div>
+        </div>
+        <div class="chat-input-row">
+          <input id="chatInput" type="text" placeholder="Escreve uma mensagem ou ação..." />
+          <button id="chatSendBtn" class="primary-btn">Enviar</button>
+        </div>
+      </section>
 
       <section id="criticalActionSection" class="panel hero-panel" style="display: none; border-color: var(--accent); background: rgba(94, 234, 212, 0.05);">
         <div class="panel-title-row">
