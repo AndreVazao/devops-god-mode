@@ -53,6 +53,12 @@ const executionOutput = q("#executionOutput");
 const cockpitOutput = q("#cockpitOutput");
 const quickSummaryOutput = q("#quickSummaryOutput");
 
+const chatMessages = q("#chatMessages");
+const chatInput = q("#chatInput");
+const chatSendBtn = q("#chatSendBtn");
+const chatStatus = q("#chatStatus");
+const unreadBadge = q("#unreadBadge");
+
 const approvalCards = q("#approvalCards");
 const approvalEmptyState = q("#approvalEmptyState");
 const approvalCountBadge = q("#approvalCountBadge");
@@ -145,11 +151,59 @@ function buildPayload() {
   };
 }
 
-async function fetchJson(url, options = {}) {
-  const response = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+const CLOUD_URL = "https://devops-god-mode.vercel.app/api";
+
+const RELAY_TOKEN = "GODMODE_SECURE_TOKEN"; // Should be synced with RELAY_TOKEN env
+
+async function api(path, options = {}) {
+  const localBase = getBaseUrl();
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${RELAY_TOKEN}`,
+    ...options.headers
+  };
+
+  // Normalize path: ensure it starts with /
+  let normalizedPath = path.startsWith("/") ? path : "/" + path;
+
+  try {
+    // Vercel routes are in /api/* but CLOUD_URL already ends in /api
+    // So if path is /push-task, it becomes .../api/push-task
+    // If path is /api/system/config, we should NOT send it to Vercel as /api/api/...
+    // BUT the prompt says "Vercel passa a ter API real (relay)" and lists routes like /api/push-task.ts
+    // Wait, if I create api/push-task.ts, the URL is /api/push-task
+
+    // Let's check how the Vercel routes are intended to be accessed.
+    // The user said: "Vercel passa a ter API real (relay) Cria pasta: /api"
+    // So the endpoints are indeed under /api/
+
+    let cloudPath = normalizedPath;
+
+    // If CLOUD_URL is ".../api", then cloudPath should just be the part after /api
+    const cloudBase = CLOUD_URL.endsWith("/api") ? CLOUD_URL.slice(0, -4) : CLOUD_URL;
+
+    const res = await fetch(cloudBase + normalizedPath, { ...options, headers });
+    if (res.ok) return res;
+  } catch (e) {
+    console.warn("Cloud API failed, falling back to local", e);
+  }
+
+  return fetch(localBase + normalizedPath, { ...options, headers });
+}
+
+async function fetchJson(path, options = {}) {
+  // If path starts with http, it's an absolute URL, use fetch directly
+  // Otherwise, use our smart routing api()
+  let response;
+  if (path.startsWith("http")) {
+    response = await fetch(path, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+  } else {
+    response = await api(path, options);
+  }
+
   const text = await response.text();
   let data = null;
   try {
@@ -321,7 +375,7 @@ function renderReconstructionCards(items) {
 async function refreshApprovals() {
   if (isRelayMode()) return;
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/approval-broker/requests?status=pending`);
+    const data = await fetchJson(`/api/approval-broker/requests?status=pending`);
     renderApprovalCards(data.requests || []);
     if ((data.requests || []).length === 0) setQuickSummary("Sem approvals pendentes.");
   } catch {
@@ -336,7 +390,7 @@ async function refreshApprovals() {
 async function refreshExecutions() {
   if (isRelayMode()) return;
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/execution-gate/executions`);
+    const data = await fetchJson(`/api/execution-gate/executions`);
     renderExecutionCards(data.executions || []);
     if ((data.executions || []).length === 0) setQuickSummary("Sem execuções monitorizadas.");
   } catch {
@@ -351,7 +405,7 @@ async function refreshExecutions() {
 async function refreshReconstructions() {
   if (isRelayMode()) return;
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/conversation-reconstruction/proposals`);
+    const data = await fetchJson(`/api/conversation-reconstruction/proposals`);
     renderReconstructionCards(data.reconstructions || []);
     if ((data.reconstructions || []).length === 0) setQuickSummary("Sem reconstruções propostas.");
   } catch {
@@ -365,7 +419,7 @@ async function refreshReconstructions() {
 
 async function respondApproval(requestId, response) {
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/approval-broker/requests/${requestId}/respond`, {
+    const data = await fetchJson(`/api/approval-broker/requests/${requestId}/respond`, {
       method: "POST",
       body: JSON.stringify({ response, note: "respondido via mobile cockpit" }),
     });
@@ -381,7 +435,7 @@ async function respondApproval(requestId, response) {
 
 async function syncExecution(executionId) {
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/execution-gate/executions/${executionId}/sync`, {
+    const data = await fetchJson(`/api/execution-gate/executions/${executionId}/sync`, {
       method: "POST",
     });
 
@@ -394,7 +448,7 @@ async function syncExecution(executionId) {
 
 async function syncReconstruction(reconstructionId) {
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/conversation-reconstruction/proposals/${reconstructionId}/sync`, {
+    const data = await fetchJson(`/api/conversation-reconstruction/proposals/${reconstructionId}/sync`, {
       method: "POST",
     });
 
@@ -408,7 +462,7 @@ async function syncReconstruction(reconstructionId) {
 async function autoUpdateConnection() {
   if (isRelayMode()) return;
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/mobile-pc-pairing/connection-manifest`);
+    const data = await fetchJson(`/api/mobile-pc-pairing/connection-manifest`);
     if (!data.ok) return;
 
     const currentUrl = getBaseUrl();
@@ -453,6 +507,8 @@ async function refreshStatus() {
 
     const root = await fetchJson(`${getBaseUrl()}/`);
     const ops = await fetchJson(`${getBaseUrl()}/api/system/config`);
+    const root = await fetchJson(`/`);
+    const ops = await fetchJson(`/api/system/config`);
     backendStatusValue.textContent = root.status || "ok";
     backendProfileValue.textContent = ops.runtime_mode || root.profile || "desconhecido";
     profileBadge.textContent = ops.local_brain || "backend";
@@ -477,6 +533,7 @@ async function runCockpit() {
     return pushTask("run_cockpit", buildPayload());
   }
   const data = await fetchJson(`${getBaseUrl()}/api/real-orchestration/simulate`, {
+  const data = await fetchJson(`/api/real-orchestration/simulate`, {
     method: "POST",
     body: JSON.stringify(buildPayload()),
   });
@@ -497,6 +554,7 @@ async function runExecutionPipeline() {
     return pushTask("run_task", buildPayload());
   }
   const data = await fetchJson(`${getBaseUrl()}/api/real-orchestration/run`, {
+  const data = await fetchJson(`/api/real-orchestration/run`, {
     method: "POST",
     body: JSON.stringify(buildPayload()),
   });
@@ -523,7 +581,7 @@ async function runSetupValidation() {
   list.innerHTML = "<li>A validar...</li>";
 
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/system/setup-validation`);
+    const data = await fetchJson(`/api/system/setup-validation`);
     list.innerHTML = "";
 
     const items = [
@@ -555,14 +613,14 @@ async function refreshCriticalAction() {
   const btn = q("#criticalActionBtn");
 
   try {
-    const data = await fetchJson(`${getBaseUrl()}/api/mobile-cockpit/next-critical-action`);
+    const data = await fetchJson(`/api/mobile-cockpit/next-critical-action`);
     const action = data.next_critical_action;
 
     if (action) {
       section.style.display = "block";
       label.textContent = action.label;
       btn.onclick = () => {
-         fetchJson(`${getBaseUrl()}/api/mobile-cockpit/quick-actions/advance`, {
+         fetchJson(`/api/mobile-cockpit/quick-actions/advance`, {
            method: "POST",
            body: JSON.stringify({ action_id: action.action_id })
          }).then(() => {
@@ -673,3 +731,94 @@ q("#approveChangeBtn").onclick = () => setQuickSummary("Aprovação rápida: ALT
 q("#approveRejectBtn").onclick = () => setQuickSummary("Aprovação rápida: REJEITA");
 
 window.goBack = goBack;
+let unreadCount = 0;
+
+function renderMessage(msg) {
+  const div = document.createElement("div");
+  let msgType = msg.type || "bot";
+  if (msgType === "chat_response") msgType = "bot";
+  div.className = `msg ${msgType}`;
+
+  if (msg.type === "approval") {
+    div.innerHTML = `
+      ${msg.text}
+      <div class="actions">
+        <button class="primary-btn" onclick="sendChatMessage('OK')">OK</button>
+        <button class="secondary-btn" onclick="sendChatMessage('Cancelar')">Cancelar</button>
+      </div>
+    `;
+  } else {
+    div.textContent = msg.message || msg.text || JSON.stringify(msg);
+  }
+
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendChatMessage(text) {
+  const input = text || chatInput.value.trim();
+  if (!input) return;
+
+  renderMessage({ type: "user", message: input });
+  if (!text) chatInput.value = "";
+
+  try {
+    await fetchJson("/api/push-task", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "chat",
+        message: input
+      })
+    });
+  } catch (e) {
+    renderMessage({ type: "system", message: "Erro ao enviar: " + e.message });
+  }
+}
+
+async function pullChatResults() {
+  try {
+    const data = await fetchJson("/api/pull-results");
+    if (data.results && data.results.length > 0) {
+      chatStatus.textContent = "online";
+      chatStatus.className = "badge badge-success";
+
+      data.results.forEach(res => {
+        renderMessage(res);
+        if (document.visibilityState !== "visible") {
+           unreadCount++;
+           updateUnreadBadge();
+        }
+      });
+    }
+  } catch (e) {
+    chatStatus.textContent = "offline";
+    chatStatus.className = "badge badge-neutral";
+  }
+}
+
+function updateUnreadBadge() {
+  if (unreadCount > 0) {
+    unreadBadge.style.display = "inline-flex";
+    unreadBadge.textContent = unreadCount;
+  } else {
+    unreadBadge.style.display = "none";
+  }
+}
+
+chatSendBtn.onclick = () => sendChatMessage();
+chatInput.onkeypress = (e) => {
+  if (e.key === "Enter") sendChatMessage();
+};
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    unreadCount = 0;
+    updateUnreadBadge();
+  }
+});
+
+// Start polling
+setInterval(pullChatResults, 2000);
+
+// Expose sendChatMessage globally for inline buttons
+window.sendChatMessage = sendChatMessage;
