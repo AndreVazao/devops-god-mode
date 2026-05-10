@@ -6,8 +6,8 @@ from .code_suggester import suggest_code
 
 MAX_RETRIES = 3
 
-def run_dev_loop(task: dict):
-    suggestions = suggest_code(task.get("description", ""))
+def run_dev_loop(task: dict, repo_path: str = None):
+    suggestions = suggest_code(task.get("description", ""), repo_path=repo_path)
     if suggestions:
         print(f"[DEV LOOP] Found {len(suggestions)} semantic suggestions.")
         # Logging first suggestion for traceability
@@ -22,14 +22,14 @@ def run_dev_loop(task: dict):
     last_run_id = get_latest_run_id(branch_name)
 
     # 1. Criar branch
-    create_branch(branch_name)
+    create_branch(branch_name, repo_path=repo_path)
 
     # 2. Commit inicial
     msg = task.get("initial_message", f"auto initial commit for phase {phase_number}")
-    commit_all(msg)
+    commit_all(msg, repo_path=repo_path)
 
     # 3. Push
-    push_branch(branch_name)
+    push_branch(branch_name, repo_path=repo_path)
 
     # 4. Criar PR
     pr_res = create_pull_request(branch_name)
@@ -62,13 +62,13 @@ def run_dev_loop(task: dict):
 
         print(f"[DEV LOOP] Applying fix: {fix}")
         # Note: apply_fix already has safety guards
-        apply_fix(fix)
+        apply_fix(fix, repo_path=repo_path)
 
         # Update last_run_id for next iteration
         last_run_id = run_id
 
-        commit_all(f"auto fix attempt {retries + 1}")
-        push_branch(branch_name)
+        commit_all(f"auto fix attempt {retries + 1}", repo_path=repo_path)
+        push_branch(branch_name, repo_path=repo_path)
 
         retries += 1
 

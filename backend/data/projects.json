@@ -1,0 +1,12 @@
+{
+  "project_a": {
+    "repo": "/app/dummy_repo_a",
+    "status": "active",
+    "tasks": []
+  },
+  "project_b": {
+    "repo": "/app/dummy_repo_b",
+    "status": "active",
+    "tasks": []
+  }
+}

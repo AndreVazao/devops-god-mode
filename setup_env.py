@@ -8,6 +8,10 @@ DEFAULTS = {
     "RELAY_URL": "",
     "RELAY_TOKEN": "GODMODE_SECURE_TOKEN",
     "GITHUB_TOKEN": "",
+    "GITHUB_REPO": "AndreVazao/devops-god-mode",
+    "VERCEL_TOKEN": "",
+    "VERCEL_PROJECT_ID": "",
+    "VERCEL_ORG_ID": "",
     "SEMANTIC_INDEX_PATH": "./semantic_index",
     "REPOS_PATH": "./repos"
 }

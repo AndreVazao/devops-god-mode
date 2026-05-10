@@ -4,7 +4,7 @@ import os
 import sys
 from typing import Dict, Any
 
-def execute_code(code: str) -> Dict[str, Any]:
+def execute_code(code: str, repo_path: str = None) -> Dict[str, Any]:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".py", mode="w") as f:
         f.write(code)
         path = f.name
@@ -15,7 +15,8 @@ def execute_code(code: str) -> Dict[str, Any]:
             [sys.executable, path],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
+            cwd=repo_path
         )
 
         return {

@@ -1,0 +1,7 @@
+{
+  "project_a": {
+    "repo": "/app/dummy_repo_a",
+    "status": "active",
+    "tasks": []
+  }
+}
