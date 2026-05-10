@@ -1,4 +1,9 @@
 const PRESETS = {
+  relay: {
+    label: "Vercel Relay",
+    backend: "https://devops-god-mode.vercel.app/api",
+    shell: "",
+  },
   render: {
     label: "Render",
     backend: "https://devops-god-mode-backend.onrender.com",
@@ -60,8 +65,48 @@ const reconstructionCards = q("#reconstructionCards");
 const reconstructionEmptyState = q("#reconstructionEmptyState");
 const reconstructionCountBadge = q("#reconstructionCountBadge");
 
+const sidebarChats = q("#sidebarChats");
+
+let isLoading = false;
+const RELAY_TOKEN = "GODMODE_SECURE_TOKEN";
+
+function setLoading(loading) {
+  isLoading = loading;
+  const loader = q("#globalLoader");
+  if (loader) loader.style.display = loading ? "block" : "none";
+}
+
+function goBack() {
+  window.history.back();
+}
+
+function isRelayMode() {
+  return presetSelect.value === "relay";
+}
+
+async function pushTask(action, payload) {
+  setLoading(true);
+  try {
+    const res = await fetch(getBaseUrl() + "/push", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RELAY_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ action, payload })
+    });
+    const data = await res.json();
+    setQuickSummary(`Tarefa enviada via Relay: ${action}`);
+    return data;
+  } catch (e) {
+    setQuickSummary(`Erro ao enviar tarefa via Relay: ${e.message}`);
+  } finally {
+    setLoading(false);
+  }
+}
+
 function getBaseUrl() {
-  return (apiInput.value || localStorage.getItem(KEY_API) || PRESETS.render.backend)
+  return (apiInput.value || localStorage.getItem(KEY_API) || PRESETS.relay.backend)
     .trim()
     .replace(/\/$/, "");
 }
@@ -80,7 +125,7 @@ function saveUrls() {
 }
 
 function applyPreset() {
-  const preset = PRESETS[presetSelect.value] || PRESETS.render;
+  const preset = PRESETS[presetSelect.value] || PRESETS.relay;
   if (preset.backend) apiInput.value = preset.backend;
   if (preset.shell) shellUrlInput.value = preset.shell;
   presetValue.textContent = presetSelect.value;
@@ -94,6 +139,9 @@ function buildPayload() {
     repo: q("#repoInput").value,
     context: `Preferred path: ${q("#pathInput").value} | Branch: ${q("#branchInput").value} | Base: ${q("#baseBranchInput").value}`,
     priority: "normal",
+    visibility: q("#visibilityInput").value,
+    lifecycle: q("#lifecycleInput").value,
+    related_repos: getRelatedRepos()
   };
 }
 
@@ -271,6 +319,7 @@ function renderReconstructionCards(items) {
 }
 
 async function refreshApprovals() {
+  if (isRelayMode()) return;
   try {
     const data = await fetchJson(`${getBaseUrl()}/api/approval-broker/requests?status=pending`);
     renderApprovalCards(data.requests || []);
@@ -285,6 +334,7 @@ async function refreshApprovals() {
 }
 
 async function refreshExecutions() {
+  if (isRelayMode()) return;
   try {
     const data = await fetchJson(`${getBaseUrl()}/api/execution-gate/executions`);
     renderExecutionCards(data.executions || []);
@@ -299,6 +349,7 @@ async function refreshExecutions() {
 }
 
 async function refreshReconstructions() {
+  if (isRelayMode()) return;
   try {
     const data = await fetchJson(`${getBaseUrl()}/api/conversation-reconstruction/proposals`);
     renderReconstructionCards(data.reconstructions || []);
@@ -355,6 +406,7 @@ async function syncReconstruction(reconstructionId) {
 }
 
 async function autoUpdateConnection() {
+  if (isRelayMode()) return;
   try {
     const data = await fetchJson(`${getBaseUrl()}/api/mobile-pc-pairing/connection-manifest`);
     if (!data.ok) return;
@@ -362,8 +414,6 @@ async function autoUpdateConnection() {
     const currentUrl = getBaseUrl();
     const tryList = data.mobile_should_try_in_order || [];
 
-    // If current URL is already working and in the list, we might not want to jump unless it's a better mode
-    // For now, let's just pick the first one that responds to /health
     for (const item of tryList) {
        try {
          const health = await fetch(`${item.url.replace(/\/$/, "")}/health`, { signal: AbortSignal.timeout(2000) });
@@ -390,6 +440,17 @@ async function refreshStatus() {
   connectionBadge.className = "badge badge-warning";
   presetValue.textContent = presetSelect.value;
   try {
+    if (isRelayMode()) {
+       const health = await fetchJson(`${getBaseUrl()}/health`);
+       backendStatusValue.textContent = health.status || "ok";
+       backendProfileValue.textContent = "relay";
+       profileBadge.textContent = "cloud relay";
+       connectionBadge.textContent = "online";
+       connectionBadge.className = "badge badge-success";
+       setQuickSummary(`Ligação Relay OK em ${getBaseUrl()}`);
+       return;
+    }
+
     const root = await fetchJson(`${getBaseUrl()}/`);
     const ops = await fetchJson(`${getBaseUrl()}/api/system/config`);
     backendStatusValue.textContent = root.status || "ok";
@@ -399,7 +460,6 @@ async function refreshStatus() {
     connectionBadge.className = "badge badge-success";
     setQuickSummary(`Ligação OK em ${getBaseUrl()}`);
     refreshCriticalAction();
-    // Only auto-update if we are not manually overriding
     if (presetSelect.value !== "manual") {
        autoUpdateConnection();
     }
@@ -413,6 +473,9 @@ async function refreshStatus() {
 }
 
 async function runCockpit() {
+  if (isRelayMode()) {
+    return pushTask("run_cockpit", buildPayload());
+  }
   const data = await fetchJson(`${getBaseUrl()}/api/real-orchestration/simulate`, {
     method: "POST",
     body: JSON.stringify(buildPayload()),
@@ -430,6 +493,9 @@ async function runCockpit() {
 }
 
 async function runExecutionPipeline() {
+  if (isRelayMode()) {
+    return pushTask("run_task", buildPayload());
+  }
   const data = await fetchJson(`${getBaseUrl()}/api/real-orchestration/run`, {
     method: "POST",
     body: JSON.stringify(buildPayload()),
@@ -447,6 +513,10 @@ async function runExecutionPipeline() {
 }
 
 async function runSetupValidation() {
+  if (isRelayMode()) {
+    setQuickSummary("Setup validation não disponível em modo Relay.");
+    return;
+  }
   const statusDiv = q("#setupEnvStatus");
   const list = q("#setupEnvList");
   statusDiv.style.display = "block";
@@ -479,6 +549,7 @@ async function runSetupValidation() {
 }
 
 async function refreshCriticalAction() {
+  if (isRelayMode()) return;
   const section = q("#criticalActionSection");
   const label = q("#criticalActionLabel");
   const btn = q("#criticalActionBtn");
@@ -519,10 +590,37 @@ function copySummary() {
   navigator.clipboard?.writeText(text).then(() => setQuickSummary("Resumo copiado.")).catch(() => setQuickSummary("Não foi possível copiar o resumo."));
 }
 
-apiInput.value = localStorage.getItem(KEY_API) || PRESETS.render.backend;
+function renderSidebar(chats) {
+  if (!sidebarChats) return;
+  sidebarChats.innerHTML = "";
+  chats.forEach(chat => {
+    const item = document.createElement("div");
+    item.className = "chat-sidebar-item";
+    if (chat.has_unread) item.classList.add("unread");
+    item.innerHTML = `
+      <span>${chat.name}</span>
+      ${chat.has_unread ? '<span class="unread-dot"></span>' : ''}
+    `;
+    sidebarChats.appendChild(item);
+  });
+}
+
+// Initializing UI
+apiInput.value = localStorage.getItem(KEY_API) || PRESETS.relay.backend;
 shellUrlInput.value = localStorage.getItem(KEY_SHELL) || PRESETS.local_pc.shell;
-presetSelect.value = localStorage.getItem(KEY_PRESET) || "render";
+presetSelect.value = localStorage.getItem(KEY_PRESET) || "relay";
 setMode(localStorage.getItem(KEY_MODE) || "driving");
+
+const mockChats = [
+  {
+    "id": "1",
+    "name": "Deploy Vercel",
+    "messages": [],
+    "has_unread": true
+  }
+];
+renderSidebar(mockChats);
+
 refreshStatus();
 refreshApprovals();
 refreshExecutions();
@@ -551,6 +649,7 @@ q("#refreshReconstructionsBtn").onclick = refreshReconstructions;
 
 q("#drivingModeBtn").onclick = () => setMode("driving");
 q("#assistedModeBtn").onclick = () => setMode("assisted");
+
 q("#mobileCockpitBtn").onclick = () => runCockpit().catch((error) => {
   cockpitOutput.textContent = error.message;
   headlineBox.textContent = error.message;
@@ -558,6 +657,7 @@ q("#mobileCockpitBtn").onclick = () => runCockpit().catch((error) => {
   renderCards([]);
   setQuickSummary("Erro ao gerar cockpit.");
 });
+
 q("#executionBtn").onclick = () => runExecutionPipeline().catch((error) => {
   executionOutput.textContent = error.message;
   headlineBox.textContent = error.message;
@@ -565,8 +665,11 @@ q("#executionBtn").onclick = () => runExecutionPipeline().catch((error) => {
   renderCards([]);
   setQuickSummary("Erro ao gerar pipeline.");
 });
+
 q("#setupEnvBtn").onclick = runSetupValidation;
 q("#copySummaryBtn").onclick = copySummary;
 q("#approveOkBtn").onclick = () => setQuickSummary("Aprovação rápida: OK");
 q("#approveChangeBtn").onclick = () => setQuickSummary("Aprovação rápida: ALTERA");
 q("#approveRejectBtn").onclick = () => setQuickSummary("Aprovação rápida: REJEITA");
+
+window.goBack = goBack;
