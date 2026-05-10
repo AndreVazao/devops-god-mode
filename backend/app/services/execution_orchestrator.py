@@ -5,17 +5,17 @@ from app.brain.god_brain import think
 from app.brain.operational_state import add_goal
 from typing import Dict, Any
 
-def run_task(task: Dict[str, Any]) -> Dict[str, Any]:
+def run_task(task: Dict[str, Any], repo_path: str = None) -> Dict[str, Any]:
     action = task.get("action")
 
     if action == "execute_code":
         code = task.get("code")
         if not code:
             return {"error": "no code provided"}
-        return execute_code(code)
+        return execute_code(code, repo_path=repo_path)
 
     if action == "dev_loop":
-        return run_dev_loop(task)
+        return run_dev_loop(task, repo_path=repo_path)
 
     if action == "think":
         goal = task.get("payload", {}).get("goal") or task.get("goal")

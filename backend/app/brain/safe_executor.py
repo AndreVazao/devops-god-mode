@@ -7,7 +7,7 @@ from app.evolution.approval import wait_for_approval
 from app.brain.skill_registry import get_skill
 from app.services.execution_orchestrator import run_task
 
-def run_action(action: str, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def run_action(action: str, payload: Optional[Dict[str, Any]] = None, repo_path: str = None) -> Dict[str, Any]:
     """
     Executes an action safely, checking for required approvals and using the skill registry.
     """
@@ -40,7 +40,7 @@ def run_action(action: str, payload: Optional[Dict[str, Any]] = None) -> Dict[st
     if skill_script:
         print(f"🛠️ [SafeExecutor] Executing skill script: {skill_script}")
         try:
-            res = subprocess.run(["python", skill_script], capture_output=True, text=True)
+            res = subprocess.run(["python", skill_script], capture_output=True, text=True, cwd=repo_path)
             return {
                 "status": "success" if res.returncode == 0 else "error",
                 "stdout": res.stdout,
@@ -60,4 +60,4 @@ def run_action(action: str, payload: Optional[Dict[str, Any]] = None) -> Dict[st
     if action == "auto_fix" or action == "stability_fixes":
         task["action"] = "dev_loop"
 
-    return run_task(task)
+    return run_task(task, repo_path=repo_path)

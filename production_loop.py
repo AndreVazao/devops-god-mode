@@ -1,5 +1,5 @@
 import time
-from autonomous_loop import run as auto_run
+from app.brain.orchestrator import start_orchestrator
 from monitor import run as monitor_run
 import threading
 import sys
@@ -12,8 +12,13 @@ sys.path.append(os.getcwd())
 def start():
     print("🔥 GOD MODE PRODUCTION")
 
-    # Start Autonomous Loop
-    threading.Thread(target=auto_run, daemon=True).start()
+    if not os.path.exists(".env"):
+        print("⚙️ Initial configuration needed...")
+        import setup_env
+        setup_env.main()
+
+    # Start Multi-Project Orchestrator
+    start_orchestrator()
 
     # Start Monitor
     threading.Thread(target=monitor_run, daemon=True).start()

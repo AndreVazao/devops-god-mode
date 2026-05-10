@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 from app.brain.operational_state import load_state, save_state
+from app.brain.multi_project_state import get_repo_path
 from app.brain.priority_engine import prioritize
 from app.brain.task_generator import generate_tasks
 # Replacing direct execute_tasks with SafeExecutor and BudgetManager logic
@@ -15,22 +16,23 @@ from app.brain.learner import record
 
 INTERVAL = 30  # Seconds between loops
 
-def run_loop():
+def run_loop(project_name: str = "default"):
     """
     Main Operational Brain Loop.
     Decides, prioritizes, and executes tasks autonomously with safety gates.
     """
-    print("🤖 [OperationalBrain] Controlled Autonomy Mode ACTIVE")
+    print(f"🤖 [OperationalBrain] Controlled Autonomy Mode ACTIVE for project: {project_name}")
+    repo_path = get_repo_path(project_name)
 
     while True:
         try:
             # 0. Check Budget
             if not check_budget():
-                print("⏸ [OperationalBrain] Budget limit reached. Resting...")
+                print(f"⏸ [OperationalBrain:{project_name}] Budget limit reached. Resting...")
                 time.sleep(60)
                 continue
 
-            state = load_state()
+            state = load_state(project_name)
 
             # 1. Prioritize Goals
             prioritized_goals = prioritize(state)
@@ -42,7 +44,7 @@ def run_loop():
 
             # 2. Pick the top priority goal
             current_goal = prioritized_goals[0]
-            print(f"🎯 [OperationalBrain] Goal: {current_goal.get('text')}")
+            print(f"🎯 [OperationalBrain:{project_name}] Goal: {current_goal.get('text')}")
 
             # 3. Generate Tasks for this goal
             tasks = generate_tasks(current_goal)
@@ -54,7 +56,7 @@ def run_loop():
                 payload = task
 
                 try:
-                    result = run_action(action, payload)
+                    result = run_action(action, payload, repo_path=repo_path)
                     results.append({
                         "task": action,
                         "status": result.get("status", "success"),
@@ -84,11 +86,11 @@ def run_loop():
                 "timestamp": now_iso
             })
 
-            save_state(state)
-            print(f"✅ [OperationalBrain] Goal '{current_goal.get('text')}' processed.")
+            save_state(state, project_name)
+            print(f"✅ [OperationalBrain:{project_name}] Goal '{current_goal.get('text')}' processed.")
 
         except Exception as e:
-            print(f"⚠️ [OperationalBrain] Loop Error: {e}")
+            print(f"⚠️ [OperationalBrain:{project_name}] Loop Error: {e}")
 
         time.sleep(INTERVAL)
 
