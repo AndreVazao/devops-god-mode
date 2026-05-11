@@ -81,26 +81,21 @@ function loadChats() {
   return [createDefaultChat()];
 }
 
-const chats = loadChats();
-let currentChat = chats.find((chat) => chat.id === localStorage.getItem(KEY_ACTIVE_CHAT)) || chats[0];
-
-function persistChats() {
-  localStorage.setItem(KEY_CHATS, JSON.stringify(chats));
-  localStorage.setItem(KEY_ACTIVE_CHAT, currentChat?.id || "");
-}
+let state = {
+    chats: {},
+    activeChat: null
+};
 
 function renderSidebar() {
   if (!sidebarChats) return;
   sidebarChats.innerHTML = "";
-  chats.forEach((chat) => {
+  Object.values(state.chats).forEach((chat) => {
     const item = document.createElement("div");
-    item.className = `chat-sidebar-item ${chat.id === currentChat.id ? "active" : ""}`;
+    item.className = `chat-sidebar-item ${chat.id === state.activeChat ? "active" : ""}`;
     item.innerHTML = `<span>${escapeHtml(chat.name)}</span>`;
-    item.onclick = () => {
-      currentChat = chat;
-      persistChats();
-      renderSidebar();
-      renderChatMessages();
+    item.onclick = async () => {
+      await api("/state", "POST", { type: "SET_ACTIVE", payload: { chatId: chat.id } });
+      await sync();
       if (window.innerWidth <= 600) toggleSidebar();
     };
     sidebarChats.appendChild(item);
@@ -108,8 +103,11 @@ function renderSidebar() {
 }
 
 function renderChatMessages() {
-  if (!chatMessages || !currentChat) return;
+  if (!chatMessages) return;
+  const currentChat = state.chats[state.activeChat];
   chatMessages.innerHTML = "";
+  if (!currentChat) return;
+
   currentChat.messages.forEach((msg) => {
     const div = document.createElement("div");
     div.className = `msg ${msg.role === "user" ? "user" : msg.role === "gm" ? "gm" : "system"}`;
@@ -136,50 +134,37 @@ function renderChatMessages() {
 
 async function approveAction(actionId, msgId) {
   await sendTask("approve", { action_id: actionId, decision: "approved" });
-  updateMessageStatus(msgId, "Aprovado ✔");
+  const currentChat = state.chats[state.activeChat];
+  const msg = currentChat.messages.find(m => m.id === msgId);
+  if (msg) {
+      msg.type = "text";
+      msg.text += " -> Aprovado ✔";
+      await api("/state", "POST", { type: "UPDATE_CHAT", payload: state.chats[state.activeChat] });
+  }
+  await sync();
 }
 
 async function rejectAction(actionId, msgId) {
   await sendTask("approve", { action_id: actionId, decision: "rejected" });
-  updateMessageStatus(msgId, "Recusado ✖");
-}
-
-function updateMessageStatus(msgId, statusText) {
+  const currentChat = state.chats[state.activeChat];
   const msg = currentChat.messages.find(m => m.id === msgId);
   if (msg) {
-    msg.type = "text";
-    msg.text = `${msg.text} -> ${statusText}`;
-    persistChats();
-    renderChatMessages();
+      msg.type = "text";
+      msg.text += " -> Recusado ✖";
+      await api("/state", "POST", { type: "UPDATE_CHAT", payload: state.chats[state.activeChat] });
   }
+  await sync();
 }
 
-function appendMessage(role, text, type = "text", actionId = null) {
-  if (!currentChat) return;
-  const msg = {
-    id: uid("msg"),
-    role,
-    text,
-    type,
-    actionId,
-    timestamp: new Date().toISOString(),
-  };
-  currentChat.messages.push(msg);
-  persistChats();
-  renderChatMessages();
-  return msg;
-}
-
-async function apiRequest(path, options = {}) {
+async function api(path, method = "GET", body) {
   const headers = {
     "Authorization": `Bearer ${RELAY_TOKEN}`,
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
-    ...(options.headers || {}),
+    ...(body ? { "Content-Type": "application/json" } : {}),
   };
   const response = await fetch(`${DEFAULT_RELAY_API}${path}`, {
-    method: options.method || "GET",
+    method,
     headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: body ? JSON.stringify(body) : undefined,
   });
   if (!response.ok) {
     throw new Error(`${path} -> ${response.status}`);
@@ -192,13 +177,13 @@ async function sendTask(action, payload = {}) {
     id: uid("task"),
     action,
     source: "mobile-shell",
-    chat_id: currentChat?.id,
+    chat_id: state.activeChat,
     payload,
   };
 
   setLoading(true);
   try {
-    await apiRequest("/push", { method: "POST", body: task });
+    await api("/relay", "POST", task);
     setDecision("pedido enviado", "info");
     return task;
   } finally {
@@ -210,35 +195,33 @@ async function sendMessage(text) {
   const value = (text || chatInput?.value || "").trim();
   if (!value) return;
   if (chatInput) chatInput.value = "";
-  appendMessage("user", value);
+
+  const msg = { role: "user", text: value };
+
   try {
+    await api("/state", "POST", {
+        type: "MESSAGE",
+        payload: { chatId: state.activeChat, message: msg }
+    });
     await sendTask("chat", { message: value });
     setHeadline("A aguardar resposta do God Mode...");
+    await sync();
   } catch (error) {
-    appendMessage("system", `Erro no relay: ${error.message}`);
+    console.error("SendMessage error", error);
   }
 }
 
 async function sync() {
   try {
-    const responses = await apiRequest("/responses");
-    if (!responses || !responses.length) return;
+    const newState = await api("/state");
+    state = newState;
 
     chatStatus.textContent = "online";
     chatStatus.className = "badge badge-success";
 
-    responses.forEach((entry) => {
-      const task = entry.task || {};
-      const result = entry.result || {};
-      const targetChat = chats.find((chat) => chat.id === (task.chat_id || entry.chat_id)) || currentChat;
+    renderSidebar();
+    renderChatMessages();
 
-      const type = result.type || "text";
-      const text = result.message || result.error || JSON.stringify(result);
-
-      appendMessage("gm", text, type, result.action_id || task.id);
-    });
-
-    setHeadline("Resposta recebida.");
     setDecision("sincronizado", "success");
   } catch (error) {
     console.warn("Sync failed", error);
@@ -247,13 +230,9 @@ async function sync() {
   }
 }
 
-function newChat() {
-  const chat = createDefaultChat(`Chat ${chats.length + 1}`);
-  chats.unshift(chat);
-  currentChat = chat;
-  persistChats();
-  renderSidebar();
-  renderChatMessages();
+async function newChat() {
+  await api("/state", "POST", { type: "NEW_CHAT" });
+  await sync();
 }
 
 // Global functions
@@ -264,7 +243,35 @@ window.rejectAction = rejectAction;
 window.sendMessage = sendMessage;
 window.setupEnv = () => sendTask("setup_env");
 
+async function handleDrop(e) {
+  e.preventDefault();
+  document.body.classList.remove("dragging");
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+
+  const text = await file.text();
+  await sendTask("file", {
+    name: file.name,
+    content: text
+  });
+  setHeadline(`Ficheiro ${file.name} enviado.`);
+}
+
 // Init
+sync();
+setInterval(sync, 2000);
+
+document.body.ondragover = (e) => {
+    e.preventDefault();
+    document.body.classList.add("dragging");
+};
+document.body.ondragleave = (e) => {
+    if (e.relatedTarget === null) {
+        document.body.classList.remove("dragging");
+    }
+};
+document.body.ondrop = handleDrop;
+
 chatSendBtn.onclick = () => sendMessage();
 chatInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendMessage();
