@@ -1,53 +1,16 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [
-    {
-      "source": "/api/health",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/push",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/pull",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/respond",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/api/responses",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/app/home",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/app",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/desktop",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/mobile",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/home",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/app/mobile",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/app/apk-start",
-      "destination": "/index.html"
-    }
+  "routes": [
+    { "src": "/api/health", "dest": "/api/relay.js" },
+    { "src": "/api/relay", "dest": "/api/relay.js" },
+    { "src": "/api/push", "dest": "/api/relay.js" },
+    { "src": "/api/pull", "dest": "/api/relay.js" },
+    { "src": "/api/respond", "dest": "/api/relay.js" },
+    { "src": "/api/responses", "dest": "/api/relay.js" },
+    { "src": "/app/(.*)", "dest": "/index.html" },
+    { "src": "/(index.html)", "dest": "/index.html" },
+    { "src": "/(app.js)", "dest": "/app.js" },
+    { "src": "/(styles.css)", "dest": "/styles.css" },
+    { "src": "/(manifest.json)", "dest": "/manifest.json" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

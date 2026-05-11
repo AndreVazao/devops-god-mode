@@ -24,10 +24,11 @@ HEADERS = {
 
 def pull_tasks():
     try:
-        # Use POST /api/pull as defined in the new relay
-        r = requests.post(f"{RELAY_URL}/pull", headers=HEADERS, timeout=10)
+        # GET /api/pull now returns { "items": [...] }
+        r = requests.get(f"{RELAY_URL}/pull", headers=HEADERS, timeout=10)
         if r.status_code == 200:
-            return r.json()
+            data = r.json()
+            return data.get("items", [])
         else:
             print(f"Error pulling tasks: {r.status_code} - {r.text}")
     except Exception as e:
@@ -36,7 +37,7 @@ def pull_tasks():
 
 def send_response(data):
     try:
-        # Use POST /api/respond as defined in the new relay
+        # POST /api/respond for sending results back
         r = requests.post(f"{RELAY_URL}/respond", json=data, headers=HEADERS, timeout=10)
         if r.status_code != 200:
             print(f"Error sending response: {r.status_code} - {r.text}")
@@ -46,31 +47,40 @@ def send_response(data):
 def execute_logic(task):
     print("TASK RECEIVED:", task)
 
+    action = task.get("action")
+    payload = task.get("payload", {})
+
     # Handle evolution approval specifically
-    if task.get("action") == "approve":
+    if action == "approve":
         try:
             from app.evolution.approval import approve_locally
-            plan_id = task.get("payload", {}).get("plan_id")
+            plan_id = payload.get("plan_id")
             if plan_id:
                 approve_locally(plan_id)
-                return {"status": "approved_locally", "plan_id": plan_id}
-        except ImportError:
-            pass
+                return {"status": "approved_locally", "plan_id": plan_id, "message": f"Plano {plan_id} aprovado localmente."}
 
-    # Handle setup_env specifically if needed, or let it flow to orchestrator
-    if task.get("action") == "setup_env":
-        # Example of handling a specific action
-        return {"status": "setup_triggered", "details": "Environment setup initialized on PC"}
+            # Handle mobile gate approval (action_id)
+            action_id = payload.get("action_id")
+            decision = payload.get("decision")
+            if action_id:
+                # Logic to release a gated action could go here
+                return {"status": "decision_recorded", "action_id": action_id, "decision": decision, "message": f"Decisão {decision} registada para {action_id}."}
+        except Exception as e:
+            return {"error": str(e), "status": "failed"}
+
+    if action == "setup_env":
+        return {"status": "setup_triggered", "message": "Ambiente do PC a ser preparado..."}
 
     if HAS_BACKEND:
         try:
+            # The orchestrator handles chat and other actions
             return run_task(task)
         except Exception as e:
             return {"error": str(e), "status": "failed"}
     else:
         # Standalone mock mode logic
         return {
-            "task": task,
+            "message": f"PC processou: {action}",
             "status": "done",
             "mock": True
         }
@@ -91,6 +101,7 @@ if __name__ == "__main__":
             response_payload = {
                 "task": task,
                 "result": result,
+                "chat_id": task.get("chat_id"),
                 "status": "done",
                 "timestamp": time.time()
             }
