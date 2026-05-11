@@ -15,8 +15,21 @@ export default async function handler(req, res) {
     let state = await kv.get(STATE_KEY);
     if (!state) {
       state = {
-        chats: {},
-        activeChat: null
+        chats: {
+            "default": {
+                id: "default",
+                name: "God Mode",
+                messages: [
+                    {
+                        id: "initial",
+                        role: "system",
+                        text: "God Mode Online. À espera de comandos.",
+                        timestamp: new Date().toISOString()
+                    }
+                ]
+            }
+        },
+        activeChat: "default"
       };
     } else if (typeof state === 'string') {
         state = JSON.parse(state);
@@ -33,7 +46,7 @@ export default async function handler(req, res) {
         const id = Date.now().toString();
         state.chats[id] = {
           id,
-          name: "Novo chat",
+          name: payload?.name || "Novo chat",
           messages: [],
           unread: false
         };
