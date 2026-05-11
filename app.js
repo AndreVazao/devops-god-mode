@@ -1,8 +1,6 @@
 const CLOUD_BASE = window.location.origin;
 const DEFAULT_RELAY_API = `${CLOUD_BASE}/api`;
 
-const KEY_CHATS = "god_mode_mobile_shell_chats_v3";
-const KEY_ACTIVE_CHAT = "god_mode_mobile_shell_active_chat_v3";
 const KEY_RELAY_TOKEN = "god_mode_relay_token";
 
 const q = (selector) => document.querySelector(selector);
@@ -16,8 +14,12 @@ const decisionBadge = q("#decisionBadge");
 const sidebar = q(".sidebar-nav");
 
 let isLoading = false;
+let state = {
+    chats: {},
+    activeChat: null
+};
 
-// Get token from URL or localStorage, fallback to dummy for dev only
+// Get token from URL or localStorage
 const getRelayToken = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token') || localStorage.getItem(KEY_RELAY_TOKEN) || "GODMODE_SECURE_TOKEN";
@@ -58,34 +60,6 @@ function escapeHtml(text) {
     .replaceAll('"', "&quot;");
 }
 
-function createDefaultChat(name = "God Mode Relay") {
-  return {
-    id: uid("chat"),
-    name,
-    messages: [
-      {
-        id: uid("msg"),
-        role: "system",
-        text: "Shell mobile ligada ao relay cloud. Pronto para comandos.",
-        timestamp: new Date().toISOString(),
-      },
-    ],
-  };
-}
-
-function loadChats() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(KEY_CHATS) || "[]");
-    if (Array.isArray(parsed) && parsed.length) return parsed;
-  } catch {}
-  return [createDefaultChat()];
-}
-
-let state = {
-    chats: {},
-    activeChat: null
-};
-
 function renderSidebar() {
   if (!sidebarChats) return;
   sidebarChats.innerHTML = "";
@@ -123,13 +97,45 @@ function renderChatMessages() {
           </div>
         </div>
       `;
+    } else if (msg.type === "pending_approval") {
+        div.innerHTML = `
+        <div class="approval-card">
+          <p><strong>⚠️ Executar Código?</strong></p>
+          <pre style="background:#000; padding:10px; overflow:auto; max-height:150px; font-size:12px;">${escapeHtml(msg.code || msg.text)}</pre>
+          <div class="approval-actions">
+            <button class="approve-btn" onclick="relayApprove(true, '${msg.id}')">✔ Aprovar</button>
+            <button class="reject-btn" onclick="relayApprove(false, '${msg.id}')">✖ Recusar</button>
+          </div>
+        </div>
+      `;
     } else {
-      div.textContent = msg.text;
+      // Handle markdown-ish code blocks
+      const text = escapeHtml(msg.text || "");
+      div.innerHTML = text.replace(/```([\s\S]*?)```/g, '<pre style="background:#000; padding:10px; overflow:auto;">$1</pre>');
     }
 
     chatMessages.appendChild(div);
   });
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function relayApprove(approve, msgId) {
+    setLoading(true);
+    try {
+        await api("/relay", "PUT", { approve });
+        const currentChat = state.chats[state.activeChat];
+        const msg = currentChat.messages.find(m => m.id === msgId);
+        if (msg) {
+            msg.type = "text";
+            msg.text = approve ? "✔ Execução aprovada e enviada para o PC." : "✖ Execução cancelada.";
+            await api("/state", "POST", { type: "UPDATE_CHAT", payload: state.chats[state.activeChat] });
+        }
+        await sync();
+    } catch (e) {
+        console.error("Relay approve error", e);
+    } finally {
+        setLoading(false);
+    }
 }
 
 async function approveAction(actionId, msgId) {
@@ -176,15 +182,34 @@ async function sendTask(action, payload = {}) {
   const task = {
     id: uid("task"),
     action,
+    type: action, // consistency for relay_worker and relay.js
     source: "mobile-shell",
     chat_id: state.activeChat,
+    chatId: state.activeChat,
     payload,
+    content: payload.message || payload.content || ""
   };
 
   setLoading(true);
   try {
-    await api("/relay", "POST", task);
-    setDecision("pedido enviado", "info");
+    const res = await api("/relay", "POST", task);
+    if (res.requiresApproval) {
+        // Add a pending approval message to the chat
+        const msg = {
+            id: uid("msg"),
+            role: "system",
+            type: "pending_approval",
+            text: task.content,
+            code: task.content
+        };
+        await api("/state", "POST", {
+            type: "MESSAGE",
+            payload: { chatId: state.activeChat, message: msg }
+        });
+        setDecision("aguarda aprovação", "info");
+    } else {
+        setDecision("pedido enviado", "info");
+    }
     return task;
   } finally {
     setLoading(false);
@@ -203,8 +228,19 @@ async function sendMessage(text) {
         type: "MESSAGE",
         payload: { chatId: state.activeChat, message: msg }
     });
-    await sendTask("chat", { message: value });
-    setHeadline("A aguardar resposta do God Mode...");
+
+    // Determine action based on simple prefix for manual control
+    let action = "chat";
+    let content = value;
+    if (value.startsWith("run:")) {
+        action = "run_code";
+        content = value.replace("run:", "").trim();
+    } else if (value.toLowerCase().includes("executar") || value.toLowerCase().includes("run code")) {
+        action = "run_code";
+    }
+
+    await sendTask(action, { message: content, content: content });
+    setHeadline("God Mode a processar...");
     await sync();
   } catch (error) {
     console.error("SendMessage error", error);
@@ -231,7 +267,9 @@ async function sync() {
 }
 
 async function newChat() {
-  await api("/state", "POST", { type: "NEW_CHAT" });
+  const name = prompt("Nome do novo chat:", "Nova Conversa");
+  if (!name) return;
+  await api("/state", "POST", { type: "NEW_CHAT", payload: { name } });
   await sync();
 }
 
@@ -240,6 +278,7 @@ window.toggleSidebar = toggleSidebar;
 window.newChat = newChat;
 window.approveAction = approveAction;
 window.rejectAction = rejectAction;
+window.relayApprove = relayApprove;
 window.sendMessage = sendMessage;
 window.setupEnv = () => sendTask("setup_env");
 
@@ -259,7 +298,7 @@ async function handleDrop(e) {
 
 // Init
 sync();
-setInterval(sync, 2000);
+setInterval(sync, 3000);
 
 document.body.ondragover = (e) => {
     e.preventDefault();
@@ -279,7 +318,6 @@ chatInput.addEventListener("keydown", (e) => {
 
 renderSidebar();
 renderChatMessages();
-setInterval(sync, 2000);
 
-setHeadline("Ligado ao Cloud Relay");
+setHeadline("God Mode Cockpit Final");
 setDecision("cloud mode", "success");
