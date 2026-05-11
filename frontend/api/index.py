@@ -1,11 +1,22 @@
 import json
 import os
+import time
 from http.server import BaseHTTPRequestHandler
-from urllib.parse import urlparse
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlparse
+from urllib.request import Request, urlopen
 
 RELAY_TOKEN = os.environ.get("RELAY_TOKEN", "GODMODE_SECURE_TOKEN")
+RELAY_PUBLIC_URL = os.environ.get("RELAY_PUBLIC_URL", "https://devops-god-mode.vercel.app").rstrip("/")
+LEASE_SECONDS = int(os.environ.get("RELAY_LEASE_SECONDS", "120"))
+MAX_BATCH_SIZE = int(os.environ.get("RELAY_MAX_BATCH_SIZE", "50"))
+UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
+UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+QUEUE_PREFIX = os.environ.get("RELAY_QUEUE_PREFIX", "godmode:relay")
+
 STATE = {
     "tasks": [],
+    "inflight": {},
     "responses": [],
 }
 
@@ -13,6 +24,227 @@ STATE = {
 def _normalized_path(raw_path: str) -> str:
     path = urlparse(raw_path).path.rstrip("/")
     return path or "/"
+
+
+def _now() -> int:
+    return int(time.time())
+
+
+def _json_dumps(data) -> str:
+    return json.dumps(data, separators=(",", ":"), sort_keys=True)
+
+
+def _chunked_pairs(values):
+    return zip(values[::2], values[1::2])
+
+
+def _canonical_task(task: dict) -> dict:
+    normalized = dict(task or {})
+    normalized.setdefault("id", f"task-{int(time.time() * 1000)}")
+    normalized.setdefault("created_at", time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+    normalized.setdefault("source", "unknown")
+    return normalized
+
+
+class InMemoryStore:
+    mode = "in-memory-lease"
+
+    def _requeue_stale(self) -> None:
+        now = _now()
+        stale_ids = [
+            task_id
+            for task_id, meta in STATE["inflight"].items()
+            if meta.get("expires_at", 0) <= now
+        ]
+        for task_id in stale_ids:
+            task = STATE["inflight"].pop(task_id)["task"]
+            STATE["tasks"].append(task)
+
+    def push_task(self, task: dict) -> None:
+        normalized = _canonical_task(task)
+        task_id = normalized["id"]
+        queued_ids = {entry["id"] for entry in STATE["tasks"]}
+        if task_id in queued_ids or task_id in STATE["inflight"]:
+            return
+        STATE["tasks"].append(normalized)
+
+    def pull_tasks(self, limit: int):
+        self._requeue_stale()
+        batch = STATE["tasks"][:limit]
+        STATE["tasks"] = STATE["tasks"][limit:]
+        expires_at = _now() + LEASE_SECONDS
+        for task in batch:
+            STATE["inflight"][task["id"]] = {
+                "task": task,
+                "expires_at": expires_at,
+            }
+        return batch
+
+    def store_response(self, response: dict) -> None:
+        task = response.get("task") or {}
+        task_id = task.get("id")
+        if task_id:
+            STATE["inflight"].pop(task_id, None)
+        STATE["responses"].append(response)
+
+    def pull_responses(self, limit: int):
+        batch = STATE["responses"][:limit]
+        STATE["responses"] = STATE["responses"][limit:]
+        return batch
+
+    def health(self) -> dict:
+        self._requeue_stale()
+        return {
+            "queued": len(STATE["tasks"]),
+            "inflight": len(STATE["inflight"]),
+            "responses": len(STATE["responses"]),
+        }
+
+
+class UpstashStore:
+    mode = "upstash-redis"
+
+    def __init__(self) -> None:
+        self.tasks_key = f"{QUEUE_PREFIX}:tasks"
+        self.inflight_key = f"{QUEUE_PREFIX}:inflight"
+        self.responses_key = f"{QUEUE_PREFIX}:responses"
+
+    def _request(self, *segments: str, body: str | None = None):
+        encoded_segments = "/".join(quote(str(segment), safe="") for segment in segments)
+        url = f"{UPSTASH_URL}/{encoded_segments}"
+        data = body.encode("utf-8") if body is not None else None
+        request = Request(url, data=data)
+        request.add_header("Authorization", f"Bearer {UPSTASH_TOKEN}")
+        if body is not None:
+            request.add_header("Content-Type", "text/plain; charset=utf-8")
+
+        try:
+            with urlopen(request, timeout=10) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except (HTTPError, URLError) as exc:
+            raise RuntimeError(f"Upstash request failed: {exc}") from exc
+
+        if payload.get("error"):
+            raise RuntimeError(payload["error"])
+        return payload.get("result")
+
+    def _multi_exec(self, commands):
+        request = Request(
+            f"{UPSTASH_URL}/multi-exec",
+            data=json.dumps(commands).encode("utf-8"),
+        )
+        request.add_header("Authorization", f"Bearer {UPSTASH_TOKEN}")
+        request.add_header("Content-Type", "application/json")
+
+        try:
+            with urlopen(request, timeout=10) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except (HTTPError, URLError) as exc:
+            raise RuntimeError(f"Upstash transaction failed: {exc}") from exc
+
+        for item in payload:
+            if item.get("error"):
+                raise RuntimeError(item["error"])
+        return payload
+
+    def _requeue_stale(self) -> None:
+        lease_values = self._request("hgetall", self.inflight_key) or []
+        now = _now()
+        for task_id, raw_meta in _chunked_pairs(lease_values):
+            meta = json.loads(raw_meta)
+            if meta.get("expires_at", 0) > now:
+                continue
+            self._multi_exec(
+                [
+                    ["LREM", self.inflight_key, "1", meta["raw"]],
+                    ["RPUSH", self.tasks_key, meta["raw"]],
+                    ["HDEL", self.inflight_key, task_id],
+                ]
+            )
+
+    def push_task(self, task: dict) -> None:
+        normalized = _canonical_task(task)
+        self._request("rpush", self.tasks_key, body=_json_dumps(normalized))
+
+    def pull_tasks(self, limit: int):
+        self._requeue_stale()
+        tasks = []
+        expires_at = _now() + LEASE_SECONDS
+        for _ in range(limit):
+            raw_task = self._request("rpoplpush", self.tasks_key, self.inflight_key)
+            if raw_task is None:
+                break
+            task = json.loads(raw_task)
+            task_id = task.get("id")
+            if not task_id:
+                continue
+            lease_meta = _json_dumps({"raw": raw_task, "expires_at": expires_at})
+            self._request("hset", self.inflight_key, task_id, body=lease_meta)
+            tasks.append(task)
+        return tasks
+
+    def store_response(self, response: dict) -> None:
+        commands = []
+        task = response.get("task") or {}
+        task_id = task.get("id")
+        if task_id:
+            lease_meta = self._request("hget", self.inflight_key, task_id)
+            if lease_meta:
+                raw_task = json.loads(lease_meta)["raw"]
+                commands.extend(
+                    [
+                        ["LREM", self.inflight_key, "1", raw_task],
+                        ["HDEL", self.inflight_key, task_id],
+                    ]
+                )
+        commands.append(["LPUSH", self.responses_key, _json_dumps(response)])
+        self._multi_exec(commands)
+
+    def pull_responses(self, limit: int):
+        results = []
+        for _ in range(limit):
+            raw_response = self._request("rpop", self.responses_key)
+            if raw_response is None:
+                break
+            results.append(json.loads(raw_response))
+        return results
+
+    def health(self) -> dict:
+        self._requeue_stale()
+        queued = self._request("llen", self.tasks_key) or 0
+        inflight = self._request("hlen", self.inflight_key) or 0
+        responses = self._request("llen", self.responses_key) or 0
+        return {
+            "queued": int(queued),
+            "inflight": int(inflight),
+            "responses": int(responses),
+        }
+
+
+def _build_store():
+    if UPSTASH_URL and UPSTASH_TOKEN:
+        try:
+            return UpstashStore()
+        except Exception:
+            pass
+    return InMemoryStore()
+
+
+STORE = _build_store()
+
+
+def _public_config() -> dict:
+    mobile_entry = f"{RELAY_PUBLIC_URL}/app/mobile"
+    return {
+        "status": "ok",
+        "relay": "single-function",
+        "mode": "cloud-first",
+        "relay_url": f"{RELAY_PUBLIC_URL}/api",
+        "mobile_entry": mobile_entry,
+        "apk_entry": f"{RELAY_PUBLIC_URL}/app/apk-start",
+        "storage": STORE.mode,
+        "lease_seconds": LEASE_SECONDS,
+    }
 
 
 class handler(BaseHTTPRequestHandler):
@@ -24,7 +256,6 @@ class handler(BaseHTTPRequestHandler):
         content_length = self.headers.get("Content-Length")
         if not content_length:
             return {}
-
         length = int(content_length)
         raw_body = self.rfile.read(length) or b"{}"
         return json.loads(raw_body)
@@ -43,19 +274,8 @@ class handler(BaseHTTPRequestHandler):
     def _require_auth(self) -> bool:
         if self._auth():
             return True
-
         self._send({"error": "unauthorized"}, 403)
         return False
-
-    def _pull_tasks(self) -> None:
-        tasks = STATE["tasks"][:]
-        STATE["tasks"] = []
-        self._send(tasks)
-
-    def _pull_responses(self) -> None:
-        responses = STATE["responses"][:]
-        STATE["responses"] = []
-        self._send(responses)
 
     def do_OPTIONS(self) -> None:
         self._send({}, 204)
@@ -64,24 +284,24 @@ class handler(BaseHTTPRequestHandler):
         path = _normalized_path(self.path)
 
         if path in {"/api/health", "/health"}:
-            self._send(
-                {
-                    "status": "ok",
-                    "relay": "single-function",
-                    "storage": "in-memory",
-                }
-            )
+            health = _public_config()
+            health.update(STORE.health())
+            self._send(health)
+            return
+
+        if path in {"/api/config", "/api/app-entrypoint/manifest"}:
+            self._send(_public_config())
             return
 
         if not self._require_auth():
             return
 
         if path == "/api/pull":
-            self._pull_tasks()
+            self._send(STORE.pull_tasks(MAX_BATCH_SIZE))
             return
 
         if path == "/api/responses":
-            self._pull_responses()
+            self._send(STORE.pull_responses(MAX_BATCH_SIZE))
             return
 
         self._send({"error": "not_found"}, 404)
@@ -90,30 +310,36 @@ class handler(BaseHTTPRequestHandler):
         path = _normalized_path(self.path)
 
         if path == "/api/health":
-            self._send({"status": "ok"})
+            health = _public_config()
+            health.update(STORE.health())
+            self._send(health)
+            return
+
+        if path in {"/api/config", "/api/app-entrypoint/manifest"}:
+            self._send(_public_config())
             return
 
         if not self._require_auth():
             return
 
-        data = self._read_json()
-
-        if path == "/api/push":
-            STATE["tasks"].append(data)
-            self._send({"status": "queued"})
-            return
-
         if path == "/api/pull":
-            self._pull_tasks()
-            return
-
-        if path == "/api/respond":
-            STATE["responses"].append(data)
-            self._send({"status": "stored"})
+            self._send(STORE.pull_tasks(MAX_BATCH_SIZE))
             return
 
         if path == "/api/responses":
-            self._pull_responses()
+            self._send(STORE.pull_responses(MAX_BATCH_SIZE))
+            return
+
+        data = self._read_json()
+
+        if path == "/api/push":
+            STORE.push_task(data)
+            self._send({"status": "queued", "storage": STORE.mode})
+            return
+
+        if path == "/api/respond":
+            STORE.store_response(data)
+            self._send({"status": "stored", "storage": STORE.mode})
             return
 
         self._send({"error": "not_found"}, 404)
