@@ -26,11 +26,11 @@ body {
   font-family: "Segoe UI", system-ui, sans-serif;
 }
 .app {
-  max-width: 1180px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 20px;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 300px 1fr;
   gap: 18px;
 }
 .panel {
@@ -41,10 +41,13 @@ body {
 }
 .sidebar {
   padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 .main {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   min-height: calc(100vh - 40px);
 }
 .brand h1 {
@@ -83,15 +86,21 @@ body {
 .toolbar {
   display: flex;
   gap: 10px;
-  margin: 18px 0;
+  margin-top: 4px;
+}
+button,
+select,
+input,
+textarea {
+  border-radius: 14px;
+  color: var(--text);
+  font: inherit;
 }
 button,
 select {
   border: none;
-  border-radius: 14px;
   padding: 10px 14px;
   cursor: pointer;
-  color: var(--text);
   background: var(--panel-2);
 }
 button.primary {
@@ -105,29 +114,73 @@ select.ghost {
   background: transparent;
   color: var(--muted);
 }
-.chat-list {
+.chat-list,
+.stack-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.chat-item {
+.chat-item,
+.stack-item {
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 12px;
   background: var(--panel-2);
   cursor: pointer;
 }
-.chat-item.active {
+.chat-item.active,
+.stack-item.active {
   border-color: var(--accent);
 }
-.chat-item strong {
+.chat-item strong,
+.stack-item strong {
   display: block;
   margin-bottom: 5px;
   font-size: 14px;
 }
-.chat-item span {
+.chat-item span,
+.stack-item span {
   color: var(--muted);
   font-size: 12px;
+}
+.section-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(24, 34, 49, 0.55);
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.section-head h3,
+.section-head h4 {
+  margin: 0;
+  font-size: 14px;
+}
+.inline-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.inline-form input {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: rgba(9, 16, 24, 0.9);
+  padding: 10px 12px;
+}
+.mini-btn {
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
 }
 .header {
   padding: 18px 20px;
@@ -160,7 +213,7 @@ select.ghost {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 220px;
+  min-width: 240px;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(18, 27, 38, 0.98);
@@ -171,6 +224,13 @@ select.ghost {
 }
 .menu-panel.open {
   display: block;
+}
+.menu-label {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 10px 6px;
 }
 .menu-panel button {
   width: 100%;
@@ -186,6 +246,36 @@ select.ghost {
 .menu-panel button:hover {
   border-color: var(--line);
   background: var(--panel-2);
+}
+.quick-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.quick-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(24, 34, 49, 0.7);
+  padding: 14px;
+}
+.quick-card h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.quick-card strong {
+  display: block;
+  font-size: 15px;
+}
+.quick-card span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
 }
 .messages {
   padding: 18px;
@@ -239,10 +329,8 @@ textarea {
   width: 100%;
   min-height: 92px;
   resize: vertical;
-  border-radius: 18px;
   border: 1px solid var(--line);
   background: var(--panel-2);
-  color: var(--text);
   padding: 14px;
 }
 .composer-actions {
@@ -252,7 +340,6 @@ textarea {
   width: 180px;
 }
 .helper {
-  margin-top: 18px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
@@ -285,10 +372,8 @@ textarea {
 }
 .modal input {
   width: 100%;
-  border-radius: 14px;
   border: 1px solid var(--line);
   background: var(--panel-2);
-  color: var(--text);
   padding: 12px;
   margin-bottom: 14px;
 }
@@ -297,7 +382,7 @@ textarea {
   justify-content: flex-end;
   gap: 10px;
 }
-@media (max-width: 860px) {
+@media (max-width: 980px) {
   .app {
     grid-template-columns: 1fr;
     padding: 12px;
@@ -305,6 +390,11 @@ textarea {
   .main {
     min-height: auto;
   }
+  .quick-board {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 860px) {
   .composer {
     grid-template-columns: 1fr;
   }
@@ -321,6 +411,9 @@ textarea {
   }
   .header-actions > * {
     flex: 1;
+  }
+  .inline-form {
+    flex-direction: column;
   }
 }
 </style>
@@ -345,6 +438,30 @@ textarea {
 
     <div class="chat-list" id="chatList"></div>
 
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Repos</h3>
+        <span id="repoCount" class="badge">0</span>
+      </div>
+      <div class="inline-form">
+        <input id="repoInput" placeholder="AndreVazao/devops-god-mode">
+        <button id="addRepoBtn" class="mini-btn">Adicionar</button>
+      </div>
+      <div id="repoList" class="stack-list"></div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Providers</h3>
+        <span id="providerCount" class="badge">0</span>
+      </div>
+      <div class="inline-form">
+        <input id="providerInput" placeholder="openai, github, vercel, render">
+        <button id="addProviderBtn" class="mini-btn">Adicionar</button>
+      </div>
+      <div id="providerList" class="stack-list"></div>
+    </div>
+
     <div class="helper">
       Usa mensagens normais para adicionar pedidos ao backlog.<br>
       Usa <strong>goal:</strong> para criar objetivos explícitos.<br>
@@ -363,16 +480,39 @@ textarea {
         <div class="menu-wrap">
           <button id="optionsBtn" class="ghost">Opções</button>
           <div id="optionsMenu" class="menu-panel">
+            <div class="menu-label">Conversas</div>
             <button id="menuNewChatBtn">Novo chat</button>
             <button id="menuRenameBtn">Renomear conversa</button>
             <button id="menuDuplicateBtn">Duplicar conversa</button>
             <button id="menuExportBtn">Exportar conversa</button>
             <button id="menuDeleteBtn">Apagar conversa</button>
+            <div class="menu-label">Cockpit</div>
+            <button id="menuFocusChatsBtn">Focar conversas</button>
+            <button id="menuFocusReposBtn">Focar repos</button>
+            <button id="menuFocusProvidersBtn">Focar providers</button>
           </div>
         </div>
         <button id="approvalBtn" class="ghost">Popup de aceitação</button>
       </div>
     </header>
+
+    <div class="quick-board">
+      <div class="quick-card" id="activeChatCard">
+        <h3>Conversa ativa</h3>
+        <strong>God Mode Runtime</strong>
+        <span>0 mensagens</span>
+      </div>
+      <div class="quick-card" id="activeRepoCard">
+        <h3>Repo ativo</h3>
+        <strong>AndreVazao/devops-god-mode</strong>
+        <span>principal</span>
+      </div>
+      <div class="quick-card" id="activeProviderCard">
+        <h3>Provider ativo</h3>
+        <strong>vercel</strong>
+        <span>cloud relay</span>
+      </div>
+    </div>
 
     <div class="messages" id="messages"></div>
 
@@ -414,6 +554,10 @@ textarea {
 const RELAY_TOKEN = "GODMODE_SECURE_TOKEN";
 const CHATS_KEY = "godmode_mobile_chats_v1";
 const ACTIVE_CHAT_KEY = "godmode_mobile_active_chat_v1";
+const REPOS_KEY = "godmode_repo_list_v1";
+const ACTIVE_REPO_KEY = "godmode_active_repo_v1";
+const PROVIDERS_KEY = "godmode_provider_list_v1";
+const ACTIVE_PROVIDER_KEY = "godmode_active_provider_v1";
 const relayHeaders = {
   "Content-Type": "application/json",
   "Authorization": `Bearer ${RELAY_TOKEN}`
@@ -421,6 +565,12 @@ const relayHeaders = {
 
 const chatList = document.getElementById("chatList");
 const chatSelector = document.getElementById("chatSelector");
+const repoList = document.getElementById("repoList");
+const providerList = document.getElementById("providerList");
+const repoInput = document.getElementById("repoInput");
+const providerInput = document.getElementById("providerInput");
+const repoCount = document.getElementById("repoCount");
+const providerCount = document.getElementById("providerCount");
 const messagesEl = document.getElementById("messages");
 const chatTitle = document.getElementById("chatTitle");
 const chatSubtitle = document.getElementById("chatSubtitle");
@@ -433,23 +583,40 @@ const approvalModal = document.getElementById("approvalModal");
 const renameInput = document.getElementById("renameInput");
 const optionsBtn = document.getElementById("optionsBtn");
 const optionsMenu = document.getElementById("optionsMenu");
+const activeChatCard = document.getElementById("activeChatCard");
+const activeRepoCard = document.getElementById("activeRepoCard");
+const activeProviderCard = document.getElementById("activeProviderCard");
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 }
 
-function loadChats() {
+function loadJson(key, fallback) {
   try {
-    const saved = JSON.parse(localStorage.getItem(CHATS_KEY) || "[]");
-    return Array.isArray(saved) && saved.length ? saved : [createDefaultChat()];
+    const saved = JSON.parse(localStorage.getItem(key) || "null");
+    return saved ?? fallback;
   } catch {
-    return [createDefaultChat()];
+    return fallback;
   }
 }
 
-function saveChats() {
+function loadChats() {
+  const saved = loadJson(CHATS_KEY, []);
+  return Array.isArray(saved) && saved.length ? saved : [createDefaultChat()];
+}
+
+function loadStack(key, fallback) {
+  const saved = loadJson(key, fallback);
+  return Array.isArray(saved) && saved.length ? saved : fallback;
+}
+
+function saveState() {
   localStorage.setItem(CHATS_KEY, JSON.stringify(state.chats));
   localStorage.setItem(ACTIVE_CHAT_KEY, state.activeChatId);
+  localStorage.setItem(REPOS_KEY, JSON.stringify(state.repos));
+  localStorage.setItem(ACTIVE_REPO_KEY, state.activeRepo);
+  localStorage.setItem(PROVIDERS_KEY, JSON.stringify(state.providers));
+  localStorage.setItem(ACTIVE_PROVIDER_KEY, state.activeProvider);
 }
 
 function createDefaultChat() {
@@ -471,15 +638,33 @@ function createDefaultChat() {
 
 const state = {
   chats: loadChats(),
-  activeChatId: localStorage.getItem(ACTIVE_CHAT_KEY) || null
+  activeChatId: localStorage.getItem(ACTIVE_CHAT_KEY) || null,
+  repos: loadStack(REPOS_KEY, ["AndreVazao/devops-god-mode", "AndreVazao/devop-god-mode-jules"]),
+  activeRepo: localStorage.getItem(ACTIVE_REPO_KEY) || "AndreVazao/devops-god-mode",
+  providers: loadStack(PROVIDERS_KEY, ["vercel", "github", "openai", "render"]),
+  activeProvider: localStorage.getItem(ACTIVE_PROVIDER_KEY) || "vercel"
 };
 
 if (!state.chats.find(chat => chat.id === state.activeChatId)) {
   state.activeChatId = state.chats[0].id;
 }
+if (!state.repos.includes(state.activeRepo)) {
+  state.activeRepo = state.repos[0];
+}
+if (!state.providers.includes(state.activeProvider)) {
+  state.activeProvider = state.providers[0];
+}
 
 function currentChat() {
   return state.chats.find(chat => chat.id === state.activeChatId);
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 function createChat(title = null) {
@@ -487,7 +672,7 @@ function createChat(title = null) {
   chat.title = title || `Chat ${state.chats.length + 1}`;
   state.chats.unshift(chat);
   state.activeChatId = chat.id;
-  saveChats();
+  saveState();
   render();
 }
 
@@ -503,7 +688,7 @@ function duplicateCurrentChat() {
   };
   state.chats.unshift(duplicated);
   state.activeChatId = duplicated.id;
-  saveChats();
+  saveState();
   render();
 }
 
@@ -511,14 +696,13 @@ function deleteCurrentChat() {
   if (state.chats.length === 1) {
     state.chats = [createDefaultChat()];
     state.activeChatId = state.chats[0].id;
-    saveChats();
+    saveState();
     render();
     return;
   }
-
   state.chats = state.chats.filter(chat => chat.id !== state.activeChatId);
   state.activeChatId = state.chats[0].id;
-  saveChats();
+  saveState();
   render();
 }
 
@@ -531,10 +715,95 @@ function exportCurrentChat() {
     .catch(() => addMessage("system", payload));
 }
 
+function addRepo() {
+  const value = repoInput.value.trim();
+  if (!value || state.repos.includes(value)) return;
+  state.repos.unshift(value);
+  state.activeRepo = value;
+  repoInput.value = "";
+  saveState();
+  renderStacks();
+}
+
+function addProvider() {
+  const value = providerInput.value.trim().toLowerCase();
+  if (!value || state.providers.includes(value)) return;
+  state.providers.unshift(value);
+  state.activeProvider = value;
+  providerInput.value = "";
+  saveState();
+  renderStacks();
+}
+
+function removeRepo(repo) {
+  if (state.repos.length === 1) return;
+  state.repos = state.repos.filter(item => item !== repo);
+  if (state.activeRepo === repo) state.activeRepo = state.repos[0];
+  saveState();
+  renderStacks();
+}
+
+function removeProvider(provider) {
+  if (state.providers.length === 1) return;
+  state.providers = state.providers.filter(item => item !== provider);
+  if (state.activeProvider === provider) state.activeProvider = state.providers[0];
+  saveState();
+  renderStacks();
+}
+
+function setActiveRepo(repo) {
+  state.activeRepo = repo;
+  saveState();
+  renderStacks();
+}
+
+function setActiveProvider(provider) {
+  state.activeProvider = provider;
+  saveState();
+  renderStacks();
+}
+
+function renderStacks() {
+  repoList.innerHTML = "";
+  providerList.innerHTML = "";
+  repoCount.textContent = String(state.repos.length);
+  providerCount.textContent = String(state.providers.length);
+
+  state.repos.forEach(repo => {
+    const item = document.createElement("div");
+    item.className = `stack-item ${repo === state.activeRepo ? "active" : ""}`;
+    item.innerHTML = `<strong>${escapeHtml(repo)}</strong><span>${repo === state.activeRepo ? "ativo" : "disponível"}</span>`;
+    item.onclick = () => setActiveRepo(repo);
+    const actions = document.createElement("div");
+    actions.className = "item-actions";
+    actions.innerHTML = `<button class="mini-btn ghost">Usar</button><button class="mini-btn ghost">Remover</button>`;
+    actions.children[0].onclick = event => { event.stopPropagation(); setActiveRepo(repo); };
+    actions.children[1].onclick = event => { event.stopPropagation(); removeRepo(repo); };
+    item.appendChild(actions);
+    repoList.appendChild(item);
+  });
+
+  state.providers.forEach(provider => {
+    const item = document.createElement("div");
+    item.className = `stack-item ${provider === state.activeProvider ? "active" : ""}`;
+    item.innerHTML = `<strong>${escapeHtml(provider)}</strong><span>${provider === state.activeProvider ? "ativo" : "standby"}</span>`;
+    item.onclick = () => setActiveProvider(provider);
+    const actions = document.createElement("div");
+    actions.className = "item-actions";
+    actions.innerHTML = `<button class="mini-btn ghost">Usar</button><button class="mini-btn ghost">Remover</button>`;
+    actions.children[0].onclick = event => { event.stopPropagation(); setActiveProvider(provider); };
+    actions.children[1].onclick = event => { event.stopPropagation(); removeProvider(provider); };
+    item.appendChild(actions);
+    providerList.appendChild(item);
+  });
+
+  activeRepoCard.innerHTML = `<h3>Repo ativo</h3><strong>${escapeHtml(state.activeRepo)}</strong><span>${state.repos.length} registados</span>`;
+  activeProviderCard.innerHTML = `<h3>Provider ativo</h3><strong>${escapeHtml(state.activeProvider)}</strong><span>${state.providers.length} registados</span>`;
+}
+
 function renderChatList() {
   chatList.innerHTML = "";
   chatSelector.innerHTML = "";
-
   state.chats.forEach(chat => {
     const item = document.createElement("button");
     item.className = `chat-item ${chat.id === state.activeChatId ? "active" : ""}`;
@@ -548,22 +817,21 @@ function renderChatList() {
     if (chat.id === state.activeChatId) option.selected = true;
     chatSelector.appendChild(option);
   });
-
   historyCount.textContent = `${state.chats.length} chats`;
 }
 
 function selectChat(chatId) {
   state.activeChatId = chatId;
-  saveChats();
+  saveState();
   render();
 }
 
 function renderMessages() {
   const chat = currentChat();
   if (!chat) return;
-
   chatTitle.textContent = chat.title;
-  chatSubtitle.textContent = `Chat ativo desde ${new Date(chat.createdAt).toLocaleString("pt-PT")}`;
+  chatSubtitle.textContent = `Chat ativo desde ${new Date(chat.createdAt).toLocaleString("pt-PT")} • repo ${state.activeRepo} • provider ${state.activeProvider}`;
+  activeChatCard.innerHTML = `<h3>Conversa ativa</h3><strong>${escapeHtml(chat.title)}</strong><span>${chat.messages.length} mensagens</span>`;
   messagesEl.innerHTML = "";
 
   chat.messages.forEach(message => {
@@ -574,21 +842,13 @@ function renderMessages() {
     wrapper.innerHTML = message.role === "user" ? `${bubble}${avatar}` : `${avatar}${bubble}`;
     messagesEl.appendChild(wrapper);
   });
-
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
 function render() {
   renderChatList();
+  renderStacks();
   renderMessages();
-}
-
-function escapeHtml(text) {
-  return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }
 
 function addMessage(role, text) {
@@ -599,7 +859,7 @@ function addMessage(role, text) {
     text,
     timestamp: new Date().toISOString()
   });
-  saveChats();
+  saveState();
   renderMessages();
 }
 
@@ -618,7 +878,6 @@ async function updateRelayStatus() {
 async function sendMessage(text) {
   const value = text || composerInput.value.trim();
   if (!value) return;
-
   addMessage("user", value);
   composerInput.value = "";
 
@@ -627,6 +886,8 @@ async function sendMessage(text) {
     chat_id: state.activeChatId,
     action: "chat",
     message: value,
+    repo: state.activeRepo,
+    provider: state.activeProvider,
     created_at: new Date().toISOString(),
     source: "mobile-cockpit"
   };
@@ -637,7 +898,6 @@ async function sendMessage(text) {
       headers: relayHeaders,
       body: JSON.stringify(payload)
     });
-
     if (!response.ok) {
       throw new Error(`push failed with ${response.status}`);
     }
@@ -651,14 +911,12 @@ async function pullResponses() {
     const response = await fetch("/api/responses", {
       headers: relayHeaders
     });
-
     if (!response.ok) {
       throw new Error(`responses failed with ${response.status}`);
     }
 
     const data = await response.json();
     const items = Array.isArray(data) ? data : [];
-
     items.forEach(item => {
       const chatId = item.task && item.task.chat_id ? item.task.chat_id : state.activeChatId;
       const chat = state.chats.find(entry => entry.id === chatId) || currentChat();
@@ -671,9 +929,8 @@ async function pullResponses() {
         timestamp: new Date().toISOString()
       });
     });
-
     if (items.length) {
-      saveChats();
+      saveState();
       render();
     }
   } catch (error) {
@@ -698,6 +955,11 @@ function toggleOptionsMenu() {
   optionsMenu.classList.toggle("open");
 }
 
+function focusElement(id) {
+  closeOptionsMenu();
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 document.getElementById("newChatBtn").onclick = () => createChat();
 document.getElementById("renameBtn").onclick = () => {
   renameInput.value = currentChat().title;
@@ -707,7 +969,7 @@ document.getElementById("saveRenameBtn").onclick = () => {
   const title = renameInput.value.trim();
   if (!title) return;
   currentChat().title = title;
-  saveChats();
+  saveState();
   closeModal(renameModal);
   render();
 };
@@ -743,8 +1005,25 @@ document.getElementById("menuDeleteBtn").onclick = () => {
   closeOptionsMenu();
   deleteCurrentChat();
 };
+document.getElementById("menuFocusChatsBtn").onclick = () => focusElement("chatList");
+document.getElementById("menuFocusReposBtn").onclick = () => focusElement("repoList");
+document.getElementById("menuFocusProvidersBtn").onclick = () => focusElement("providerList");
+document.getElementById("addRepoBtn").onclick = addRepo;
+document.getElementById("addProviderBtn").onclick = addProvider;
 optionsBtn.onclick = toggleOptionsMenu;
 chatSelector.onchange = event => selectChat(event.target.value);
+repoInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    addRepo();
+  }
+});
+providerInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    addProvider();
+  }
+});
 composerInput.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
