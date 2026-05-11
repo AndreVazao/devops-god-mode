@@ -2,6 +2,8 @@
   "routes": [
     { "src": "/api/state", "dest": "/api/state.js" },
     { "src": "/api/relay", "dest": "/api/relay.js" },
+    { "src": "/api/cluster/metrics", "dest": "/api/cluster/metrics.js" },
+    { "src": "/api/cluster/budget", "dest": "/api/cluster/budget.js" },
     { "src": "/api/health", "dest": "/api/relay.js" },
     { "src": "/index.html", "dest": "/index.html" },
     { "src": "/app.js", "dest": "/app.js" },
