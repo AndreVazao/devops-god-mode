@@ -20,12 +20,12 @@
         </div>
         <div id="sidebarChats" class="sidebar-content"></div>
         <div class="sidebar-footer">
-          <div class="menu-item"><span>Chats</span></div>
-          <div class="menu-item"><span>Repos</span></div>
-          <div class="menu-item"><span>Providers</span></div>
-          <div class="menu-item"><span>Workers</span></div>
-          <div class="menu-item"><span>Vault</span></div>
-          <div class="menu-item"><span>Settings</span></div>
+          <div class="menu-item"><span>💬 Chats</span></div>
+          <div class="menu-item"><span>📂 Repos</span></div>
+          <div class="menu-item"><span>🔌 Providers</span></div>
+          <div class="menu-item"><span>🤖 Workers</span></div>
+          <div class="menu-item"><span>🔒 Vault</span></div>
+          <div class="menu-item"><span>⚙️ Settings</span></div>
         </div>
       </aside>
 
@@ -52,9 +52,18 @@
           <div id="chatMessages" class="chat-messages">
             <div class="msg system">Modo Cloud Ativo.</div>
           </div>
+
+          <div id="activeTaskBadge" class="active-task-badge" style="display: none;">
+            <img src="https://github.com/fluidicon.png" class="badge-icon" alt="GitHub" />
+            <span id="activeTaskLabel">GitHub</span>
+            <span class="badge-close" onclick="closeActiveTask()">✕</span>
+          </div>
+
           <div class="chat-input-area">
-            <input id="chatInput" type="text" placeholder="Comando para o God Mode..." />
-            <button id="chatSendBtn" class="primary-btn">➤</button>
+            <button class="add-btn" style="background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer;">+</button>
+            <input id="chatInput" type="text" placeholder="Seguir" />
+            <button id="voiceBtn" style="background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer;">🎤</button>
+            <button id="chatSendBtn" class="primary-btn" style="background:#000; color:#fff;">🎶</button>
           </div>
         </section>
       </main>
