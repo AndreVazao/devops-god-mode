@@ -1,114 +1,63 @@
-import os
-import requests
+import sys
 from pathlib import Path
 
-ENV_PATH = ".env"
+from backend.app.config import settings
 
-DEFAULTS = {
-    "RELAY_URL": "",
-    "RELAY_TOKEN": "GODMODE_SECURE_TOKEN",
-    "GITHUB_TOKEN": "",
-    "GITHUB_REPO": "AndreVazao/devops-god-mode",
-    "VERCEL_TOKEN": "",
-    "VERCEL_PROJECT_ID": "",
-    "VERCEL_ORG_ID": "",
-    "SEMANTIC_INDEX_PATH": "./semantic_index",
-    "REPOS_PATH": "./repos"
-}
+ENV_PATH = Path(".env")
 
 
-def ask(key, default=""):
-    value = input(f"{key} [{default}]: ").strip()
-    return value if value else default
+def resolved_defaults() -> dict[str, str]:
+    return {
+        "RELAY_URL": settings.RELAY_URL,
+        "RELAY_TOKEN": settings.RELAY_TOKEN,
+        "GITHUB_REPO": settings.GITHUB_REPO,
+        "VERCEL_PROJECT_ID": settings.VERCEL_PROJECT_ID or "",
+        "VERCEL_ORG_ID": settings.VERCEL_ORG_ID or "",
+        "SEMANTIC_INDEX_PATH": settings.SEMANTIC_INDEX_PATH,
+        "REPOS_PATH": settings.REPOS_PATH,
+        "APP_BASE_URL": settings.APP_BASE_URL,
+        "APP_HEALTH_URL": settings.APP_HEALTH_URL,
+    }
 
 
-def create_env():
-    print("\n=== GOD MODE ENV SETUP ===\n")
-
-    env_data = {}
-
-    for key, default in DEFAULTS.items():
-        env_data[key] = ask(key, default)
-
-    with open(ENV_PATH, "w") as f:
-        for k, v in env_data.items():
-            f.write(f"{k}={v}\n")
-
-    print("\n.env criado com sucesso.\n")
-
-    return env_data
-
-
-def validate_paths(env):
-    print("Validar paths...")
-
+def ensure_paths(env: dict[str, str]) -> None:
     Path(env["SEMANTIC_INDEX_PATH"]).mkdir(parents=True, exist_ok=True)
     Path(env["REPOS_PATH"]).mkdir(parents=True, exist_ok=True)
 
-    print("✔ Paths OK")
+
+def write_env_file(env: dict[str, str], overwrite: bool = False) -> Path:
+    if ENV_PATH.exists() and not overwrite:
+        raise FileExistsError(".env already exists. Use --force to overwrite it.")
+
+    ENV_PATH.write_text(
+        "\n".join(f"{key}={value}" for key, value in env.items()) + "\n",
+        encoding="utf-8",
+    )
+    return ENV_PATH
 
 
-def validate_relay(env):
-    print("Validar Relay...")
+def summary(env: dict[str, str], wrote_file: bool) -> None:
+    print("\n=== GOD MODE RUNTIME DEFAULTS ===")
+    for key, value in env.items():
+        print(f"{key}={value}")
 
-    if not env["RELAY_URL"]:
-        print("⚠ RELAY_URL vazio, a ignorar validação.")
-        return
-
-    try:
-        r = requests.get(
-            f"{env['RELAY_URL']}/health",
-            headers={"Authorization": f"Bearer {env['RELAY_TOKEN']}"},
-            timeout=5
-        )
-
-        if r.status_code == 200:
-            print("✔ Relay OK")
-        else:
-            print(f"⚠ Relay respondeu com status {r.status_code}")
-
-    except Exception as e:
-        print(f"❌ Relay falhou: {e}")
+    if wrote_file:
+        print(f"\n.env written to {ENV_PATH.resolve()}")
+    else:
+        print("\nNo .env file is required. Run with --write only if you want an export.")
 
 
-def validate_github(env):
-    print("Validar GitHub...")
+def main(write: bool = False, overwrite: bool = False) -> None:
+    env = resolved_defaults()
+    ensure_paths(env)
 
-    if not env["GITHUB_TOKEN"]:
-        print("⚠ GITHUB_TOKEN vazio")
-        return
+    wrote_file = False
+    if write:
+        write_env_file(env, overwrite=overwrite)
+        wrote_file = True
 
-    try:
-        r = requests.get(
-            "https://api.github.com/user",
-            headers={"Authorization": f"Bearer {env['GITHUB_TOKEN']}"}
-        )
-
-        if r.status_code == 200:
-            user = r.json().get("login")
-            print(f"✔ GitHub OK ({user})")
-        else:
-            print(f"❌ GitHub erro: {r.status_code}")
-
-    except Exception as e:
-        print(f"❌ GitHub falhou: {e}")
-
-
-def summary():
-    print("\n=== RESUMO ===")
-    print("✔ .env criado")
-    print("✔ Paths preparados")
-    print("✔ Validações executadas")
-    print("\n👉 Reinicia o backend antes de usar.\n")
-
-
-def main():
-    env = create_env()
-    validate_paths(env)
-    validate_relay(env)
-    validate_github(env)
-    summary()
+    summary(env, wrote_file=wrote_file)
 
 
 if __name__ == "__main__":
-    main()
+    main(write="--write" in sys.argv, overwrite="--force" in sys.argv)
