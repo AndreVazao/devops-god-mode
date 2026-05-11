@@ -1,12 +1,41 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
       "src": "/api/health",
-      "dest": "/api/health.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/api/(.*)",
       "dest": "/api/index.py"
+    },
+    {
+      "src": "/app/home",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/app",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/desktop",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/mobile",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/home",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/app/mobile",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/app/apk-start",
+      "dest": "/index.html"
     },
     {
       "src": "/(.*)",
