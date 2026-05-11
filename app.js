@@ -82,32 +82,58 @@ function renderChatMessages() {
   chatMessages.innerHTML = "";
   if (!currentChat) return;
 
+  let hasPendingApproval = false;
+
   currentChat.messages.forEach((msg) => {
     const div = document.createElement("div");
     div.className = `msg ${msg.role === "user" ? "user" : msg.role === "gm" ? "gm" : "system"}`;
 
-    if (msg.type === "approval") {
+    if (msg.type === "approval" || msg.type === "pending_approval") {
+      hasPendingApproval = true;
+      const provider = msg.provider || "GitHub";
+      const icon = msg.providerIcon || "https://github.com/fluidicon.png";
+      const title = msg.title || (msg.type === "approval" ? "Pedido de Aprovação" : "Executar Código?");
+      const desc = msg.text || msg.code || "";
+      const names = msg.names || "AndreVazao, owner-andre";
+      const apiKeys = msg.apiKeys || "GOD_MODE";
+
+      div.style.background = "none";
+      div.style.padding = "0";
+      div.style.maxWidth = "100%";
+
       div.innerHTML = `
         <div class="approval-card">
-          <p><strong>⚠️ Pedido de Aprovação</strong></p>
-          <p>${escapeHtml(msg.text)}</p>
+          <div class="approval-header">
+            <img src="${icon}" class="provider-icon" alt="${provider}">
+            <div class="provider-name">${provider}</div>
+          </div>
+          <div class="approval-title" style="text-align:center;">${title}</div>
+          <div class="approval-description">${escapeHtml(desc)}</div>
+
+          <div class="data-sharing">
+            <div class="data-sharing-title">A partilha de dados inclui</div>
+            <div class="data-row">
+                <span class="data-label">Names</span>
+                <span class="data-value">${escapeHtml(names)}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">APIKeys</span>
+                <span class="data-value">${escapeHtml(apiKeys)}</span>
+            </div>
+          </div>
+
           <div class="approval-actions">
-            <button class="approve-btn" onclick="approveAction('${msg.actionId}', '${msg.id}')">Aceitar</button>
-            <button class="reject-btn" onclick="rejectAction('${msg.actionId}', '${msg.id}')">Recusar</button>
+            <button class="approve-btn" onclick="${msg.type === 'approval' ? `approveAction('${msg.actionId}', '${msg.id}')` : `relayApprove(true, '${msg.id}')`}">Confirmar</button>
+            <button class="reject-btn" onclick="${msg.type === 'approval' ? `rejectAction('${msg.actionId}', '${msg.id}')` : `relayApprove(false, '${msg.id}')`}">Recusar</button>
           </div>
         </div>
       `;
-    } else if (msg.type === "pending_approval") {
-        div.innerHTML = `
-        <div class="approval-card">
-          <p><strong>⚠️ Executar Código?</strong></p>
-          <pre style="background:#000; padding:10px; overflow:auto; max-height:150px; font-size:12px;">${escapeHtml(msg.code || msg.text)}</pre>
-          <div class="approval-actions">
-            <button class="approve-btn" onclick="relayApprove(true, '${msg.id}')">✔ Aprovar</button>
-            <button class="reject-btn" onclick="relayApprove(false, '${msg.id}')">✖ Recusar</button>
-          </div>
-        </div>
-      `;
+
+      // Update Floating Badge
+      q("#activeTaskBadge").style.display = "flex";
+      q("#activeTaskLabel").textContent = provider;
+      q("#activeTaskBadge").querySelector("img").src = icon;
+
     } else {
       // Handle markdown-ish code blocks
       const text = escapeHtml(msg.text || "");
@@ -116,8 +142,17 @@ function renderChatMessages() {
 
     chatMessages.appendChild(div);
   });
+
+  if (!hasPendingApproval) {
+      q("#activeTaskBadge").style.display = "none";
+  }
+
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+window.closeActiveTask = () => {
+    q("#activeTaskBadge").style.display = "none";
+};
 
 async function relayApprove(approve, msgId) {
     setLoading(true);

@@ -35,8 +35,8 @@ import java.util.Set;
 public class MainActivity extends Activity {
     private static final String PREFS = "god_mode_mobile_prefs";
     private static final String PREF_BASE_URL = "base_url";
-    private static final String DEFAULT_BASE_URL = "http://127.0.0.1:8000";
-    private static final String ENTRY_ROUTE = "/app/home";
+    private static final String DEFAULT_BASE_URL = "https://devops-god-mode.vercel.app";
+    private static final String ENTRY_ROUTE = "/index.html";
     private static final int HEALTH_TIMEOUT_MS = 900;
 
     private WebView webView;
@@ -400,15 +400,15 @@ public class MainActivity extends Activity {
         statusText.setText("A aguardar PC/backend · " + networkStatus());
         String html = "<!doctype html><html lang='pt-PT'><head><meta charset='utf-8'>"
                 + "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-                + "<style>body{margin:0;background:#050816;color:#eef5ff;font-family:Arial,sans-serif;padding:16px}"
-                + ".card{border:1px solid #26344f;background:#0f172a;border-radius:20px;padding:16px;margin-bottom:12px}"
-                + "h1{font-size:24px;margin:0 0 8px}p{color:#b8c7e6;line-height:1.45}.pill{display:inline-block;background:#082f49;color:#7dd3fc;border-radius:999px;padding:6px 10px;margin:4px 4px 4px 0;font-weight:bold}"
-                + ".warn{color:#fde68a}.muted{color:#9fb0d0}</style></head><body>"
+                + "<style>body{margin:0;background:#0b1120;color:#f1f5f9;font-family:Inter,sans-serif;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;}"
+                + ".card{border:1px solid #1e293b;background:#161b2c;border-radius:12px;padding:24px;margin-bottom:16px;width:100%;max-width:400px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);}"
+                + "h1{font-size:20px;margin:0 0 12px;color:#22d3ee;text-align:center;text-transform:uppercase;letter-spacing:1px;}p{color:#94a3b8;line-height:1.6;font-size:14px;margin-bottom:16px;}"
+                + ".pill{display:inline-block;background:#1e293b;color:#22d3ee;border-radius:999px;padding:4px 12px;margin:4px;font-weight:bold;font-size:10px;text-transform:uppercase;border:1px solid #22d3ee;}"
+                + ".warn{color:#fbbf24;font-weight:600;}.muted{color:#64748b;font-size:12px;}</style></head><body>"
                 + "<div class='card'><h1>PC ainda não ligado</h1><p>O APK está instalado. O cérebro do God Mode corre no PC. Enquanto o EXE/backend não estiver aberto, o chat real e os botões ficam à espera.</p>"
-                + "<span class='pill'>APK OK</span><span class='pill'>A aguardar PC</span><span class='pill'>" + html(networkStatus()) + "</span></div>"
-                + "<div class='card'><h1>Quando chegares ao PC</h1><p>1. Abre <b>GodModeDesktop.exe</b>.</p><p>2. No APK, carrega em <b>Auto</b>.</p><p>3. Se não encontrar, escreve em cima: <b>http://IP_DO_PC:8000</b>.</p><p>4. Depois abre <b>Home</b> ou <b>Chat</b>.</p>"
-                + "<p class='warn'>Confirma que escreveste 192.168.x.x e não 182.168.x.x. 127.0.0.1 no telemóvel é o próprio telemóvel, não o PC.</p></div>"
-                + "<div class='card'><h1>Estado</h1><p class='muted'>Base atual: " + html(baseUrl) + "</p><p class='muted'>Rota pedida: " + html(route) + "</p><p class='muted'>Auto procura também hosts próximos do IP do telemóvel e hosts comuns como .80, .81 e .82.</p></div>"
+                + "<div style='text-align:center;'><span class='pill'>APK OK</span><span class='pill'>A aguardar PC</span><span class='pill'>" + html(networkStatus()) + "</span></div></div>"
+                + "<div class='card'><h1>Instruções</h1><p>1. Abre o <b>God Mode</b> no teu PC.</p><p>2. No APK, clica em <b>AUTO</b> ou insere o IP do PC.</p><p>3. Recomendamos usar o Cloud Mode para acesso remoto.</p>"
+                + "<p class='muted'>Servidor Cloud: " + html(baseUrl) + "</p></div>"
                 + "</body></html>";
         webView.loadDataWithBaseURL("https://godmode.local/offline", html, "text/html", "UTF-8", null);
     }
