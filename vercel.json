@@ -1,0 +1,53 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/health",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/push",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/pull",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/respond",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/responses",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/app/home",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/desktop",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/mobile",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/home",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app/mobile",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app/apk-start",
+      "destination": "/index.html"
+    }
+  ]
+}
