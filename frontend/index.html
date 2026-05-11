@@ -85,7 +85,8 @@ body {
   gap: 10px;
   margin: 18px 0;
 }
-button {
+button,
+select {
   border: none;
   border-radius: 14px;
   padding: 10px 14px;
@@ -98,7 +99,8 @@ button.primary {
   color: #06222c;
   font-weight: 700;
 }
-button.ghost {
+button.ghost,
+select.ghost {
   border: 1px solid var(--line);
   background: transparent;
   color: var(--muted);
@@ -143,6 +145,47 @@ button.ghost {
   margin: 6px 0 0;
   color: var(--muted);
   font-size: 13px;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.menu-wrap {
+  position: relative;
+}
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(18, 27, 38, 0.98);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  padding: 10px;
+  display: none;
+  z-index: 10;
+}
+.menu-panel.open {
+  display: block;
+}
+.menu-panel button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.menu-panel button:last-child {
+  margin-bottom: 0;
+}
+.menu-panel button:hover {
+  border-color: var(--line);
+  background: var(--panel-2);
 }
 .messages {
   padding: 18px;
@@ -268,6 +311,17 @@ textarea {
   .composer-actions {
     width: 100%;
   }
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .header-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .header-actions > * {
+    flex: 1;
+  }
 }
 </style>
 </head>
@@ -304,7 +358,20 @@ textarea {
         <h2 id="chatTitle">God Mode Runtime</h2>
         <p id="chatSubtitle">Conversa contínua com histórico local e polling do relay.</p>
       </div>
-      <button id="approvalBtn" class="ghost">Popup de aceitação</button>
+      <div class="header-actions">
+        <select id="chatSelector" class="ghost" aria-label="Escolher conversa"></select>
+        <div class="menu-wrap">
+          <button id="optionsBtn" class="ghost">Opções</button>
+          <div id="optionsMenu" class="menu-panel">
+            <button id="menuNewChatBtn">Novo chat</button>
+            <button id="menuRenameBtn">Renomear conversa</button>
+            <button id="menuDuplicateBtn">Duplicar conversa</button>
+            <button id="menuExportBtn">Exportar conversa</button>
+            <button id="menuDeleteBtn">Apagar conversa</button>
+          </div>
+        </div>
+        <button id="approvalBtn" class="ghost">Popup de aceitação</button>
+      </div>
     </header>
 
     <div class="messages" id="messages"></div>
@@ -353,6 +420,7 @@ const relayHeaders = {
 };
 
 const chatList = document.getElementById("chatList");
+const chatSelector = document.getElementById("chatSelector");
 const messagesEl = document.getElementById("messages");
 const chatTitle = document.getElementById("chatTitle");
 const chatSubtitle = document.getElementById("chatSubtitle");
@@ -363,6 +431,8 @@ const historyCount = document.getElementById("historyCount");
 const renameModal = document.getElementById("renameModal");
 const approvalModal = document.getElementById("approvalModal");
 const renameInput = document.getElementById("renameInput");
+const optionsBtn = document.getElementById("optionsBtn");
+const optionsMenu = document.getElementById("optionsMenu");
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -412,24 +482,86 @@ function currentChat() {
   return state.chats.find(chat => chat.id === state.activeChatId);
 }
 
+function createChat(title = null) {
+  const chat = createDefaultChat();
+  chat.title = title || `Chat ${state.chats.length + 1}`;
+  state.chats.unshift(chat);
+  state.activeChatId = chat.id;
+  saveChats();
+  render();
+}
+
+function duplicateCurrentChat() {
+  const original = currentChat();
+  if (!original) return;
+  const duplicated = {
+    ...original,
+    id: uid(),
+    title: `${original.title} copy`,
+    createdAt: new Date().toISOString(),
+    messages: original.messages.map(message => ({ ...message, id: uid() }))
+  };
+  state.chats.unshift(duplicated);
+  state.activeChatId = duplicated.id;
+  saveChats();
+  render();
+}
+
+function deleteCurrentChat() {
+  if (state.chats.length === 1) {
+    state.chats = [createDefaultChat()];
+    state.activeChatId = state.chats[0].id;
+    saveChats();
+    render();
+    return;
+  }
+
+  state.chats = state.chats.filter(chat => chat.id !== state.activeChatId);
+  state.activeChatId = state.chats[0].id;
+  saveChats();
+  render();
+}
+
+function exportCurrentChat() {
+  const chat = currentChat();
+  if (!chat) return;
+  const payload = JSON.stringify(chat, null, 2);
+  navigator.clipboard.writeText(payload)
+    .then(() => addMessage("system", "Conversa copiada para a área de transferência em JSON."))
+    .catch(() => addMessage("system", payload));
+}
+
 function renderChatList() {
   chatList.innerHTML = "";
+  chatSelector.innerHTML = "";
+
   state.chats.forEach(chat => {
     const item = document.createElement("button");
     item.className = `chat-item ${chat.id === state.activeChatId ? "active" : ""}`;
-    item.innerHTML = `<strong>${chat.title}</strong><span>${chat.messages.length} mensagens</span>`;
-    item.onclick = () => {
-      state.activeChatId = chat.id;
-      saveChats();
-      render();
-    };
+    item.innerHTML = `<strong>${escapeHtml(chat.title)}</strong><span>${chat.messages.length} mensagens</span>`;
+    item.onclick = () => selectChat(chat.id);
     chatList.appendChild(item);
+
+    const option = document.createElement("option");
+    option.value = chat.id;
+    option.textContent = chat.title;
+    if (chat.id === state.activeChatId) option.selected = true;
+    chatSelector.appendChild(option);
   });
+
   historyCount.textContent = `${state.chats.length} chats`;
+}
+
+function selectChat(chatId) {
+  state.activeChatId = chatId;
+  saveChats();
+  render();
 }
 
 function renderMessages() {
   const chat = currentChat();
+  if (!chat) return;
+
   chatTitle.textContent = chat.title;
   chatSubtitle.textContent = `Chat ativo desde ${new Date(chat.createdAt).toLocaleString("pt-PT")}`;
   messagesEl.innerHTML = "";
@@ -558,20 +690,19 @@ function closeModal(modal) {
   modal.classList.remove("open");
 }
 
-document.getElementById("newChatBtn").onclick = () => {
-  const chat = createDefaultChat();
-  chat.title = `Chat ${state.chats.length + 1}`;
-  state.chats.unshift(chat);
-  state.activeChatId = chat.id;
-  saveChats();
-  render();
-};
+function closeOptionsMenu() {
+  optionsMenu.classList.remove("open");
+}
 
+function toggleOptionsMenu() {
+  optionsMenu.classList.toggle("open");
+}
+
+document.getElementById("newChatBtn").onclick = () => createChat();
 document.getElementById("renameBtn").onclick = () => {
   renameInput.value = currentChat().title;
   openModal(renameModal);
 };
-
 document.getElementById("saveRenameBtn").onclick = () => {
   const title = renameInput.value.trim();
   if (!title) return;
@@ -580,7 +711,6 @@ document.getElementById("saveRenameBtn").onclick = () => {
   closeModal(renameModal);
   render();
 };
-
 document.getElementById("approvalBtn").onclick = () => openModal(approvalModal);
 document.getElementById("approveBtn").onclick = () => {
   closeModal(approvalModal);
@@ -592,6 +722,29 @@ document.getElementById("requestReviewBtn").onclick = () => {
 };
 document.getElementById("sendBtn").onclick = () => sendMessage();
 document.getElementById("refreshBtn").onclick = () => pullResponses();
+document.getElementById("menuNewChatBtn").onclick = () => {
+  closeOptionsMenu();
+  createChat();
+};
+document.getElementById("menuRenameBtn").onclick = () => {
+  closeOptionsMenu();
+  renameInput.value = currentChat().title;
+  openModal(renameModal);
+};
+document.getElementById("menuDuplicateBtn").onclick = () => {
+  closeOptionsMenu();
+  duplicateCurrentChat();
+};
+document.getElementById("menuExportBtn").onclick = () => {
+  closeOptionsMenu();
+  exportCurrentChat();
+};
+document.getElementById("menuDeleteBtn").onclick = () => {
+  closeOptionsMenu();
+  deleteCurrentChat();
+};
+optionsBtn.onclick = toggleOptionsMenu;
+chatSelector.onchange = event => selectChat(event.target.value);
 composerInput.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
@@ -607,6 +760,12 @@ document.querySelectorAll("[data-close]").forEach(button => {
   modal.addEventListener("click", event => {
     if (event.target === modal) closeModal(modal);
   });
+});
+
+document.addEventListener("click", event => {
+  if (!event.target.closest(".menu-wrap")) {
+    closeOptionsMenu();
+  }
 });
 
 render();
