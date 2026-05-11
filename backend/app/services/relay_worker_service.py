@@ -24,8 +24,8 @@ def worker_loop():
 
     while True:
         try:
-            r = requests.get(
-                f"{relay_url}/pull-tasks",
+            r = requests.post(
+                f"{relay_url}/pull",
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=10
             )
@@ -36,8 +36,8 @@ def worker_loop():
                     result = process_task(t)
 
                     requests.post(
-                        f"{relay_url}/push-result",
-                        json={"id": t["id"], "result": result},
+                        f"{relay_url}/respond",
+                        json={"task": t, "result": result, "status": "done", "timestamp": time.time()},
                         headers={"Authorization": f"Bearer {token}"},
                         timeout=10
                     )

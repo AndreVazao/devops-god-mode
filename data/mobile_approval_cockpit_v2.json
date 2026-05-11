@@ -1,0 +1,55 @@
+{
+  "cards": [
+    {
+      "card_id": "card-33206de47a0e",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "Evolution Approval: Evolution Phase: relay_stabilization",
+      "body": "The God Mode Self-Evolution Engine proposes a new phase.\n\nType: critical\nAction: dev_loop",
+      "card_type": "pr_write_approval",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-evolution",
+          "label": "Approve Evolution",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-evolution",
+          "label": "Reject",
+          "decision": "rejected"
+        }
+      ],
+      "source_ref": {
+        "type": "self_evolution",
+        "plan_id": "6041192823317546698"
+      },
+      "metadata": {
+        "action": "dev_loop",
+        "phase_number": 1778490703,
+        "initial_message": "Auto phase: relay_stabilization",
+        "meta": {
+          "phase": "relay_stabilization",
+          "priority": 1,
+          "gap": "cloud_relay_missing"
+        },
+        "title": "Evolution Phase: relay_stabilization",
+        "type": "critical"
+      },
+      "created_at": "2026-05-11T09:11:43.015338+00:00",
+      "updated_at": "2026-05-11T09:11:43.015338+00:00",
+      "decision": null
+    }
+  ],
+  "threads": {
+    "GOD_MODE": {
+      "project_id": "GOD_MODE",
+      "card_ids": [
+        "card-33206de47a0e"
+      ],
+      "last_seen_at": "2026-05-11T09:11:43.015338+00:00"
+    }
+  }
+}
