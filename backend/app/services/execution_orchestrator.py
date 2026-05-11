@@ -84,9 +84,10 @@ def run_task(task: Dict[str, Any], repo_path: str = None) -> Dict[str, Any]:
 
     if action == "think":
         goal = task.get("payload", {}).get("goal") or task.get("goal")
+        chat_id = task.get("chat_id") or task.get("chatId", "global")
         if not goal:
             return {"error": "no goal provided for think action"}
-        return think(goal)
+        return think(goal, chatId=chat_id)
 
     if action == "goal":
         text = task.get("payload", {}).get("text") or task.get("text")
