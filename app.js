@@ -252,6 +252,14 @@ async function sync() {
     const newState = await api("/state");
     state = newState;
 
+    try {
+        const metrics = await api("/cluster/metrics");
+        const budget = await api("/cluster/budget");
+        setHeadline(`Latency: ${metrics.avg_latency}ms | Budget: ${budget.remaining.toFixed(2)} remaining`);
+    } catch (e) {
+        console.warn("Metrics/Budget fetch failed", e);
+    }
+
     chatStatus.textContent = "online";
     chatStatus.className = "badge badge-success";
 
