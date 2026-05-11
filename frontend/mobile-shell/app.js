@@ -1,23 +1,17 @@
+const RELAY_TOKEN = "GODMODE_SECURE_TOKEN";
+const DEFAULT_RELAY_BASE = (() => {
+  try {
+    return new URL("/api", window.location.origin).toString().replace(/\/$/, "");
+  } catch {
+    return "https://devops-god-mode.vercel.app/api";
+  }
+})();
+
 const PRESETS = {
   relay: {
     label: "Vercel Relay",
-    backend: "https://devops-god-mode.vercel.app/api",
-    shell: "",
-  },
-  render: {
-    label: "Render",
-    backend: "https://devops-god-mode-backend.onrender.com",
-    shell: "",
-  },
-  local_pc: {
-    label: "PC local",
-    backend: "http://127.0.0.1:8787",
-    shell: "http://127.0.0.1:4173",
-  },
-  private_tunnel: {
-    label: "Túnel privado/free",
-    backend: "",
-    shell: "",
+    backend: DEFAULT_RELAY_BASE,
+    shell: new URL("/app/mobile", window.location.origin).toString(),
   },
   manual: {
     label: "Manual",
@@ -27,54 +21,39 @@ const PRESETS = {
 };
 
 const KEY_API = "god_mode_api_base";
-const KEY_SHELL = "god_mode_shell_url";
 const KEY_MODE = "god_mode_shell_mode";
 const KEY_PRESET = "god_mode_backend_preset";
+const KEY_CHATS = "god_mode_mobile_shell_chats_v2";
+const KEY_ACTIVE_CHAT = "god_mode_mobile_shell_active_chat_v2";
 
 const q = (selector) => document.querySelector(selector);
-
 const apiInput = q("#apiBaseInput");
 const shellUrlInput = q("#shellUrlInput");
 const presetSelect = q("#backendPresetSelect");
 const presetValue = q("#backendPresetValue");
-
 const connectionBadge = q("#connectionBadge");
 const profileBadge = q("#profileBadge");
 const backendStatusValue = q("#backendStatusValue");
 const backendProfileValue = q("#backendProfileValue");
-
-const decisionBadge = q("#decisionBadge");
-const headlineBox = q("#headlineBox");
-const compactCards = q("#compactCards");
 const modeSummary = q("#modeSummary");
 const assistedFields = q("#assistedFields");
-
-const executionOutput = q("#executionOutput");
-const cockpitOutput = q("#cockpitOutput");
 const quickSummaryOutput = q("#quickSummaryOutput");
-
 const chatMessages = q("#chatMessages");
 const chatInput = q("#chatInput");
 const chatSendBtn = q("#chatSendBtn");
 const chatStatus = q("#chatStatus");
 const unreadBadge = q("#unreadBadge");
-
-const approvalCards = q("#approvalCards");
-const approvalEmptyState = q("#approvalEmptyState");
-const approvalCountBadge = q("#approvalCountBadge");
-
-const executionCards = q("#executionCards");
-const executionEmptyState = q("#executionEmptyState");
-const executionCountBadge = q("#executionCountBadge");
-
-const reconstructionCards = q("#reconstructionCards");
-const reconstructionEmptyState = q("#reconstructionEmptyState");
-const reconstructionCountBadge = q("#reconstructionCountBadge");
-
 const sidebarChats = q("#sidebarChats");
+const headlineBox = q("#headlineBox");
+const decisionBadge = q("#decisionBadge");
+const compactCards = q("#compactCards");
 
 let isLoading = false;
-const RELAY_TOKEN = "GODMODE_SECURE_TOKEN";
+let unreadCount = 0;
+
+function uid(prefix = "item") {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+}
 
 function setLoading(loading) {
   isLoading = loading;
@@ -87,167 +66,321 @@ function goBack() {
   window.history.back();
 }
 
-function isRelayMode() {
-  return presetSelect.value === "relay";
+function setQuickSummary(text) {
+  if (quickSummaryOutput) quickSummaryOutput.textContent = text;
+}
+
+function setDecision(text, tone = "neutral") {
+  if (!decisionBadge) return;
+  decisionBadge.textContent = text;
+  decisionBadge.className = `badge badge-${tone}`;
+}
+
+function setHeadline(text) {
+  if (headlineBox) headlineBox.textContent = text;
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function isManualMode() {
+  return presetSelect && presetSelect.value === "manual";
 }
 
 function getBaseUrl() {
-  return (apiInput.value || localStorage.getItem(KEY_API) || PRESETS.relay.backend)
-    .trim()
-    .replace(/\/$/, "");
+  if (isManualMode()) {
+    const manual = (apiInput?.value || localStorage.getItem(KEY_API) || "").trim().replace(/\/$/, "");
+    return manual || DEFAULT_RELAY_BASE;
+  }
+  return DEFAULT_RELAY_BASE;
 }
 
-// Phase 222: Robust Task Sending
-async function sendTask(action, payload) {
-  setLoading(true);
-  try {
-    const res = await fetch(getBaseUrl() + "/push", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RELAY_TOKEN}`,
-        "Content-Type": "application/json"
+function saveUrls() {
+  localStorage.setItem(KEY_PRESET, presetSelect?.value || "relay");
+  if (isManualMode()) {
+    localStorage.setItem(KEY_API, (apiInput?.value || "").trim());
+  } else {
+    localStorage.removeItem(KEY_API);
+  }
+}
+
+function applyPreset() {
+  const preset = PRESETS[presetSelect?.value] || PRESETS.relay;
+  if (apiInput) {
+    apiInput.value = presetSelect.value === "manual"
+      ? (localStorage.getItem(KEY_API) || "")
+      : preset.backend;
+    apiInput.readOnly = presetSelect.value !== "manual";
+  }
+  if (shellUrlInput) {
+    shellUrlInput.value = preset.shell || new URL("/app/mobile", window.location.origin).toString();
+    shellUrlInput.readOnly = true;
+  }
+  if (presetValue) presetValue.textContent = presetSelect?.value || "relay";
+  saveUrls();
+  refreshStatus();
+}
+
+function createDefaultChat(name = "God Mode Relay") {
+  return {
+    id: uid("chat"),
+    name,
+    unread: false,
+    messages: [
+      {
+        id: uid("msg"),
+        role: "system",
+        text: "Shell mobile ligada ao relay cloud da Vercel. O APK já não precisa de procurar IP local por defeito.",
+        timestamp: new Date().toISOString(),
       },
-      body: JSON.stringify({ action, payload, id: Date.now() })
-    });
-    const data = await res.json();
-    setQuickSummary(`Tarefa enviada: ${action}`);
-    return data;
-  } catch (e) {
-    setQuickSummary(`Erro ao enviar tarefa: ${e.message}`);
-    console.error(e);
-  } finally {
-    setLoading(false);
-  }
+    ],
+  };
 }
 
-// Phase 222: Robust Response Fetching
-async function fetchResponses() {
+function loadChats() {
   try {
-    const res = await fetch(getBaseUrl() + "/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RELAY_TOKEN}`
-      }
-    });
-    return await res.json();
-  } catch (e) {
-    console.warn("Failed to fetch responses", e);
-    return [];
-  }
+    const parsed = JSON.parse(localStorage.getItem(KEY_CHATS) || "[]");
+    if (Array.isArray(parsed) && parsed.length) return parsed;
+  } catch {}
+  return [createDefaultChat()];
 }
 
-// Phase 222: Chat Engine
-let chats = [];
-let currentChat = null;
+const chats = loadChats();
+let currentChat = chats.find((chat) => chat.id === localStorage.getItem(KEY_ACTIVE_CHAT)) || chats[0];
 
-function newChat() {
-  const chat = {
-    id: Date.now(),
-    name: `Chat ${new Date().toLocaleTimeString()}`,
-    messages: [],
-    unread: false
-  };
-  chats.push(chat);
-  currentChat = chat;
-  renderSidebar(chats);
-  renderChatMessages();
+function persistChats() {
+  localStorage.setItem(KEY_CHATS, JSON.stringify(chats));
+  localStorage.setItem(KEY_ACTIVE_CHAT, currentChat?.id || "");
 }
 
-async function sendMessage(text) {
-  if (!currentChat) newChat();
-
-  const msg = {
-    role: "user",
-    text,
-    timestamp: new Date().toISOString()
-  };
-
-  currentChat.messages.push(msg);
-  renderChatMessages();
-
-  await sendTask("chat", { text });
-}
-
-async function sync() {
-  const responses = await fetchResponses();
-
-  if (responses.length > 0) {
-    chatStatus.textContent = "online";
-    chatStatus.className = "badge badge-success";
-
-    responses.forEach(r => {
-      if (currentChat) {
-        currentChat.messages.push({
-          role: "gm",
-          text: r.result?.message || r.result || JSON.stringify(r),
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      if (document.visibilityState !== "visible") {
-        unreadCount++;
-        updateUnreadBadge();
-      }
-    });
-    renderChatMessages();
-  }
+function renderSidebar() {
+  if (!sidebarChats) return;
+  sidebarChats.innerHTML = "";
+  chats.forEach((chat) => {
+    const item = document.createElement("div");
+    item.className = "chat-sidebar-item";
+    if (chat.unread) item.classList.add("unread");
+    item.innerHTML = `<span>${escapeHtml(chat.name)}</span>${chat.unread ? '<span class="unread-dot"></span>' : ""}`;
+    item.onclick = () => {
+      currentChat = chat;
+      chat.unread = false;
+      unreadCount = 0;
+      updateUnreadBadge();
+      persistChats();
+      renderSidebar();
+      renderChatMessages();
+    };
+    sidebarChats.appendChild(item);
+  });
 }
 
 function renderChatMessages() {
-  if (!currentChat) return;
+  if (!chatMessages || !currentChat) return;
   chatMessages.innerHTML = "";
-  currentChat.messages.forEach(msg => {
+  currentChat.messages.forEach((msg) => {
     const div = document.createElement("div");
-    div.className = `msg ${msg.role === 'user' ? 'user' : 'bot'}`;
+    div.className = `msg ${msg.role === "user" ? "user" : msg.role === "gm" ? "gm" : "system"}`;
     div.textContent = msg.text;
     chatMessages.appendChild(div);
   });
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Environment Setup
-async function setupEnv() {
-  await sendTask("setup_env", {});
-  setQuickSummary("Pedido de configuração de ambiente enviado ao PC.");
+function appendMessage(role, text, chat = currentChat) {
+  if (!chat) return;
+  chat.messages.push({
+    id: uid("msg"),
+    role,
+    text,
+    timestamp: new Date().toISOString(),
+  });
+  persistChats();
+  renderChatMessages();
 }
 
-// Original UI logic preservation and adaptation
-function getRelatedRepos() {
-  return (q("#relatedReposInput")?.value || "")
-    .split(/\n+/)
-    .map((value) => value.trim())
-    .filter(Boolean);
+function updateUnreadBadge() {
+  if (!unreadBadge) return;
+  if (unreadCount > 0) {
+    unreadBadge.style.display = "inline-flex";
+    unreadBadge.textContent = String(unreadCount);
+  } else {
+    unreadBadge.style.display = "none";
+  }
 }
 
-function saveUrls() {
-  localStorage.setItem(KEY_API, apiInput.value.trim());
-  localStorage.setItem(KEY_SHELL, shellUrlInput.value.trim());
-  localStorage.setItem(KEY_PRESET, presetSelect.value);
+function newChat() {
+  const chat = createDefaultChat(`Chat ${chats.length + 1}`);
+  chats.unshift(chat);
+  currentChat = chat;
+  persistChats();
+  renderSidebar();
+  renderChatMessages();
 }
 
-function applyPreset() {
-  const preset = PRESETS[presetSelect.value] || PRESETS.relay;
-  if (preset.backend) apiInput.value = preset.backend;
-  if (preset.shell) shellUrlInput.value = preset.shell;
-  presetValue.textContent = presetSelect.value;
-  saveUrls();
-  refreshStatus();
-}
-
-function buildPayload() {
-  return {
-    goal: q("#textInput")?.value,
-    repo: q("#repoInput")?.value,
-    context: `Preferred path: ${q("#pathInput")?.value} | Branch: ${q("#branchInput")?.value} | Base: ${q("#baseBranchInput")?.value}`,
-    priority: "normal",
-    visibility: q("#visibilityInput")?.value,
-    lifecycle: q("#lifecycleInput")?.value,
-    related_repos: getRelatedRepos()
+async function apiRequest(path, options = {}) {
+  const headers = {
+    "Authorization": `Bearer ${RELAY_TOKEN}`,
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(options.headers || {}),
   };
+  const response = await fetch(`${getBaseUrl()}${path}`, {
+    method: options.method || "GET",
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  if (!response.ok) {
+    throw new Error(`${path} -> ${response.status}`);
+  }
+  return response.json();
 }
 
-function setQuickSummary(text) {
-  if (quickSummaryOutput) quickSummaryOutput.textContent = text;
+async function sendTask(action, payload = {}) {
+  const task = {
+    id: uid("task"),
+    action,
+    source: "mobile-shell",
+    created_at: new Date().toISOString(),
+    chat_id: currentChat?.id,
+    ...payload,
+  };
+
+  setLoading(true);
+  try {
+    await apiRequest("/push", { method: "POST", body: task });
+    setDecision("pedido enviado", "info");
+    setQuickSummary(`Pedido enviado para ${getBaseUrl()}`);
+    return task;
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function sendMessage(text) {
+  const value = (text || chatInput?.value || "").trim();
+  if (!value) return;
+  if (chatInput) chatInput.value = "";
+  appendMessage("user", value);
+  setHeadline("A aguardar resposta do God Mode...");
+  try {
+    await sendTask("chat", { message: value });
+  } catch (error) {
+    appendMessage("system", `Falha a enviar para o relay: ${error.message}`);
+    setDecision("erro no relay", "danger");
+  }
+}
+
+async function fetchResponses() {
+  try {
+    const responses = await apiRequest("/responses");
+    return Array.isArray(responses) ? responses : [];
+  } catch (error) {
+    console.warn("Failed to fetch responses", error);
+    return [];
+  }
+}
+
+async function sync() {
+  const responses = await fetchResponses();
+  if (!responses.length) return;
+
+  chatStatus.textContent = "online";
+  chatStatus.className = "badge badge-success";
+
+  responses.forEach((entry) => {
+    const task = entry.task || {};
+    const result = entry.result || {};
+    const targetChat = chats.find((chat) => chat.id === task.chat_id) || currentChat;
+    const text = result.message || result.error || JSON.stringify(result);
+    targetChat.messages.push({
+      id: uid("msg"),
+      role: "gm",
+      text,
+      timestamp: new Date().toISOString(),
+    });
+    targetChat.unread = targetChat !== currentChat;
+    if (targetChat !== currentChat && document.visibilityState !== "visible") {
+      unreadCount += 1;
+    }
+  });
+
+  persistChats();
+  renderSidebar();
+  renderChatMessages();
+  updateUnreadBadge();
+  setHeadline("Resposta recebida do God Mode.");
+  setDecision("resposta pronta", "success");
+}
+
+async function refreshStatus() {
+  connectionBadge.textContent = "a validar";
+  connectionBadge.className = "badge badge-warning";
+
+  try {
+    const health = await fetch(`${getBaseUrl()}/health`).then((response) => {
+      if (!response.ok) throw new Error(`health -> ${response.status}`);
+      return response.json();
+    });
+
+    backendStatusValue.textContent = health.status || "ok";
+    backendProfileValue.textContent = health.storage || "relay";
+    profileBadge.textContent = isManualMode() ? "manual" : "cloud relay";
+    connectionBadge.textContent = "online";
+    connectionBadge.className = "badge badge-success";
+    chatStatus.textContent = "online";
+    chatStatus.className = "badge badge-success";
+    setQuickSummary(`Ligado ao relay ${getBaseUrl()}`);
+    setDecision("relay ativo", "success");
+  } catch (error) {
+    backendStatusValue.textContent = "erro";
+    backendProfileValue.textContent = "offline";
+    profileBadge.textContent = isManualMode() ? "manual" : "cloud relay";
+    connectionBadge.textContent = "offline";
+    connectionBadge.className = "badge badge-danger";
+    chatStatus.textContent = "offline";
+    chatStatus.className = "badge badge-danger";
+    setQuickSummary(`Falha na ligação a ${getBaseUrl()}`);
+    setDecision("relay offline", "danger");
+  }
+}
+
+async function setupEnv() {
+  try {
+    await sendTask("goal", { text: "preparar ambiente local automaticamente e confirmar readiness" });
+    appendMessage("system", "Pedido de preparação automática enviado ao backend.");
+  } catch (error) {
+    appendMessage("system", `Não consegui pedir a preparação automática: ${error.message}`);
+  }
+}
+
+function buildGoalText() {
+  return (q("#textInput")?.value || "").trim();
+}
+
+function submitGoal() {
+  const goal = buildGoalText();
+  if (!goal) {
+    setQuickSummary("Falta o texto do pedido principal.");
+    return;
+  }
+  sendTask("goal", { text: goal })
+    .then(() => setHeadline("Objetivo enviado para a fila operacional."))
+    .catch((error) => setQuickSummary(`Falha ao enviar objetivo: ${error.message}`));
+}
+
+function submitAnalysis() {
+  const goal = buildGoalText();
+  if (!goal) {
+    setQuickSummary("Falta o texto do pedido principal.");
+    return;
+  }
+  sendTask("think", { goal })
+    .then(() => setHeadline("Pedido de análise enviado ao God Brain."))
+    .catch((error) => setQuickSummary(`Falha ao pedir análise: ${error.message}`));
 }
 
 function setMode(mode) {
@@ -255,64 +388,38 @@ function setMode(mode) {
   q("#drivingModeBtn")?.classList.toggle("mode-btn-active", mode === "driving");
   q("#assistedModeBtn")?.classList.toggle("mode-btn-active", mode === "assisted");
   if (assistedFields) assistedFields.style.display = mode === "assisted" ? "block" : "none";
-  if (modeSummary) modeSummary.textContent =
-    mode === "driving"
-      ? "Driving: menos distração, headline curta e decisão rápida."
-      : "Assisted: mais campos, mais contexto e mais controlo manual.";
-}
-
-async function refreshStatus() {
-  connectionBadge.textContent = "a validar";
-  connectionBadge.className = "badge badge-warning";
-  presetValue.textContent = presetSelect.value;
-  try {
-    const healthRes = await fetch(`${getBaseUrl()}/health`, { signal: AbortSignal.timeout(3000) });
-    const health = await healthRes.json();
-
-    backendStatusValue.textContent = health.status || "ok";
-    backendProfileValue.textContent = isRelayMode() ? "relay" : "local/custom";
-    profileBadge.textContent = isRelayMode() ? "cloud relay" : "backend";
-    connectionBadge.textContent = "online";
-    connectionBadge.className = "badge badge-success";
-    setQuickSummary(`Ligação OK em ${getBaseUrl()}`);
-  } catch (error) {
-    backendStatusValue.textContent = "erro";
-    backendProfileValue.textContent = "offline";
-    connectionBadge.textContent = "offline";
-    connectionBadge.className = "badge badge-danger";
-    setQuickSummary(`Falha na ligação a ${getBaseUrl()}`);
+  if (modeSummary) {
+    modeSummary.textContent = mode === "driving"
+      ? "Driving: shell fixa no relay cloud e reduz decisões de infraestrutura no telemóvel."
+      : "Assisted: mantém contexto extra, mas continua a usar o relay cloud como destino principal.";
   }
 }
 
-function renderSidebar(chats) {
-  if (!sidebarChats) return;
-  sidebarChats.innerHTML = "";
-  chats.forEach(chat => {
-    const item = document.createElement("div");
-    item.className = "chat-sidebar-item";
-    if (chat.unread) item.classList.add("unread");
-    item.innerHTML = `
-      <span>${chat.name}</span>
-      ${chat.unread ? '<span class="unread-dot"></span>' : ''}
-    `;
-    item.onclick = () => {
-      currentChat = chat;
-      chat.unread = false;
-      renderSidebar(chats);
-      renderChatMessages();
-    };
-    sidebarChats.appendChild(item);
-  });
+function renderCompactCards() {
+  if (!compactCards) return;
+  compactCards.innerHTML = `
+    <div class="compact-card">
+      <div class="label">Destino principal</div>
+      <div class="value">${escapeHtml(DEFAULT_RELAY_BASE)}</div>
+    </div>
+    <div class="compact-card">
+      <div class="label">Entrada APK</div>
+      <div class="value">${escapeHtml(new URL("/app/mobile", window.location.origin).toString())}</div>
+    </div>
+  `;
 }
 
-// Initializing UI
-if (apiInput) apiInput.value = localStorage.getItem(KEY_API) || PRESETS.relay.backend;
-if (shellUrlInput) shellUrlInput.value = localStorage.getItem(KEY_SHELL) || PRESETS.local_pc.shell;
+if (apiInput) apiInput.value = localStorage.getItem(KEY_API) || DEFAULT_RELAY_BASE;
+if (shellUrlInput) shellUrlInput.value = new URL("/app/mobile", window.location.origin).toString();
 if (presetSelect) presetSelect.value = localStorage.getItem(KEY_PRESET) || "relay";
+applyPreset();
 setMode(localStorage.getItem(KEY_MODE) || "driving");
-
-newChat();
+renderCompactCards();
+renderSidebar();
+renderChatMessages();
 refreshStatus();
+setHeadline("APK e shell mobile apontam para o relay cloud.");
+setDecision("cloud-first", "info");
 
 if (q("#refreshStatusBtn")) q("#refreshStatusBtn").onclick = refreshStatus;
 if (q("#applyPresetBtn")) q("#applyPresetBtn").onclick = applyPreset;
@@ -320,114 +427,37 @@ if (q("#saveApiBtn")) q("#saveApiBtn").onclick = () => {
   saveUrls();
   refreshStatus();
 };
-
 if (q("#drivingModeBtn")) q("#drivingModeBtn").onclick = () => setMode("driving");
 if (q("#assistedModeBtn")) q("#assistedModeBtn").onclick = () => setMode("assisted");
-
-if (q("#mobileCockpitBtn")) q("#mobileCockpitBtn").onclick = () => sendTask("run_cockpit", buildPayload());
-if (q("#executionBtn")) q("#executionBtn").onclick = () => sendTask("run_task", buildPayload());
-
+if (q("#mobileCockpitBtn")) q("#mobileCockpitBtn").onclick = submitGoal;
+if (q("#executionBtn")) q("#executionBtn").onclick = submitAnalysis;
 if (q("#setupEnvBtn")) q("#setupEnvBtn").onclick = setupEnv;
-
-let unreadCount = 0;
-function updateUnreadBadge() {
-  if (unreadBadge) {
-    if (unreadCount > 0) {
-      unreadBadge.style.display = "inline-flex";
-      unreadBadge.textContent = unreadCount;
-    } else {
-      unreadBadge.style.display = "none";
+if (chatSendBtn) chatSendBtn.onclick = () => sendMessage();
+if (chatInput) {
+  chatInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
     }
-  }
+  });
 }
-
-if (chatSendBtn) chatSendBtn.onclick = () => sendMessage(chatInput.value.trim());
-if (chatInput) chatInput.onkeypress = (e) => {
-  if (e.key === "Enter") sendMessage(chatInput.value.trim());
-};
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     unreadCount = 0;
+    chats.forEach((chat) => {
+      chat.unread = false;
+    });
     updateUnreadBadge();
+    persistChats();
+    renderSidebar();
   }
 });
 
-// Global Exposure
 window.goBack = goBack;
 window.setupEnv = setupEnv;
 window.sendMessage = sendMessage;
 window.newChat = newChat;
 
-// Phase 227: Production Approval Popups
-function showPopup({ title, message, actions }) {
-  console.log(`🔔 Popup: ${title} - ${message}`);
-
-  // Create modal elements
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-  overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:10000; padding:20px;";
-
-  const modal = document.createElement("div");
-  modal.className = "modal-content";
-  modal.style.cssText = "background:#1e1e2e; border:1px solid #313244; border-radius:12px; width:100%; max-width:400px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.5);";
-
-  modal.innerHTML = `
-    <h3 style="margin-top:0; color:#f38ba8;">${title}</h3>
-    <p style="color:#cdd6f4; line-height:1.5;">${message}</p>
-    <div class="modal-actions" style="display:flex; gap:12px; margin-top:24px;">
-    </div>
-  `;
-
-  const actionContainer = modal.querySelector(".modal-actions");
-
-  return new Promise((resolve) => {
-    actions.forEach(label => {
-      const btn = document.createElement("button");
-      btn.textContent = label;
-      btn.className = "btn";
-      btn.style.flex = "1";
-      if (label === "Aprovar") btn.style.background = "#a6e3a1";
-      if (label === "Cancelar") btn.style.background = "#f38ba8";
-
-      btn.onclick = () => {
-        document.body.removeChild(overlay);
-        resolve(label);
-      };
-      actionContainer.appendChild(btn);
-    });
-
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-  });
-}
-
-// Intercept critical messages for popup display
-const originalSync = sync;
-window.sync = async function() {
-  const responses = await fetchResponses();
-
-  if (responses.length > 0) {
-    for (const r of responses) {
-      // Check for approval-like responses that might need a popup
-      const result = r.result || {};
-      if (result.action === "deploy_vercel" || (typeof result === "string" && result.includes("Confirmar deploy"))) {
-         const decision = await showPopup({
-           title: "Deploy produção",
-           message: "Confirmar deploy para Vercel?",
-           actions: ["Aprovar", "Cancelar"]
-         });
-
-         if (decision === "Aprovar") {
-           await sendTask("approve", { plan_id: result.plan_id || r.id });
-         }
-      }
-    }
-  }
-  return originalSync();
-};
-
-window.showPopup = showPopup;
-
-// Start polling for responses (using the augmented sync if redefined)
-setInterval(() => window.sync ? window.sync() : sync(), 2000);
+setInterval(sync, 3000);
+setInterval(refreshStatus, 15000);
