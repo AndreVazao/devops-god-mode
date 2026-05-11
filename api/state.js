@@ -12,7 +12,13 @@ export default async function handler(req, res) {
   const STATE_KEY = "godmode_state";
 
   try {
-    let state = await kv.get(STATE_KEY);
+    let state;
+    try {
+        state = await kv.get(STATE_KEY);
+    } catch (e) {
+        console.warn("KV get failed", e);
+    }
+
     if (!state) {
       state = {
         chats: {
@@ -88,7 +94,11 @@ export default async function handler(req, res) {
           }
       }
 
-      await kv.set(STATE_KEY, JSON.stringify(state));
+      try {
+          await kv.set(STATE_KEY, JSON.stringify(state));
+      } catch (e) {
+          console.warn("KV set failed", e);
+      }
       return res.json({ ok: true });
     }
   } catch (error) {

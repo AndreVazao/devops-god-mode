@@ -1,11 +1,11 @@
 :root {
-  --bg: #0b0f1a;
+  --bg: #0b1120;
   --panel: #161b2c;
-  --text: #e2e8f0;
+  --text: #f1f5f9;
   --muted: #64748b;
   --accent: #22d3ee;
   --sidebar-bg: #0f172a;
-  --msg-user: #2563eb;
+  --msg-user: #1d4ed8;
   --msg-gm: #1e293b;
   --success: #10b981;
   --danger: #ef4444;
@@ -95,25 +95,25 @@ body {
 
 .topbar-center { text-align: center; }
 .eyebrow { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-h1 { font-size: 18px; }
+h1 { font-size: 18px; font-weight: 600; color: #fff; }
 
 /* Panels */
 .panel {
   background: var(--panel);
   margin: 10px 20px;
-  padding: 15px;
+  padding: 25px 20px;
   border-radius: 12px;
-  border: 1px solid #2d3748;
+  border: 1px solid #1e293b;
 }
 
-.panel-title-row { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 5px; }
+.panel-title-row { display: flex; justify-content: flex-end; align-items: center; margin-bottom: -15px; position: relative; z-index: 10; }
 
 .headline-box {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
-  margin-bottom: 5px;
   color: var(--accent);
   text-align: center;
+  padding: 10px 0;
 }
 
 /* Chat Area */
@@ -162,10 +162,10 @@ h1 { font-size: 18px; }
 .chat-input-area {
   display: flex;
   gap: 10px;
-  background: var(--panel);
-  padding: 10px;
-  border-radius: 25px;
-  border: 1px solid #2d3748;
+  background: #1e293b;
+  padding: 12px 20px;
+  border-radius: 30px;
+  border: 1px solid #334155;
 }
 
 .chat-input-area input {
@@ -173,19 +173,24 @@ h1 { font-size: 18px; }
   background: none;
   border: none;
   color: var(--text);
-  padding: 5px 15px;
+  padding: 5px 0;
   outline: none;
+  font-size: 15px;
 }
 
 .primary-btn {
   background: var(--accent);
   border: none;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   color: #000;
   font-weight: bold;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
 
 .badge { font-size: 10px; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; }

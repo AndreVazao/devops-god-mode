@@ -255,21 +255,21 @@ async function sync() {
     try {
         const metrics = await api("/cluster/metrics");
         const budget = await api("/cluster/budget");
-        setHeadline(`Latency: ${metrics.avg_latency}ms | Budget: ${budget.remaining.toFixed(2)} remaining`);
+        setHeadline(`Latency: ${metrics.avg_latency || 0}ms | Budget: ${(budget.remaining || 0).toFixed(2)} remaining`);
     } catch (e) {
         console.warn("Metrics/Budget fetch failed", e);
     }
 
-    chatStatus.textContent = "online";
+    chatStatus.textContent = "ONLINE";
     chatStatus.className = "badge badge-success";
 
     renderSidebar();
     renderChatMessages();
 
-    setDecision("sincronizado", "success");
+    setDecision("CLOUD MODE", "success");
   } catch (error) {
     console.warn("Sync failed", error);
-    chatStatus.textContent = "offline";
+    chatStatus.textContent = "OFFLINE";
     chatStatus.className = "badge badge-danger";
   }
 }
@@ -327,5 +327,4 @@ chatInput.addEventListener("keydown", (e) => {
 renderSidebar();
 renderChatMessages();
 
-setHeadline("God Mode Cockpit Final");
-setDecision("cloud mode", "success");
+setDecision("CLOUD MODE", "success");
