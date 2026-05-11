@@ -19,9 +19,7 @@
           <h3>Chats</h3>
           <button onclick="newChat()" class="ghost-btn">+</button>
         </div>
-        <div id="sidebarChats" class="sidebar-content">
-          <!-- Chats renderizados via JS -->
-        </div>
+        <div id="sidebarChats" class="sidebar-content"></div>
       </aside>
 
       <div class="app-shell">
@@ -39,10 +37,9 @@
         <section id="chatSection" class="panel chat-panel">
           <div class="panel-title-row">
             <h2>Chat <span id="chatStatus" class="badge badge-neutral">offline</span></h2>
-            <button onclick="setupEnv()" class="badge badge-info" style="cursor: pointer; border: none;">Configurar ambiente</button>
+            <button onclick="setupEnv()" class="badge badge-info" style="cursor: pointer; border: none;">Preparar PC</button>
           </div>
           <div id="chatMessages" class="chat-messages">
-            <!-- Mensagens renderizadas aqui -->
             <div class="msg system">Bem-vindo ao God Mode Chat.</div>
           </div>
           <div class="chat-input-row">
@@ -60,47 +57,46 @@
             <button id="drivingModeBtn" class="mode-btn mode-btn-active">Driving</button>
             <button id="assistedModeBtn" class="mode-btn">Assisted</button>
           </div>
-          <p id="modeSummary" class="helper-text">Driving: menos distração, headline curta e decisão rápida.</p>
+          <p id="modeSummary" class="helper-text">Driving: shell fixa no relay cloud e reduz decisões de infraestrutura no telemóvel.</p>
         </section>
 
         <section class="panel status-panel">
           <div class="panel-title-row">
-            <h2>Backend</h2>
+            <h2>Relay</h2>
             <div>
               <span class="helper-text" style="font-size: 12px; margin-right: 4px;">Source:</span>
-              <span id="profileBadge" class="badge badge-info">preset</span>
+              <span id="profileBadge" class="badge badge-info">cloud relay</span>
             </div>
           </div>
 
           <details style="margin: 12px 0;">
-            <summary style="cursor: pointer; color: var(--muted); font-size: 14px;">Configurações de conexão</summary>
+            <summary style="cursor: pointer; color: var(--muted); font-size: 14px;">Configurações avançadas</summary>
             <div class="grid two-col" style="margin-top: 12px;">
               <label class="field">
                 <span>Fonte de backend</span>
                 <select id="backendPresetSelect">
                   <option value="relay">Vercel Relay</option>
-                  <option value="render">Render</option>
-                  <option value="local_pc">PC local</option>
-                  <option value="private_tunnel">Túnel privado/free</option>
                   <option value="manual">Manual</option>
                 </select>
               </label>
 
               <label class="field">
-                <span>URL shell local/túnel</span>
-                <input id="shellUrlInput" type="url" placeholder="http://127.0.0.1:4173 ou URL do túnel" />
+                <span>Entrada mobile</span>
+                <input id="shellUrlInput" type="url" placeholder="https://devops-god-mode.vercel.app/app/mobile" />
               </label>
             </div>
 
             <label class="field">
               <span>API base</span>
-              <input id="apiBaseInput" type="url" placeholder="https://devops-god-mode-backend.onrender.com" />
+              <input id="apiBaseInput" type="url" placeholder="https://devops-god-mode.vercel.app/api" />
             </label>
 
             <div class="action-row compact-row wrap-row">
               <button id="applyPresetBtn" class="secondary-btn">Aplicar preset</button>
-              <button id="saveApiBtn" class="secondary-btn">Guardar URLs</button>
+              <button id="saveApiBtn" class="secondary-btn">Guardar override</button>
             </div>
+
+            <p class="helper-text">Por defeito o APK e a shell usam a Vercel. O modo manual fica só como escape hatch.</p>
           </details>
 
           <div class="status-grid grid three-col">
@@ -109,7 +105,7 @@
               <p id="backendStatusValue" class="value">—</p>
             </div>
             <div>
-              <p class="label">Perfil</p>
+              <p class="label">Storage</p>
               <p id="backendProfileValue" class="value">—</p>
             </div>
             <div>
@@ -122,7 +118,7 @@
         <section class="panel command-panel">
           <div class="panel-title-row">
             <h2>Pedido</h2>
-            <span class="badge badge-info">handsfree</span>
+            <span class="badge badge-info">cloud queue</span>
           </div>
 
           <label class="field">
@@ -144,8 +140,8 @@
           </div>
 
           <div class="action-row wrap-row">
-            <button id="mobileCockpitBtn" class="primary-btn">Gerar cockpit</button>
-            <button id="executionBtn" class="secondary-btn">Gerar pipeline</button>
+            <button id="mobileCockpitBtn" class="primary-btn">Enviar objetivo</button>
+            <button id="executionBtn" class="secondary-btn">Pedir análise</button>
           </div>
         </section>
 
