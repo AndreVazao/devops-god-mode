@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0f172a" />
     <link rel="stylesheet" href="./styles.css" />
-    <title>God Mode Mobile</title>
+    <title>God Mode Mobile | Codex Shell</title>
   </head>
   <body>
     <div id="globalLoader" class="loader-overlay" style="display: none;">
@@ -15,14 +15,17 @@
     <div class="app-container">
       <aside class="sidebar-nav">
         <div class="sidebar-header">
-          <h3>Chats</h3>
-          <button onclick="newChat()" class="ghost-btn">+</button>
+          <h3>GOD MODE</h3>
+          <button onclick="newChat()" class="new-chat-btn">+ Novo Chat</button>
         </div>
         <div id="sidebarChats" class="sidebar-content"></div>
         <div class="sidebar-footer">
-          <div class="menu-item"><span>Providers:</span> <small>OpenAI, Claude, Gemini</small></div>
-          <div class="menu-item"><span>Workers:</span> <small>GitHub, Vercel, PC-Local</small></div>
-          <div class="menu-item"><span>Security:</span> <small>Vault, Settings</small></div>
+          <div class="menu-item"><span>Chats</span></div>
+          <div class="menu-item"><span>Repos</span></div>
+          <div class="menu-item"><span>Providers</span></div>
+          <div class="menu-item"><span>Workers</span></div>
+          <div class="menu-item"><span>Vault</span></div>
+          <div class="menu-item"><span>Settings</span></div>
         </div>
       </aside>
 
@@ -30,22 +33,19 @@
         <header class="topbar">
           <button onclick="toggleSidebar()" class="hamburger">☰</button>
           <div class="topbar-center">
-            <div class="eyebrow">God Mode</div>
-            <h1>Mobile Cockpit</h1>
+            <div class="eyebrow">DevOps Autonomous Agent</div>
+            <h1>Codex Cockpit</h1>
           </div>
           <div id="chatStatus" class="badge badge-neutral">offline</div>
         </header>
 
+        <div id="dropZone" class="drop-zone-overlay">Arrasta ficheiros aqui para o God Mode</div>
+
         <section class="panel cockpit-panel">
           <div class="panel-title-row">
-            <h2>Status</h2>
-            <span id="decisionBadge" class="badge badge-neutral">cloud</span>
+            <span id="decisionBadge" class="badge badge-neutral">cloud mode</span>
           </div>
           <div id="headlineBox" class="headline-box">Pronto a operar.</div>
-          <div class="quick-actions">
-            <button onclick="setupEnv()" class="secondary-btn">Preparar PC</button>
-            <button onclick="newChat()" class="secondary-btn">Novo Chat</button>
-          </div>
         </section>
 
         <section class="chat-section">

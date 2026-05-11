@@ -1,16 +1,12 @@
 {
   "routes": [
-    { "src": "/api/health", "dest": "/api/relay.js" },
+    { "src": "/api/state", "dest": "/api/state.js" },
     { "src": "/api/relay", "dest": "/api/relay.js" },
-    { "src": "/api/push", "dest": "/api/relay.js" },
-    { "src": "/api/pull", "dest": "/api/relay.js" },
-    { "src": "/api/respond", "dest": "/api/relay.js" },
-    { "src": "/api/responses", "dest": "/api/relay.js" },
-    { "src": "/app/(.*)", "dest": "/index.html" },
-    { "src": "/(index.html)", "dest": "/index.html" },
-    { "src": "/(app.js)", "dest": "/app.js" },
-    { "src": "/(styles.css)", "dest": "/styles.css" },
-    { "src": "/(manifest.json)", "dest": "/manifest.json" },
+    { "src": "/api/health", "dest": "/api/relay.js" },
+    { "src": "/index.html", "dest": "/index.html" },
+    { "src": "/app.js", "dest": "/app.js" },
+    { "src": "/styles.css", "dest": "/styles.css" },
+    { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
