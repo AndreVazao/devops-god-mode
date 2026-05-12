@@ -1,0 +1,19 @@
+{
+  "goals": [
+    {
+      "id": "1",
+      "text": "Normal improvement 123",
+      "status": "active",
+      "created_at": "2026-05-12T09:05:57.625515+00:00"
+    },
+    {
+      "id": "2",
+      "text": "Critical fix for crash 123",
+      "status": "active",
+      "created_at": "2026-05-12T09:05:57.627411+00:00"
+    }
+  ],
+  "active_tasks": [],
+  "completed_tasks": [],
+  "last_update": "2026-05-12T09:05:57.627419+00:00"
+}

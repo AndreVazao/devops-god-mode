@@ -114,6 +114,12 @@ def action_memory(task):
         "type": "text"
     }
 
+def log(text):
+    try:
+        requests.post(f"{RELAY_URL}/logs", json={"text": text}, headers=HEADERS, timeout=5)
+    except Exception as e:
+        print(f"Error sending log: {e}")
+
 def pull_tasks():
     try:
         r = requests.get(f"{RELAY_URL}/relay", headers=HEADERS, timeout=10)
@@ -141,6 +147,7 @@ def send_response(chat_id, result):
 
 def execute_logic(task):
     print("EXECUTING TASK:", task)
+    log(f"Processando tarefa: {task.get('id')} - {task.get('action') or task.get('type')}")
 
     decision = decide(task)
     print(f"DECISION: {decision}")
