@@ -1,74 +1,16 @@
-<!doctype html>
-<html lang="pt-PT">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f172a" />
-    <link rel="stylesheet" href="./styles.css" />
-    <title>God Mode Mobile | Codex Shell</title>
-  </head>
-  <body>
-    <div id="globalLoader" class="loader-overlay" style="display: none;">
-      <div class="loader"></div>
-    </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>God Mode IDE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app"></div>
 
-    <div class="app-container">
-      <aside class="sidebar-nav">
-        <div class="sidebar-header">
-          <h3>GOD MODE</h3>
-          <button onclick="newChat()" class="new-chat-btn">+ Novo Chat</button>
-        </div>
-        <div id="sidebarChats" class="sidebar-content"></div>
-        <div class="sidebar-footer">
-          <div class="menu-item"><span>💬 Chats</span></div>
-          <div class="menu-item"><span>📂 Repos</span></div>
-          <div class="menu-item"><span>🔌 Providers</span></div>
-          <div class="menu-item"><span>🤖 Workers</span></div>
-          <div class="menu-item"><span>🔒 Vault</span></div>
-          <div class="menu-item"><span>⚙️ Settings</span></div>
-        </div>
-      </aside>
+  <!-- Monaco Editor -->
+  <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
 
-      <main class="app-shell">
-        <header class="topbar">
-          <button onclick="toggleSidebar()" class="hamburger">☰</button>
-          <div class="topbar-center">
-            <div class="eyebrow">DEVOPS AUTONOMOUS AGENT</div>
-            <h1>Codex Cockpit</h1>
-          </div>
-          <div id="chatStatus" class="badge badge-danger">OFFLINE</div>
-        </header>
-
-        <div id="dropZone" class="drop-zone-overlay">Arrasta ficheiros aqui para o God Mode</div>
-
-        <section class="panel cockpit-panel">
-          <div class="panel-title-row">
-            <span id="decisionBadge" class="badge badge-success">CLOUD MODE</span>
-          </div>
-          <div id="headlineBox" class="headline-box">Latency: 0ms | Budget: 0.00 remaining</div>
-        </section>
-
-        <section class="chat-section">
-          <div id="chatMessages" class="chat-messages">
-            <div class="msg system">Modo Cloud Ativo.</div>
-          </div>
-
-          <div id="activeTaskBadge" class="active-task-badge" style="display: none;">
-            <img src="https://github.com/fluidicon.png" class="badge-icon" alt="GitHub" />
-            <span id="activeTaskLabel">GitHub</span>
-            <span class="badge-close" onclick="closeActiveTask()">✕</span>
-          </div>
-
-          <div class="chat-input-area">
-            <button class="add-btn" style="background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer;">+</button>
-            <input id="chatInput" type="text" placeholder="Seguir" />
-            <button id="voiceBtn" style="background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer;">🎤</button>
-            <button id="chatSendBtn" class="primary-btn" style="background:#000; color:#fff;">🎶</button>
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <script src="./app.js"></script>
-  </body>
+  <script src="app.js"></script>
+</body>
 </html>
