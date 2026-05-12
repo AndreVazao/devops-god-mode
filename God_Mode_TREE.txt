@@ -2,6 +2,7 @@ devops-god-mode/
 ├─ .github/
 │  └─ workflows/
 │     ├─ android-real-build-progressive.yml
+│     ├─ production.yml
 │     ├─ project-tree-autorefresh.yml
 │     ├─ prune-old-artifacts-all-repos.yml
 │     ├─ universal-total-test.yml
@@ -22,10 +23,68 @@ devops-god-mode/
 │  │  └─ build.gradle
 │  ├─ build.gradle
 │  └─ settings.gradle
+├─ api/
+│  ├─ cluster/
+│  │  ├─ budget.js
+│  │  ├─ metrics.js
+│  │  └─ queue.js
+│  ├─ _store.ts
+│  ├─ files.js
+│  ├─ health.py
+│  ├─ health.ts
+│  ├─ index.py
+│  ├─ logs.js
+│  ├─ package.json
+│  ├─ pull-results.ts
+│  ├─ pull-tasks.ts
+│  ├─ push-result.ts
+│  ├─ push-task.ts
+│  ├─ relay.js
+│  └─ state.js
 ├─ backend/
 │  ├─ app/
+│  │  ├─ brain/
+│  │  │  ├─ __init__.py
+│  │  │  ├─ agent_pool.py
+│  │  │  ├─ aggregator.py
+│  │  │  ├─ auto_dev_elite.py
+│  │  │  ├─ autoscale.py
+│  │  │  ├─ budget_manager.py
+│  │  │  ├─ execution_controller.py
+│  │  │  ├─ executor.py
+│  │  │  ├─ god_brain.py
+│  │  │  ├─ learner.py
+│  │  │  ├─ multi_ai.py
+│  │  │  ├─ multi_project_state.py
+│  │  │  ├─ operational_loop.py
+│  │  │  ├─ operational_state.py
+│  │  │  ├─ orchestrator.py
+│  │  │  ├─ pipeline_executor.py
+│  │  │  ├─ pipeline.py
+│  │  │  ├─ planner.py
+│  │  │  ├─ policy_engine.py
+│  │  │  ├─ priority_engine.py
+│  │  │  ├─ project_worker.py
+│  │  │  ├─ safe_executor.py
+│  │  │  ├─ skill_registry.py
+│  │  │  ├─ task_generator.py
+│  │  │  ├─ test_autonomy_controlled.py
+│  │  │  ├─ test_basic.py
+│  │  │  ├─ test_operational_brain.py
+│  │  │  ├─ validator.py
+│  │  │  └─ worker_cluster.py
 │  │  ├─ data/
 │  │  │  └─ registry_seed.json
+│  │  ├─ evolution/
+│  │  │  ├─ __init__.py
+│  │  │  ├─ approval.py
+│  │  │  ├─ executor.py
+│  │  │  ├─ fixer.py
+│  │  │  ├─ memory_reader.py
+│  │  │  ├─ planner.py
+│  │  │  ├─ self_evolution_engine.py
+│  │  │  ├─ test_evolution_engine.py
+│  │  │  └─ validator.py
 │  │  ├─ routes/
 │  │  │  ├─ __init__.py
 │  │  │  ├─ action_center.py
@@ -97,6 +156,7 @@ devops-god-mode/
 │  │  │  ├─ conversation_rollover_handoff.py
 │  │  │  ├─ conversation_source_import_feed_frontend.py
 │  │  │  ├─ conversation_source_import_feed.py
+│  │  │  ├─ cross_project_intelligence.py
 │  │  │  ├─ daily_command_router.py
 │  │  │  ├─ dedup_project_intake_audit.py
 │  │  │  ├─ delivery_acknowledgment.py
@@ -380,9 +440,11 @@ devops-god-mode/
 │  │  │  ├─ runtime_supervisor_guidance.py
 │  │  │  ├─ script_extraction_reuse.py
 │  │  │  ├─ secret_vault.py
+│  │  │  ├─ self_evolution.py
 │  │  │  ├─ self_update_frontend.py
 │  │  │  ├─ self_update_manager.py
 │  │  │  ├─ self_update.py
+│  │  │  ├─ semantic_search.py
 │  │  │  ├─ shared_secret_topology.py
 │  │  │  ├─ smol_godmode_reference_adapter.py
 │  │  │  ├─ spectacular_upgrade_advisor.py
@@ -391,6 +453,7 @@ devops-god-mode/
 │  │  │  ├─ support_session_connector.py
 │  │  │  ├─ system_integrity_audit_frontend.py
 │  │  │  ├─ system_integrity_audit.py
+│  │  │  ├─ system_setup.py
 │  │  │  ├─ tenant_browser_onboarding_executor.py
 │  │  │  ├─ tenant_multirepo_linkage.py
 │  │  │  ├─ tenant_partition.py
@@ -402,18 +465,28 @@ devops-god-mode/
 │  │  │  ├─ vault_deployment_binding.py
 │  │  │  ├─ workspace_publish_bridge.py
 │  │  │  └─ write_verify_rollback.py
+│  │  ├─ semantic/
+│  │  │  ├─ __init__.py
+│  │  │  ├─ decision_engine.py
+│  │  │  ├─ execution_planner.py
+│  │  │  ├─ global_indexer.py
+│  │  │  ├─ project_intelligence.py
+│  │  │  ├─ semantic_brain.py
+│  │  │  └─ vector_memory.py
 │  │  ├─ services/
 │  │  │  ├─ __init__.py
 │  │  │  ├─ action_center_service.py
 │  │  │  ├─ adaptation_planner_service.py
 │  │  │  ├─ agent_roles_registry_service.py
 │  │  │  ├─ ai_chat_webservice_audit_service.py
+│  │  │  ├─ ai_fix_service.py
 │  │  │  ├─ ai_handoff_bridge_service.py
 │  │  │  ├─ ai_handoff_security_guard_service.py
 │  │  │  ├─ ai_handoff_trace_ledger_service.py
 │  │  │  ├─ ai_provider_router_service.py
 │  │  │  ├─ andreos_context_orchestrator_service.py
 │  │  │  ├─ andreos_memory_audit_service.py
+│  │  │  ├─ andreos_memory_reader_service.py
 │  │  │  ├─ andreos_memory_repo_connector_service.py
 │  │  │  ├─ android_progressive_runtime_binding_service.py
 │  │  │  ├─ android_real_build_pipeline_service.py
@@ -431,10 +504,12 @@ devops-god-mode/
 │  │  │  ├─ approved_deep_execution_plan_service.py
 │  │  │  ├─ approved_work_queue_mobile_panel_service.py
 │  │  │  ├─ approved_work_queue_runner_service.py
+│  │  │  ├─ architecture_suggester.py
 │  │  │  ├─ artifacts_center_service.py
 │  │  │  ├─ asset_derivative_service.py
 │  │  │  ├─ asset_workspace_sync_service.py
 │  │  │  ├─ automatic_project_classification_service.py
+│  │  │  ├─ autonomous_dev_loop_service.py
 │  │  │  ├─ autonomous_ia_work_session_operator_service.py
 │  │  │  ├─ autonomous_install_research_code_service.py
 │  │  │  ├─ autonomous_project_continuation_service.py
@@ -452,7 +527,10 @@ devops-god-mode/
 │  │  │  ├─ chat_autopilot_supervisor_service.py
 │  │  │  ├─ chat_boot_briefing_service.py
 │  │  │  ├─ chat_inline_card_renderer_service.py
+│  │  │  ├─ ci_monitor_service.py
 │  │  │  ├─ cockpit_runtime_ux_service.py
+│  │  │  ├─ code_chunker.py
+│  │  │  ├─ code_suggester.py
 │  │  │  ├─ context_aware_orchestration_service.py
 │  │  │  ├─ continuous_remote_execution_service.py
 │  │  │  ├─ conversation_bundle_service.py
@@ -465,6 +543,8 @@ devops-god-mode/
 │  │  │  ├─ conversation_requirement_ledger_service.py
 │  │  │  ├─ conversation_rollover_handoff_service.py
 │  │  │  ├─ conversation_source_import_feed_service.py
+│  │  │  ├─ cross_project_intelligence.py
+│  │  │  ├─ cross_repo_scanner.py
 │  │  │  ├─ daily_command_router_service.py
 │  │  │  ├─ dedup_project_intake_audit_service.py
 │  │  │  ├─ delivery_acknowledgment_service.py
@@ -483,6 +563,7 @@ devops-god-mode/
 │  │  │  ├─ env_intake_service.py
 │  │  │  ├─ env_vault_import_service.py
 │  │  │  ├─ execution_modes_engine_service.py
+│  │  │  ├─ execution_orchestrator.py
 │  │  │  ├─ external_ai_browser_worker_service.py
 │  │  │  ├─ external_ai_chat_reader_service.py
 │  │  │  ├─ external_ai_session_plan_service.py
@@ -507,11 +588,13 @@ devops-god-mode/
 │  │  │  ├─ first_release_artifact_center_service.py
 │  │  │  ├─ first_run_bundle_service.py
 │  │  │  ├─ first_usable_release_service.py
+│  │  │  ├─ gap_detector_service.py
 │  │  │  ├─ github_actions_connector_service.py
 │  │  │  ├─ github_approved_actions_executor_service.py
 │  │  │  ├─ github_memory_sync_service.py
 │  │  │  ├─ github_repo_inventory_feed_service.py
 │  │  │  ├─ github_service.py
+│  │  │  ├─ github_write_agent.py
 │  │  │  ├─ goal_planner_service.py
 │  │  │  ├─ god_mode_global_state_service.py
 │  │  │  ├─ god_mode_home_service.py
@@ -555,6 +638,7 @@ devops-god-mode/
 │  │  │  ├─ local_cleanup_optimizer_service.py
 │  │  │  ├─ local_code_patch_service.py
 │  │  │  ├─ local_encrypted_vault_contract_service.py
+│  │  │  ├─ local_executor_service.py
 │  │  │  ├─ local_file_apply_runtime_service.py
 │  │  │  ├─ local_knowledge_rag_decision_service.py
 │  │  │  ├─ local_pc_runtime_orchestrator_service.py
@@ -609,6 +693,7 @@ devops-god-mode/
 │  │  │  ├─ orchestration_playbook_service.py
 │  │  │  ├─ packaging_foundation_service.py
 │  │  │  ├─ patch_apply_preview_service.py
+│  │  │  ├─ pattern_library.py
 │  │  │  ├─ pc_autopilot_loop_service.py
 │  │  │  ├─ pc_first_core_extraction_service.py
 │  │  │  ├─ pc_link_helper_service.py
@@ -618,6 +703,7 @@ devops-god-mode/
 │  │  │  ├─ pc_mobile_runtime_topology_service.py
 │  │  │  ├─ pc_phone_bootstrap_service.py
 │  │  │  ├─ pc_provider_conversation_proof_service.py
+│  │  │  ├─ phase_planner_service.py
 │  │  │  ├─ pipeline_persistence_executor_service.py
 │  │  │  ├─ platform_control_hardening_service.py
 │  │  │  ├─ platform_failure_triage_service.py
@@ -675,6 +761,7 @@ devops-god-mode/
 │  │  │  ├─ real_work_command_pipeline_service.py
 │  │  │  ├─ real_work_fast_path_service.py
 │  │  │  ├─ registry_service.py
+│  │  │  ├─ relay_worker_service.py
 │  │  │  ├─ release_candidate_handoff_service.py
 │  │  │  ├─ remote_brain_linkage_service.py
 │  │  │  ├─ remote_channel_stability_service.py
@@ -691,12 +778,19 @@ devops-god-mode/
 │  │  │  ├─ resumable_job_checkpoint_engine_service.py
 │  │  │  ├─ reusable_code_registry_service.py
 │  │  │  ├─ revenue_sprint_planner_service.py
+│  │  │  ├─ roadmap_generator_service.py
 │  │  │  ├─ ruflo_research_lab_service.py
 │  │  │  ├─ runtime_supervisor_guidance_service.py
 │  │  │  ├─ script_extraction_reuse_service.py
 │  │  │  ├─ secret_vault_service.py
+│  │  │  ├─ self_evolution_engine_service.py
+│  │  │  ├─ self_evolution_gate_service.py
+│  │  │  ├─ self_state_analyzer_service.py
 │  │  │  ├─ self_update_manager_service.py
 │  │  │  ├─ self_update_service.py
+│  │  │  ├─ semantic_cron.py
+│  │  │  ├─ semantic_index_builder.py
+│  │  │  ├─ semantic_search.py
 │  │  │  ├─ shared_secret_topology_service.py
 │  │  │  ├─ smol_godmode_reference_adapter_service.py
 │  │  │  ├─ spectacular_upgrade_advisor_service.py
@@ -718,6 +812,10 @@ devops-god-mode/
 │  │  │  └─ atomic_json_store.py
 │  │  ├─ __init__.py
 │  │  └─ config.py
+│  ├─ backend/
+│  │  └─ data/
+│  │     ├─ operational_state.json.bak
+│  │     └─ operational_state.json.lock
 │  ├─ contracts/
 │  │  ├─ action_center_quick_actions.example.json
 │  │  ├─ adaptation_plan_item.example.json
@@ -879,8 +977,52 @@ devops-god-mode/
 │  │  ├─ windows_exe_real_build_profile.example.json
 │  │  ├─ workspace_bridge.example.json
 │  │  └─ write_verify_rollback.example.json
+│  ├─ data/
+│  │  ├─ operational_state.json.bak
+│  │  ├─ operational_state.json.lock
+│  │  ├─ operator_action_journal.json
+│  │  ├─ operator_approval_gates.json
+│  │  ├─ operator_conversation_threads.json
+│  │  ├─ operator_input_requests.json
+│  │  ├─ operator_popup_deliveries.json
+│  │  ├─ operator_resumable_actions.json
+│  │  ├─ secret_vault_store.json
+│  │  └─ tenant_partition_store.json
 │  ├─ main.py
-│  └─ requirements.txt
+│  ├─ relay_worker.py
+│  ├─ requirements.txt
+│  ├─ test_phase_234.py
+│  └─ verify_dev_loop.py
+├─ data/
+│  ├─ approval_broker_store.json
+│  ├─ approval_gated_execution_store.json
+│  ├─ browser_conversation_intake_store.json
+│  ├─ conversation_bundle_store.json
+│  ├─ conversation_reconciliation_store.json
+│  ├─ conversation_repo_reconstruction_store.json
+│  ├─ deployment_secret_bindings.json
+│  ├─ desktop_bootstrap_store.json
+│  ├─ env_intake_store.json
+│  ├─ external_asset_intake.json
+│  ├─ local_code_patch_store.json
+│  ├─ local_file_apply_runtime_store.json
+│  ├─ local_real_validator_store.json
+│  ├─ mobile_approval_cockpit_v2.json
+│  ├─ operator_action_journal.json
+│  ├─ operator_approval_gates.json
+│  ├─ operator_conversation_threads.json
+│  ├─ operator_input_requests.json
+│  ├─ operator_popup_deliveries.json
+│  ├─ operator_resumable_actions.json
+│  ├─ packaging_foundation_store.json
+│  ├─ patch_apply_preview_store.json
+│  ├─ pc_phone_bootstrap_store.json
+│  ├─ provider_session_partition_store.json
+│  ├─ real_local_write_store.json
+│  ├─ repo_env_harvest_store.json
+│  ├─ secret_vault_store.json
+│  ├─ tenant_partition_store.json
+│  └─ write_verify_rollback_store.json
 ├─ desktop/
 │  ├─ godmode_desktop_launcher.py
 │  ├─ godmode_update_helper.py
@@ -1192,15 +1334,15 @@ devops-god-mode/
 │  ├─ windows-shortcut-autostart-scripts-plan.md
 │  └─ write-verify-and-rollback-plan.md
 ├─ frontend/
+│  ├─ api/
+│  │  └─ index.py
 │  ├─ mobile-shell/
 │  │  ├─ apk-launch-config.json
-│  │  ├─ app.js
 │  │  ├─ backend-presets.example.json
-│  │  ├─ index.html
-│  │  ├─ manifest.json
-│  │  ├─ README.md
-│  │  └─ styles.css
-│  └─ index.html
+│  │  └─ README.md
+│  ├─ index.html
+│  ├─ vercel.json
+│  └─ vite.config.js
 ├─ memory/
 │  ├─ config/
 │  │  └─ memory.config.json
@@ -1304,14 +1446,30 @@ devops-god-mode/
 │  │     └─ 99_ARQUIVO/
 │  │        └─ INDEX.md
 │  └─ README.md
+├─ repos/
+│  └─ output.py
 ├─ scripts/
 │  ├─ windows/
 │  │  ├─ start-god-mode-hybrid.ps1
 │  │  ├─ start-god-mode-local.ps1
 │  │  └─ start-mobile-shell-local.ps1
-│  └─ generate_project_tree.py
+│  ├─ deploy_vercel.py
+│  ├─ fix_tests.py
+│  ├─ generate_project_tree.py
+│  └─ scan_errors.py
 ├─ tools/
 │  └─ pc_provider_conversation_probe.py
 ├─ .gitignore
+├─ app.js
+├─ autonomous_loop.py
 ├─ God_Mode_TREE.txt
-└─ README.md
+├─ index.html
+├─ manifest.json
+├─ monitor.py
+├─ production_loop.py
+├─ README.md
+├─ rollback.py
+├─ run_desktop.py
+├─ setup_env.py
+├─ style.css
+└─ vercel.json
