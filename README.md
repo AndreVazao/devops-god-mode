@@ -8,7 +8,7 @@ O God Mode existe para o André conseguir trabalhar e comandar projetos mesmo es
 
 O projeto já não está em bootstrap inicial.
 
-O `main` já contém fases operacionais até à **Phase 174**:
+O `main` já contém fases operacionais até à **Phase 234**:
 
 - Ecosystem Map operacional;
 - Ruflo/Praison como laboratórios de pesquisa, não dependências centrais;
