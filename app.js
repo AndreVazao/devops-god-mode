@@ -11,7 +11,8 @@ const RELAY_TOKEN = getRelayToken();
 
 let state = {
     chats: {},
-    activeChat: null
+    activeChat: null,
+    agents: []
 };
 let currentFile = null;
 let editor;
@@ -72,6 +73,18 @@ function render(){
         <div class="input">
           <input id="msg" placeholder="Escreve..."/>
           <button onclick="send()">➤</button>
+        </div>
+
+        <div class="agent-grid">
+            ${(state.agents || []).map(a => `
+                <div class="agent-card">
+                    <div>
+                        <span class="agent-status status-${a.status}"></span>
+                        <strong>${a.name}</strong>
+                    </div>
+                    <div class="agent-output">${a.output || a.status}</div>
+                </div>
+            `).join("")}
         </div>
 
         <div class="terminal" id="terminal"></div>
@@ -169,5 +182,5 @@ async function loadLogs(){
   } catch (e) {}
 }
 
-setInterval(loadLogs, 5000);
+setInterval(load, 2000);
 load();

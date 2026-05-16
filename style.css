@@ -75,3 +75,45 @@ button {
   overflow-y: auto;
   padding: 5px;
 }
+
+/* Agent Grid */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  background: #1e293b;
+  border-top: 1px solid #334155;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.agent-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.8rem;
+}
+
+.agent-status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.status-idle { background: #64748b; }
+.status-active { background: #fbbf24; box-shadow: 0 0 5px #fbbf24; }
+.status-done { background: #10b981; }
+.status-error { background: #ef4444; }
+
+.agent-output {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
