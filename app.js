@@ -1,4 +1,5 @@
-const BASE = "https://devops-god-mode.vercel.app";
+const RELAY_BASE = "https://devops-god-mode.vercel.app";
+const LOCAL_BASE = "http://127.0.0.1:8000";
 
 const getRelayToken = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -12,175 +13,127 @@ const RELAY_TOKEN = getRelayToken();
 let state = {
     chats: {},
     activeChat: null,
-    agents: []
+    agents: [],
+    providers: [],
+    backendOnline: false
 };
-let currentFile = null;
-let editor;
 
-async function api(path, method="GET", body){
-  const r = await fetch(BASE+path,{
-    method,
-    headers:{
-        "Content-Type":"application/json",
-        "Authorization": `Bearer ${RELAY_TOKEN}`
-    },
-    body: body?JSON.stringify(body):undefined
-  });
-  return r.json();
-}
-
-async function load(){
+async function api(base, path, method="GET", body){
   try {
-    state = await api("/api/state");
-    render();
+      const r = await fetch(base + path, {
+        method,
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${RELAY_TOKEN}`
+        },
+        body: body ? JSON.stringify(body) : undefined
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
   } catch (e) {
-    console.error("Load state failed", e);
+      console.error(`API Error (${path}):`, e);
+      throw e;
   }
 }
 
-function render(){
-  const chat = state.chats && state.activeChat && state.chats[state.activeChat] ? state.chats[state.activeChat] : null;
-
-  document.getElementById("app").innerHTML = `
-    <div class="ide">
-
-      <!-- Sidebar -->
-      <div class="sidebar-icons">
-        <div class="icon" onclick="load()">💬</div>
-        <div class="icon" onclick="loadFiles()">📁</div>
-        <div class="icon" onclick="loadLogs()">📊</div>
-      </div>
-
-      <!-- Explorer -->
-      <div class="explorer" id="explorer">
-        <h3>Ficheiros</h3>
-      </div>
-
-      <!-- Editor -->
-      <div class="editor" id="editor"></div>
-
-      <!-- Chat -->
-      <div class="chat">
-        <div class="messages" id="chatMessages">
-          ${chat ? chat.messages.map(m=>`
-            <div style="margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px;">
-                <small style="color: #64748b;">${m.role}</small>
-                <div>${m.content || m.text || ""}</div>
-            </div>
-          `).join("") : "Nenhum chat ativo"}
-        </div>
-
-        <div class="input">
-          <input id="msg" placeholder="Escreve..."/>
-          <button onclick="send()">➤</button>
-        </div>
-
-        <div class="agent-grid">
-            ${(state.agents || []).map(a => `
-                <div class="agent-card">
-                    <div>
-                        <span class="agent-status status-${a.status}"></span>
-                        <strong>${a.name}</strong>
-                    </div>
-                    <div class="agent-output">${a.output || a.status}</div>
-                </div>
-            `).join("")}
-        </div>
-
-        <div class="terminal" id="terminal"></div>
-      </div>
-
-    </div>
-  `;
-
-  initEditor();
-  const msgs = document.getElementById("chatMessages");
-  if (msgs) msgs.scrollTop = msgs.scrollHeight;
-}
-
-function initEditor(){
-  if (typeof require === 'undefined') {
-      setTimeout(initEditor, 100);
-      return;
-  }
-  if (editor) return;
-
-  require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@latest/min/vs' }});
-
-  require(['vs/editor/editor.main'], function () {
-    editor = monaco.editor.create(document.getElementById('editor'), {
-      value: "// God Mode IDE",
-      language: "javascript",
-      theme: "vs-dark",
-      automaticLayout: true
-    });
-  });
-}
-
-async function loadFiles(){
-  try {
-    const files = await api("/api/files");
-    document.getElementById("explorer").innerHTML = `<h3>Ficheiros</h3>` + files.map(f=>`
-      <div class="chat-item" style="padding: 5px; cursor: pointer;" onclick="openFile('${f}')">${f}</div>
-    `).join("");
-  } catch (e) {
-    console.error("Load files failed", e);
-  }
-}
-
-async function openFile(file){
-  currentFile = file;
-  try {
-    const content = await api("/api/files?name="+file);
-    if (editor) editor.setValue(typeof content === 'string' ? content : JSON.stringify(content, null, 2));
-  } catch (e) {
-    console.error("Open file failed", e);
-  }
-}
-
-async function saveFile(){
-  if (!currentFile || !editor) return;
-  await api("/api/files","POST",{
-    name: currentFile,
-    content: editor.getValue()
-  });
-
-  log("✔ Guardado "+currentFile);
-}
-
-async function send(){
-  const input = document.getElementById("msg");
-  const text = input.value;
-  if (!text) return;
-
-  await api("/api/relay","POST",{
-    chatId: state.activeChat,
-    content: text,
-    action: "chat"
-  });
-
-  input.value = "";
-  await load();
-}
-
-function log(text){
-  const t = document.getElementById("terminal");
-  if (t) {
-    t.innerHTML += text+"<br/>";
-    t.scrollTop = t.scrollHeight;
-  }
-}
-
-async function loadLogs(){
-  try {
-    const logs = await api("/api/logs");
-    const t = document.getElementById("terminal");
-    if (t && Array.isArray(logs)) {
-        t.innerHTML = logs.join("<br/>");
-        t.scrollTop = t.scrollHeight;
+async function checkBackend() {
+    try {
+        const health = await api(LOCAL_BASE, "/health");
+        state.backendOnline = (health.status === "ok");
+    } catch (e) {
+        state.backendOnline = false;
     }
-  } catch (e) {}
+
+    const banner = document.getElementById("backend-error");
+    if (banner) {
+        banner.style.display = state.backendOnline ? "none" : "block";
+    }
 }
 
-setInterval(load, 2000);
-load();
+async function loadData() {
+    await checkBackend();
+
+    // Load state from relay
+    try {
+        const relayState = await api(RELAY_BASE, "/api/state");
+        state.agents = relayState.agents || [];
+        state.chats = relayState.chats || {};
+        state.activeChat = relayState.activeChat;
+    } catch (e) {}
+
+    // Load agents/providers from local if online, or use mock/relay data
+    if (state.backendOnline) {
+        try {
+            const adapters = await api(LOCAL_BASE, "/api/chat-inventory/adapters");
+            state.providers = adapters.adapters || [];
+        } catch (e) {}
+    }
+
+    render();
+}
+
+function render() {
+    const agentGrid = document.getElementById("agent-grid");
+    if (agentGrid) {
+        agentGrid.innerHTML = state.agents.length ? state.agents.map(a => `
+            <div class="monitor-card">
+                <span class="monitor-name">${a.name}</span>
+                <span class="monitor-status">
+                    <span class="dot dot-${a.status}"></span> ${a.status}
+                </span>
+                <div style="font-size: 10px; color: #64748b; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${a.output || ''}
+                </div>
+            </div>
+        `).join("") : '<div class="monitor-status">Nenhum agente ativo</div>';
+    }
+
+    const providerGrid = document.getElementById("provider-grid");
+    if (providerGrid) {
+        providerGrid.innerHTML = state.providers.length ? state.providers.map(p => `
+            <div class="monitor-card">
+                <span class="monitor-name">${p.platform || p.adapter_id}</span>
+                <span class="monitor-status">
+                    <span class="dot dot-online"></span> ${p.adapter_status || 'ready'}
+                </span>
+            </div>
+        `).join("") : '<div class="monitor-status">Nenhum provider configurado</div>';
+    }
+}
+
+async function sendChat() {
+    const input = document.getElementById("chat-input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    try {
+        await api(RELAY_BASE, "/api/relay", "POST", {
+            chatId: state.activeChat,
+            content: text,
+            action: "chat"
+        });
+        input.value = "";
+        await loadData();
+    } catch (e) {
+        alert("Erro ao enviar mensagem.");
+    }
+}
+
+function executeCommand(cmd) {
+    const input = document.getElementById("chat-input");
+    input.value = cmd;
+    sendChat();
+}
+
+function createNewChat() {
+    alert("Funcionalidade Novo Chat em desenvolvimento.");
+}
+
+// Initial load
+loadData();
+setInterval(loadData, 5000);
+
+// Handle Enter in chat input
+document.getElementById("chat-input")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendChat();
+});

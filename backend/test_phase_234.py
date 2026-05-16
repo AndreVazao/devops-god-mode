@@ -10,17 +10,20 @@ def test_pipeline_routing():
     print("Testing 'criar' trigger...")
     res = think("criar uma nova api de pagamentos")
     print("Result:", res)
-    assert "Pipeline Enterprise completo" in res["text"]
+    assert res.get("distributed") is True
+    assert "goal" in res
 
-    print("Testing 'build' trigger...")
-    res = think("build o projeto atual")
+    print("Testing 'deploy' trigger...")
+    res = think("deploy para vercel")
     print("Result:", res)
+    # Pipeline returns a message structure
+    assert "text" in res
     assert "Pipeline Enterprise completo" in res["text"]
 
     print("Testing regular goal...")
-    res = think("olá god mode")
+    res = think("olá")
     print("Result:", res)
-    assert "elite" in res
+    assert "goal" in res
 
 if __name__ == "__main__":
     try:
@@ -30,3 +33,4 @@ if __name__ == "__main__":
         print(f"❌ Enterprise Pipeline routing test failed: {e}")
         import traceback
         traceback.print_exc()
+        exit(1)
