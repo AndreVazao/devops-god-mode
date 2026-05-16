@@ -19,6 +19,19 @@ export default async function handler(req, res) {
         console.warn("KV get failed", e);
     }
 
+    const defaultAgents = [
+        { name: "Python Agent", status: "idle", output: "" },
+        { name: "Node Agent", status: "idle", output: "" },
+        { name: "HTML Agent", status: "idle", output: "" },
+        { name: "React Agent", status: "idle", output: "" },
+        { name: "Integration Agent", status: "idle", output: "" },
+        { name: "Deploy Agent", status: "idle", output: "" },
+        { name: "CI/CD Agent", status: "idle", output: "" },
+        { name: "Test Agent", status: "idle", output: "" },
+        { name: "Security Agent", status: "idle", output: "" },
+        { name: "UI Agent", status: "idle", output: "" }
+    ];
+
     if (!state) {
       state = {
         chats: {
@@ -35,10 +48,15 @@ export default async function handler(req, res) {
                 ]
             }
         },
-        activeChat: "default"
+        activeChat: "default",
+        agents: defaultAgents
       };
     } else if (typeof state === 'string') {
         state = JSON.parse(state);
+    }
+
+    if (!state.agents || state.agents.length < 10) {
+        state.agents = defaultAgents;
     }
 
     if (method === "GET") {
@@ -48,15 +66,13 @@ export default async function handler(req, res) {
     if (method === "POST") {
       const { type, payload } = req.body;
 
-      if (type === "NEW_CHAT") {
-        const id = Date.now().toString();
-        state.chats[id] = {
-          id,
-          name: payload?.name || "Novo chat",
-          messages: [],
-          unread: false
-        };
-        state.activeChat = id;
+      if (type === "UPDATE_AGENTS") {
+          const { name, status, output } = payload;
+          const agentIndex = state.agents.findIndex(a => a.name === name);
+          if (agentIndex !== -1) {
+              state.agents[agentIndex].status = status;
+              state.agents[agentIndex].output = output;
+          }
       }
 
       if (type === "MESSAGE") {
@@ -72,39 +88,21 @@ export default async function handler(req, res) {
         }
       }
 
-      if (type === "RENAME") {
-        const { chatId, name } = payload;
-        if (state.chats[chatId]) {
-            state.chats[chatId].name = name;
-        }
-      }
-
-      if (type === "UPDATE_CHAT") {
-          const { id, messages, name } = payload;
-          if (state.chats[id]) {
-              state.chats[id].messages = messages || state.chats[id].messages;
-              state.chats[id].name = name || state.chats[id].name;
-          }
+      if (type === "NEW_CHAT") {
+        const id = Date.now().toString();
+        state.chats[id] = { id, name: payload?.name || "Novo chat", messages: [], unread: false };
+        state.activeChat = id;
       }
 
       if (type === "SET_ACTIVE") {
           const { chatId } = payload;
-          if (state.chats[chatId]) {
-              state.activeChat = chatId;
-          }
+          if (state.chats[chatId]) state.activeChat = chatId;
       }
 
-      try {
-          await kv.set(STATE_KEY, JSON.stringify(state));
-      } catch (e) {
-          console.warn("KV set failed", e);
-      }
+      await kv.set(STATE_KEY, JSON.stringify(state));
       return res.json({ ok: true });
     }
   } catch (error) {
-    console.error("State API Error:", error);
     return res.status(500).json({ error: error.message });
   }
-
-  res.status(405).end();
 }
