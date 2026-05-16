@@ -1,16 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-PT">
 <head>
   <meta charset="UTF-8">
-  <title>God Mode IDE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jules MAD - Codex Cockpit</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <div class="app-container">
 
-  <!-- Monaco Editor -->
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="logo">
+          <span class="logo-pulse">⚡</span> JULES MAD
+        </div>
+
+        <button class="new-chat-btn" onclick="createNewChat()">
+          <span>+</span> Novo Chat
+        </button>
+
+        <nav>
+          <div class="nav-item">
+            <span>📦</span> vault
+          </div>
+          <div class="nav-item">
+            <span>🛡️</span> Security
+          </div>
+          <div class="nav-item">
+            <span>⚡</span> Workers
+          </div>
+          <div class="nav-item active">
+            <span>📁</span> Repos
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div id="backend-error" class="error-banner">
+          ⚠️ O backend local não está a responder. Corre o 'run_desktop.py'.
+        </div>
+
+        <div class="header">
+          <div class="status-badge">
+            <span class="dot dot-online"></span> ONLINE
+          </div>
+          <div class="version">BRAIN v2.1.0</div>
+
+          <div class="header-meta">DEVOPS AUTONOMOUS AGENT</div>
+          <h1 class="header-title">Codex Cockpit</h1>
+        </div>
+
+        <div class="action-grid">
+          <button class="action-btn" onclick="executeCommand('$Abre as minhas repos')">
+            $Abre as minhas repos
+          </button>
+        </div>
+
+        <div class="monitor-section">
+          <h3>Agentes Ativos</h3>
+          <div id="agent-grid" class="monitor-grid">
+            <!-- Agents will be injected here -->
+          </div>
+        </div>
+
+        <div class="monitor-section">
+          <h3>AI Providers</h3>
+          <div id="provider-grid" class="monitor-grid">
+            <!-- Providers will be injected here -->
+          </div>
+        </div>
+
+        <div class="chat-input-wrapper">
+          <input type="text" id="chat-input" class="chat-input" placeholder="Comando para o Jules MAD...">
+          <button class="send-btn" onclick="sendChat()">➤</button>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Monaco Editor (Hidden or optional in this view) -->
   <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
-
   <script src="app.js"></script>
 </body>
 </html>
