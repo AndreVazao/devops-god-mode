@@ -209,6 +209,174 @@
       "created_at": "2026-05-16T12:32:08.672306+00:00",
       "updated_at": "2026-05-16T12:32:08.672306+00:00",
       "decision": null
+    },
+    {
+      "card_id": "card-1da5238ee138",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "Evolution Approval: Evolution Phase: relay_stabilization",
+      "body": "The God Mode Self-Evolution Engine proposes a new phase.\n\nType: critical\nAction: dev_loop",
+      "card_type": "pr_write_approval",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-evolution",
+          "label": "Approve Evolution",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-evolution",
+          "label": "Reject",
+          "decision": "rejected"
+        }
+      ],
+      "source_ref": {
+        "type": "self_evolution",
+        "plan_id": "-4823127377531288870"
+      },
+      "metadata": {
+        "action": "dev_loop",
+        "phase_number": 1779016411,
+        "initial_message": "Auto phase: relay_stabilization",
+        "meta": {
+          "phase": "relay_stabilization",
+          "priority": 1,
+          "gap": "cloud_relay_missing"
+        },
+        "title": "Evolution Phase: relay_stabilization",
+        "type": "critical"
+      },
+      "created_at": "2026-05-17T11:13:31.035375+00:00",
+      "updated_at": "2026-05-17T11:13:31.035375+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-eab29d7a6c83",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "Evolution Approval: Evolution Phase: relay_stabilization",
+      "body": "The God Mode Self-Evolution Engine proposes a new phase.\n\nType: critical\nAction: dev_loop",
+      "card_type": "pr_write_approval",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-evolution",
+          "label": "Approve Evolution",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-evolution",
+          "label": "Reject",
+          "decision": "rejected"
+        }
+      ],
+      "source_ref": {
+        "type": "self_evolution",
+        "plan_id": "6001249160324199357"
+      },
+      "metadata": {
+        "action": "dev_loop",
+        "phase_number": 1779017222,
+        "initial_message": "Auto phase: relay_stabilization",
+        "meta": {
+          "phase": "relay_stabilization",
+          "priority": 1,
+          "gap": "cloud_relay_missing"
+        },
+        "title": "Evolution Phase: relay_stabilization",
+        "type": "critical"
+      },
+      "created_at": "2026-05-17T11:27:02.128153+00:00",
+      "updated_at": "2026-05-17T11:27:02.128153+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-bb184d3c3832",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "Evolution Approval: Evolution Phase: relay_stabilization",
+      "body": "The God Mode Self-Evolution Engine proposes a new phase.\n\nType: critical\nAction: dev_loop",
+      "card_type": "pr_write_approval",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-evolution",
+          "label": "Approve Evolution",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-evolution",
+          "label": "Reject",
+          "decision": "rejected"
+        }
+      ],
+      "source_ref": {
+        "type": "self_evolution",
+        "plan_id": "6876826502717108195"
+      },
+      "metadata": {
+        "action": "dev_loop",
+        "phase_number": 1779017536,
+        "initial_message": "Auto phase: relay_stabilization",
+        "meta": {
+          "phase": "relay_stabilization",
+          "priority": 1,
+          "gap": "cloud_relay_missing"
+        },
+        "title": "Evolution Phase: relay_stabilization",
+        "type": "critical"
+      },
+      "created_at": "2026-05-17T11:32:16.501234+00:00",
+      "updated_at": "2026-05-17T11:32:16.501234+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-1541c3f9fde0",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "Evolution Approval: Evolution Phase: relay_stabilization",
+      "body": "The God Mode Self-Evolution Engine proposes a new phase.\n\nType: critical\nAction: dev_loop",
+      "card_type": "pr_write_approval",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-evolution",
+          "label": "Approve Evolution",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-evolution",
+          "label": "Reject",
+          "decision": "rejected"
+        }
+      ],
+      "source_ref": {
+        "type": "self_evolution",
+        "plan_id": "628074192282802520"
+      },
+      "metadata": {
+        "action": "dev_loop",
+        "phase_number": 1779017678,
+        "initial_message": "Auto phase: relay_stabilization",
+        "meta": {
+          "phase": "relay_stabilization",
+          "priority": 1,
+          "gap": "cloud_relay_missing"
+        },
+        "title": "Evolution Phase: relay_stabilization",
+        "type": "critical"
+      },
+      "created_at": "2026-05-17T11:34:38.753709+00:00",
+      "updated_at": "2026-05-17T11:34:38.753709+00:00",
+      "decision": null
     }
   ],
   "threads": {
@@ -219,9 +387,13 @@
         "card-6b9842f32e5b",
         "card-e378fcbaf6e1",
         "card-d4e7214f22e8",
-        "card-ed61f73df86d"
+        "card-ed61f73df86d",
+        "card-1da5238ee138",
+        "card-eab29d7a6c83",
+        "card-bb184d3c3832",
+        "card-1541c3f9fde0"
       ],
-      "last_seen_at": "2026-05-16T12:32:08.672306+00:00"
+      "last_seen_at": "2026-05-17T11:34:38.753709+00:00"
     }
   }
 }
