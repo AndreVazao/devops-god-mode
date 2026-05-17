@@ -3,11 +3,14 @@ from __future__ import annotations
 import importlib
 import pkgutil
 import logging
+import traceback
+import sys
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app import routes
 from app.config import settings
@@ -16,7 +19,15 @@ from app.services.semantic_cron import start_semantic_cron
 from app.evolution.self_evolution_engine import start_evolution_engine
 from app.brain.operational_loop import start_operational_brain
 
-logging.basicConfig(level=logging.INFO)
+# Setup structured logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler("backend.log")
+    ]
+)
 logger = logging.getLogger(__name__)
 
 @asynccontextmanager
@@ -31,18 +42,32 @@ async def lifespan(app: FastAPI):
         ("Operational Brain", start_operational_brain)
     ]
 
+    background_threads = []
     for name, starter in services:
         try:
             logger.info(f"Starting {name}...")
-            starter()
+            t = starter()
+            if t:
+                background_threads.append(t)
         except Exception as e:
             logger.error(f"Failed to start {name}: {e}")
+            logger.error(traceback.format_exc())
 
     yield
     logger.info("God Mode services shutting down...")
 
 
 app = FastAPI(title="DevOps God Mode", lifespan=lifespan)
+
+# Global Exception Handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global error caught: {exc}")
+    logger.error(traceback.format_exc())
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error", "detail": str(exc)},
+    )
 
 app.add_middleware(
     CORSMiddleware,
@@ -69,8 +94,12 @@ def _include_all_route_modules() -> List[str]:
             if router is not None:
                 app.include_router(router)
                 loaded.append(module_name)
+            else:
+                logger.debug(f"Module {module_name} has no router attribute")
         except Exception as e:
             logger.error(f"Failed to load route module {module_name}: {e}")
+            # We don't want to crash the whole app if one route fails to load
+            continue
 
     return loaded
 
@@ -122,5 +151,8 @@ def config_status() -> Dict[str, Any]:
 
 if __name__ == "__main__":
     import uvicorn
-    logger.info(f"Manual start on {settings.APP_HOST}:{settings.APP_PORT}")
-    uvicorn.run(app, host=settings.APP_HOST, port=settings.APP_PORT)
+    # Respect environment variables for host and port
+    host = settings.APP_HOST
+    port = settings.APP_PORT
+    logger.info(f"Manual start on {host}:{port}")
+    uvicorn.run(app, host=host, port=port)
