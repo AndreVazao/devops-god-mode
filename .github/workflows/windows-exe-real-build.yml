@@ -46,7 +46,15 @@ jobs:
         shell: pwsh
         run: |
           pyinstaller --clean --noconfirm desktop/GodModeDesktop.spec
+          pyinstaller --onefile --clean --noconfirm launcher.py
           Get-Item dist/GodModeDesktop.exe | Format-List FullName,Length,LastWriteTime
+
+      - name: Build professional installer
+        shell: pwsh
+        run: |
+          choco install innosetup -y
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+          Get-Item dist/GodModeSetup.exe | Format-List FullName,Length,LastWriteTime
 
       - name: Prepare desktop helper bundle
         shell: pwsh
@@ -163,7 +171,9 @@ jobs:
       - name: Verify built files exist
         shell: pwsh
         run: |
-          if (-not (Test-Path dist/GodModeDesktop.exe)) { throw 'dist/GodModeDesktop.exe was not created.' }
+          if (-not (Test-Path dist/GodModeSetup.exe
+            dist/launcher.exe
+            dist/GodModeDesktop.exe)) { throw 'dist/GodModeDesktop.exe was not created.' }
           if (-not (Test-Path dist/support/windows_shortcut_bootstrap.ps1)) { throw 'Desktop shortcut helper was not created.' }
           if (-not (Test-Path dist/support/windows_autostart_bootstrap.ps1)) { throw 'Desktop autostart helper was not created.' }
           if (-not (Test-Path dist/support/godmode_update_helper.py)) { throw 'Desktop update helper was not created.' }
@@ -180,7 +190,9 @@ jobs:
           if (Test-Path $appData) { Remove-Item $appData -Recurse -Force }
           New-Item -ItemType Directory -Force -Path $appData | Out-Null
 
-          $process = Start-Process -FilePath (Resolve-Path 'dist/GodModeDesktop.exe') -PassThru -WindowStyle Hidden
+          $process = Start-Process -FilePath (Resolve-Path 'dist/GodModeSetup.exe
+            dist/launcher.exe
+            dist/GodModeDesktop.exe') -PassThru -WindowStyle Hidden
           try {
             $healthy = $false
             $body = ''
@@ -234,6 +246,8 @@ jobs:
         with:
           name: godmode-windows-exe
           path: |
+            dist/GodModeSetup.exe
+            dist/launcher.exe
             dist/GodModeDesktop.exe
             dist/support/windows_shortcut_bootstrap.ps1
             dist/support/windows_autostart_bootstrap.ps1
