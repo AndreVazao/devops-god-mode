@@ -13,7 +13,7 @@ def write_file(path, content):
         f.write(content)
 
 def run_tests():
-    return run("export PYTHONPATH=$PYTHONPATH:$(pwd)/backend && pytest backend/app/brain/test_operational_brain.py")
+    return run("export PYTHONPATH=$PYTHONPATH:$(pwd)/backend && pytest backend/app/brain/test_operational_brain.py || pytest app/brain/test_operational_brain.py")
 
 def run_lint():
     return run("flake8 . --exclude=android-app,node_modules,venv --ignore=E501,F401")
