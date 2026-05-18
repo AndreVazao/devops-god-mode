@@ -1,0 +1,19 @@
+{
+  "desktop_bootstrap_profiles": [
+    {
+      "bootstrap_id": "desktop_bootstrap_pc_primary",
+      "runtime_mode": "pc_and_phone_primary",
+      "desktop_shortcut": true,
+      "autostart": false,
+      "first_run_actions": [
+        "create_local_config",
+        "prepare_shortcut_payload",
+        "open_local_cockpit"
+      ],
+      "local_backend_url": "http://127.0.0.1:8787",
+      "local_shell_url": "http://127.0.0.1:4173",
+      "bootstrap_status": "planned"
+    }
+  ],
+  "updated_at": "2026-05-18T18:08:45.788546+00:00"
+}

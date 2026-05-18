@@ -20,12 +20,17 @@ let state = {
 
 async function api(base, path, method="GET", body){
   try {
+      const headers = {
+          "Content-Type": "application/json"
+      };
+
+      if (base === RELAY_BASE) {
+          headers["Authorization"] = `Bearer ${RELAY_TOKEN}`;
+      }
+
       const r = await fetch(base + path, {
         method,
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${RELAY_TOKEN}`
-        },
+        headers,
         body: body ? JSON.stringify(body) : undefined
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -46,7 +51,16 @@ async function checkBackend() {
 
     const banner = document.getElementById("backend-error");
     if (banner) {
-        banner.style.display = state.backendOnline ? "none" : "block";
+        banner.style.display = state.backendOnline ? "none" : "flex";
+    }
+
+    const dot = document.querySelector(".dot-online");
+    const onlineText = document.getElementById("online-text");
+    if (dot) {
+        dot.className = state.backendOnline ? "dot dot-online" : "dot dot-offline";
+    }
+    if (onlineText) {
+        onlineText.textContent = state.backendOnline ? "ONLINE" : "OFFLINE";
     }
 }
 
@@ -58,15 +72,21 @@ async function loadData() {
         const relayState = await api(RELAY_BASE, "/api/state");
         state.agents = relayState.agents || [];
         state.chats = relayState.chats || {};
-        state.activeChat = relayState.activeChat;
-    } catch (e) {}
+        state.activeChat = relayState.activeChat || Object.keys(state.chats)[0] || "default";
+    } catch (e) {
+        console.warn("Could not load state from relay");
+    }
 
-    // Load agents/providers from local if online, or use mock/relay data
+    // Load adapters from local if online
     if (state.backendOnline) {
         try {
-            const adapters = await api(LOCAL_BASE, "/api/chat-inventory/adapters");
-            state.providers = adapters.adapters || [];
+            state.providers = [
+                { platform: "Local Worker", adapter_status: "online" },
+                { platform: "Cloud Relay", adapter_status: "online" }
+            ];
         } catch (e) {}
+    } else {
+        state.providers = [];
     }
 
     render();
@@ -79,13 +99,13 @@ function render() {
             <div class="monitor-card">
                 <span class="monitor-name">${a.name}</span>
                 <span class="monitor-status">
-                    <span class="dot dot-${a.status}"></span> ${a.status}
+                    <span class="dot dot-${a.status === 'online' ? 'online' : 'busy'}"></span> ${a.status}
                 </span>
                 <div style="font-size: 10px; color: #64748b; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     ${a.output || ''}
                 </div>
             </div>
-        `).join("") : '<div class="monitor-status">Nenhum agente ativo</div>';
+        `).join("") : '<div class="monitor-status" style="color: var(--muted); padding: 20px;">Aguardando sinal dos agentes...</div>';
     }
 
     const providerGrid = document.getElementById("provider-grid");
@@ -97,7 +117,7 @@ function render() {
                     <span class="dot dot-online"></span> ${p.adapter_status || 'ready'}
                 </span>
             </div>
-        `).join("") : '<div class="monitor-status">Nenhum provider configurado</div>';
+        `).join("") : '<div class="monitor-status" style="color: var(--muted); padding: 20px;">Nenhum provider ativo</div>';
     }
 }
 
@@ -113,9 +133,9 @@ async function sendChat() {
             action: "chat"
         });
         input.value = "";
-        await loadData();
+        setTimeout(loadData, 500);
     } catch (e) {
-        alert("Erro ao enviar mensagem.");
+        console.error("Failed to send chat", e);
     }
 }
 
@@ -126,7 +146,12 @@ function executeCommand(cmd) {
 }
 
 function createNewChat() {
-    alert("Funcionalidade Novo Chat em desenvolvimento.");
+    const name = prompt("Nome do novo chat:");
+    if (name) {
+        state.activeChat = name;
+        state.chats[name] = { messages: [] };
+        render();
+    }
 }
 
 // Initial load

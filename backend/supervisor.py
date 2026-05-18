@@ -30,6 +30,11 @@ class ProcessManager:
 
     def start(self):
         logger.info(f"Starting {self.name}...")
+        # Ensure PYTHONPATH includes backend
+        python_path = self.env.get("PYTHONPATH", "")
+        if str(BACKEND_DIR) not in python_path:
+            self.env["PYTHONPATH"] = f"{BACKEND_DIR}{os.pathsep}{python_path}"
+
         self.process = subprocess.Popen(
             self.command,
             cwd=self.cwd,
@@ -39,12 +44,17 @@ class ProcessManager:
             text=True,
             bufsize=1
         )
-        # Start a thread to log output
+
         import threading
         def log_output():
-            for line in iter(self.process.stdout.readline, ""):
-                if line:
-                    print(f"[{self.name}] {line.strip()}")
+            try:
+                for line in iter(self.process.stdout.readline, ""):
+                    if line:
+                        clean_line = line.strip()
+                        print(f"[{self.name}] {clean_line}")
+                        logger.info(f"[{self.name} OUTPUT] {clean_line}")
+            except Exception as e:
+                logger.error(f"Error reading output from {self.name}: {e}")
 
         threading.Thread(target=log_output, daemon=True).start()
 
@@ -63,33 +73,26 @@ class ProcessManager:
                 self.process.kill()
 
 def main():
-    logger.info("God Mode Supervisor starting...")
+    logger.info("--- GOD MODE SUPERVISOR INITIALIZING ---")
 
-    env = os.environ.copy()
-    python_path = env.get("PYTHONPATH", "")
-    if str(BACKEND_DIR) not in python_path:
-        env["PYTHONPATH"] = f"{BACKEND_DIR}{os.pathsep}{python_path}"
-
-    # 1. FastAPI Server
+    # FastAPI Server command
+    # We use sys.executable to ensure we use the same environment
     api_cmd = [
         sys.executable, "-m", "uvicorn", "main:app",
         "--app-dir", str(BACKEND_DIR),
-        "--host", os.getenv("APP_HOST", "0.0.0.0"),
+        "--host", os.getenv("APP_HOST", "127.0.0.1"),
         "--port", os.getenv("APP_PORT", "8000")
     ]
 
-    # 2. Relay Worker (Standalone mode if preferred or as part of app)
-    # The app already starts start_worker in lifespan, but having a watchdog for the whole process is better.
-
     processes = [
-        ProcessManager("API", api_cmd, env=env)
+        ProcessManager("API", api_cmd)
     ]
 
     for p in processes:
         p.start()
 
     def signal_handler(sig, frame):
-        logger.info("Interrupt received, shutting down processes...")
+        logger.info("Interrupt received, shutting down God Mode...")
         for p in processes:
             p.stop()
         sys.exit(0)
@@ -97,15 +100,20 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    logger.info("Supervisor entering watchdog loop.")
-    while True:
-        for p in processes:
-            if not p.is_alive():
-                exit_code = p.process.poll()
-                logger.warning(f"Process {p.name} died with exit code {exit_code}. Restarting...")
-                p.start()
+    logger.info("Supervisor active and monitoring.")
 
-        time.sleep(5)
+    # Watchdog loop
+    try:
+        while True:
+            for p in processes:
+                if not p.is_alive():
+                    exit_code = p.process.poll()
+                    logger.warning(f"Process {p.name} died with exit code {exit_code}. Restarting in 3s...")
+                    time.sleep(3)
+                    p.start()
+            time.sleep(5)
+    except KeyboardInterrupt:
+        signal_handler(None, None)
 
 if __name__ == "__main__":
     main()

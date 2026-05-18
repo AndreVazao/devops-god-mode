@@ -23,7 +23,7 @@
 
         <nav>
           <div class="nav-item">
-            <span>📦</span> vault
+            <span>📦</span> Vault
           </div>
           <div class="nav-item">
             <span>🛡️</span> Security
@@ -45,7 +45,7 @@
 
         <div class="header">
           <div class="status-badge">
-            <span class="dot dot-online"></span> ONLINE
+            <span class="dot dot-online"></span> <span id="online-text">A VERIFICAR...</span>
           </div>
           <div class="version">BRAIN v2.1.0</div>
 
@@ -54,20 +54,26 @@
         </div>
 
         <div class="action-grid">
-          <button class="action-btn" onclick="executeCommand('$Abre as minhas repos')">
-            $Abre as minhas repos
+          <button class="action-btn" onclick="executeCommand('Abre as minhas repos')">
+            📂 Abre as minhas repos
+          </button>
+          <button class="action-btn" onclick="executeCommand('Verifica status do sistema')">
+            🔍 Status do Sistema
+          </button>
+          <button class="action-btn" onclick="executeCommand('Inicia ciclo de evolução')">
+            🧠 Ciclo de Evolução
           </button>
         </div>
 
         <div class="monitor-section">
-          <h3>Agentes Ativos</h3>
+          <h3>Agentes Inteligentes</h3>
           <div id="agent-grid" class="monitor-grid">
             <!-- Agents will be injected here -->
           </div>
         </div>
 
         <div class="monitor-section">
-          <h3>AI Providers</h3>
+          <h3>Infraestrutura AI</h3>
           <div id="provider-grid" class="monitor-grid">
             <!-- Providers will be injected here -->
           </div>
@@ -82,8 +88,6 @@
     </div>
   </div>
 
-  <!-- Monaco Editor (Hidden or optional in this view) -->
-  <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

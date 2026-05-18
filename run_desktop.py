@@ -21,11 +21,11 @@ except ImportError:
         APP_PORT = int(os.getenv("APP_PORT", "8000"))
         APP_BASE_URL = f"http://{APP_HOST}:{APP_PORT}"
         APP_HEALTH_URL = f"{APP_BASE_URL}/health"
-        SEMANTIC_INDEX_PATH = "data/semantic_index"
-        REPOS_PATH = "repos"
+        SEMANTIC_INDEX_PATH = str(Path.home() / ".godmode/semantic_index")
+        REPOS_PATH = str(Path.home() / ".godmode/repos")
     settings = Settings()
 
-HOME_URL = f"{settings.APP_BASE_URL}/app/home"
+HOME_URL = f"{settings.APP_BASE_URL}/index.html" # Standard entry point
 
 def _ensure_runtime_dirs() -> None:
     Path(settings.SEMANTIC_INDEX_PATH).mkdir(parents=True, exist_ok=True)
@@ -40,7 +40,7 @@ def _wait_for_backend(timeout_seconds: int = 60) -> None:
         try:
             response = requests.get(settings.APP_HEALTH_URL, timeout=2)
             if response.ok:
-                print("Backend is online!")
+                print("✅ Backend is online!")
                 return
             last_error = f"unexpected status {response.status_code}"
         except requests.RequestException as exc:
@@ -55,16 +55,18 @@ def main() -> int:
     parser.add_argument("--headless", action="store_true", help="Run without opening browser")
     args = parser.parse_args()
 
-    print("Starting God Mode with Supervisor...")
+    print("🚀 Starting God Mode Production Loop...")
     _ensure_runtime_dirs()
 
     env = os.environ.copy()
     python_path = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = f"{BACKEND_DIR}{os.pathsep}{python_path}"
 
-    # Use supervisor instead of direct uvicorn for better stability
+    # Use supervisor as the primary engine
+    supervisor_script = str(BACKEND_DIR / "supervisor.py")
+
     supervisor = subprocess.Popen(
-        [sys.executable, str(BACKEND_DIR / "supervisor.py")],
+        [sys.executable, supervisor_script],
         cwd=str(PROJECT_ROOT),
         env=env,
         stdout=subprocess.PIPE,
@@ -73,15 +75,18 @@ def main() -> int:
         bufsize=1
     )
 
-    print(f"Supervisor process started (PID: {supervisor.pid}).")
+    print(f"Supervisor active (PID: {supervisor.pid}). Monitoring backend logs...")
 
     # Log supervisor output in a separate thread
     import threading
     def log_supervisor():
-        with open("supervisor_output.log", "w") as f:
+        with open("launcher_output.log", "w", encoding="utf-8") as f:
             for line in iter(supervisor.stdout.readline, ""):
                 f.write(line)
                 f.flush()
+                # Also print critical lines to console
+                if "ERROR" in line or "CRITICAL" in line or "✅" in line:
+                    print(f"[LOG] {line.strip()}")
 
     threading.Thread(target=log_supervisor, daemon=True).start()
 
@@ -90,18 +95,23 @@ def main() -> int:
             try:
                 _wait_for_backend()
                 webbrowser.open(HOME_URL)
-                print(f"UI opened at {HOME_URL}")
+                print(f"✨ UI available at: {HOME_URL}")
             except Exception as e:
-                print(f"Warning: Failed to open UI: {e}")
-                print("Backend is running (see supervisor_output.log).")
+                print(f"⚠️ Warning: Failed to open UI: {e}")
+                print("Backend is running (see launcher_output.log).")
 
+        # Keep the main thread alive as long as supervisor is running
         return supervisor.wait()
     except KeyboardInterrupt:
-        print("\nShutting down God Mode...")
+        print("\n🛑 Shutting down God Mode...")
         supervisor.terminate()
-        return supervisor.wait()
+        try:
+            supervisor.wait(timeout=5)
+        except:
+            supervisor.kill()
+        return 0
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ Error: {e}")
         supervisor.terminate()
         supervisor.wait(timeout=10)
         raise
