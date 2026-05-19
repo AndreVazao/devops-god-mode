@@ -51,6 +51,12 @@ def _wait_for_backend(timeout_seconds: int = 60) -> None:
     raise RuntimeError(f"God Mode backend failed to start: {last_error}")
 
 def main() -> int:
+    # Force UTF-8 encoding for stdout/stderr if supported
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8')
+
     parser = argparse.ArgumentParser(description="God Mode Desktop Launcher")
     parser.add_argument("--headless", action="store_true", help="Run without opening browser")
     args = parser.parse_args()
