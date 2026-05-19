@@ -18,32 +18,20 @@
       "dest": "/api/index.py"
     },
     {
-      "src": "/mobile-shell/app.js",
-      "dest": "/mobile-shell/app.js"
-    },
-    {
-      "src": "/mobile-shell/styles.css",
-      "dest": "/mobile-shell/styles.css"
-    },
-    {
-      "src": "/mobile-shell/manifest.json",
-      "dest": "/mobile-shell/manifest.json"
-    },
-    {
-      "src": "/mobile-shell",
-      "dest": "/mobile-shell/index.html"
+      "src": "/mobile-shell/(.*)",
+      "dest": "/index.html"
     },
     {
       "src": "/app/mobile",
-      "dest": "/mobile-shell/index.html"
+      "dest": "/index.html"
     },
     {
       "src": "/app/apk-start",
-      "dest": "/mobile-shell/index.html"
+      "dest": "/index.html"
     },
     {
       "src": "/mobile",
-      "dest": "/mobile-shell/index.html"
+      "dest": "/index.html"
     },
     {
       "src": "/app/home",
