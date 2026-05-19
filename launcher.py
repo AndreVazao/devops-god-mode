@@ -6,6 +6,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+# Force UTF-8 encoding for stdout/stderr if supported (Python 3.7+)
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
+
 # Paths configuration
 PROJECT_ROOT = Path(__file__).resolve().parent
 BACKEND_DIR = PROJECT_ROOT / "backend"
@@ -16,7 +22,12 @@ LOG_FILE = PROJECT_ROOT / "watchdog.log"
 
 def log(msg):
     line = f"[{datetime.now()}] {msg}"
-    print(line)
+    try:
+        print(line)
+    except UnicodeEncodeError:
+        # Fallback for environments where UTF-8 reconfigure didn't work/apply
+        print(line.encode('ascii', 'backslashreplace').decode('ascii'))
+
     try:
         with open(LOG_FILE, "a", encoding="utf-8") as f:
             f.write(line + "\n")
