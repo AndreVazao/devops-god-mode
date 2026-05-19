@@ -1,3 +1,832 @@
 {
-  "threads": []
+  "threads": [
+    {
+      "thread_id": "thread-00001",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:14:05.195949+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-d7770f76b612 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:14:05.243356+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-d7770f76b612 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00002",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:14:05.197830+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:05.211200+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:05.221845+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-93d10bed4e94] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:14:05.231262+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:05.232392+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00003",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:14:09.992197+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-22917f3f2408 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:14:10.046927+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-22917f3f2408 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00004",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:14:09.994269+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:10.011161+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:10.023878+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-c5f057b497bc] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:14:10.034578+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:10.035992+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00005",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:14:15.110630+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-9d33292550d0 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:14:15.163741+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-9d33292550d0 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00006",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:14:15.112964+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:15.128503+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:15.140735+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-a0341b857f33] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:14:15.151111+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:15.152518+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00007",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:14:20.758796+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-ccce73adf814 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:14:20.812959+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-ccce73adf814 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00008",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:14:20.761416+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:20.776473+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:20.790199+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-1cd0ecf3fb83] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:14:20.800215+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:14:20.801798+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00009",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:17:08.504338+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-fecce1d6df97 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:17:08.566031+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-fecce1d6df97 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00010",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:17:08.506671+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:08.524636+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:08.540064+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-cf39257b05e9] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:17:08.551921+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:08.553438+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00011",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:17:14.781101+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-e25af325b834 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:17:14.846105+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-e25af325b834 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00012",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:17:14.783685+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:14.801918+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:14.818675+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-0f46702f58b6] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:17:14.830986+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:14.832623+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00013",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:17:21.417694+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-7898e890a475 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:17:21.489845+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-7898e890a475 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00014",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:17:21.420441+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:21.440462+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:21.458903+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-b493ce8d4e59] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:17:21.472325+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:21.474165+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00015",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:17:28.493686+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-7d5cd3f510c8 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:17:28.571038+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-7d5cd3f510c8 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00016",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:17:28.497160+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:28.518574+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:28.537717+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-89a090604cd7] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:17:28.552677+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:17:28.554670+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00017",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:18:44.837499+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-4416cbf802ad · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:18:44.921970+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-4416cbf802ad · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00018",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:18:44.840820+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:18:44.863489+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:18:44.884976+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-4402ce95e558] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:18:44.901553+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:18:44.903894+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00019",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:18:52.685524+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-d66542d6b546 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:18:52.774677+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-d66542d6b546 · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00020",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:18:52.689810+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:18:52.714160+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:18:52.737029+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-6e7860bed425] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:18:52.753857+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:18:52.756404+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00021",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:19:00.957511+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-db150835ebba · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:19:01.053279+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-db150835ebba · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00022",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:19:00.962117+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:19:00.988518+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:19:01.013428+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-470a83abcb03] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:19:01.031122+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:19:01.033889+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    },
+    {
+      "thread_id": "thread-00023",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode real work chat",
+      "channel_mode": "operator_chat_real_work",
+      "messages": [
+        {
+          "role": "user",
+          "content": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+          "operational_state": "real_work_requested",
+          "created_at": "2026-05-19T11:19:09.680192+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-065f1f0ee40b · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\nSe bloquear, vai aparecer nas aprovações/input.",
+          "operational_state": "real_work_submitted",
+          "created_at": "2026-05-19T11:19:09.785322+00:00"
+        }
+      ],
+      "latest_summary": "Recebido. Transformei a tua mensagem em trabalho real do backend.\n\nProjeto: GOD_MODE\nIntent: continue_project\nJob: request-job-065f1f0ee40b · queued\nAutopilot: 1 rondas · blocked_waiting_operator\nProcessado: 1\nPrioridade: ordem do operador. Dinheiro não foi usado como critério.\n\n",
+      "suggested_next_steps": [
+        "Ver aprovações",
+        "Ver worker",
+        "Continuar conversa"
+      ]
+    },
+    {
+      "thread_id": "thread-00024",
+      "tenant_id": "owner-andre",
+      "conversation_title": "God Mode request orchestration",
+      "channel_mode": "apk_request_orchestrator_chat",
+      "messages": [
+        {
+          "role": "operator",
+          "content": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+          "operational_state": "request_submitted",
+          "created_at": "2026-05-19T11:19:09.684943+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Passo automático concluído: Interpretar pedido",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:19:09.713862+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.. Vou pedir OK antes de alterar algo.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:19:09.740960+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "[ACTION_CARD:chat-card-8d5829e85b2a] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+          "operational_state": "action_card",
+          "created_at": "2026-05-19T11:19:09.760640+00:00"
+        },
+        {
+          "role": "assistant",
+          "content": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+          "operational_state": "request_orchestrator",
+          "created_at": "2026-05-19T11:19:09.763617+00:00"
+        }
+      ],
+      "latest_summary": "Parei para pedir o teu OK. O backend fica com este job guardado e pode continuar depois da aprovação.",
+      "suggested_next_steps": [
+        "Abrir aprovações",
+        "Ver job"
+      ]
+    }
+  ]
 }

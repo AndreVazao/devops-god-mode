@@ -1,0 +1,1065 @@
+{
+  "version": 1,
+  "commands": [
+    {
+      "command_id": "work-cmd-174404a84af3",
+      "created_at": "2026-05-19T11:14:05.196971+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-d7770f76b612"
+    },
+    {
+      "command_id": "work-cmd-22ab61986311",
+      "created_at": "2026-05-19T11:14:09.993234+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-22917f3f2408"
+    },
+    {
+      "command_id": "work-cmd-fc626a883282",
+      "created_at": "2026-05-19T11:14:15.111699+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-9d33292550d0"
+    },
+    {
+      "command_id": "work-cmd-0bd3213de89c",
+      "created_at": "2026-05-19T11:14:20.759992+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-ccce73adf814"
+    },
+    {
+      "command_id": "work-cmd-5e1041afeeb7",
+      "created_at": "2026-05-19T11:17:08.505331+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-fecce1d6df97"
+    },
+    {
+      "command_id": "work-cmd-8306d9102cd2",
+      "created_at": "2026-05-19T11:17:14.782242+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-e25af325b834"
+    },
+    {
+      "command_id": "work-cmd-ce87e5df65fd",
+      "created_at": "2026-05-19T11:17:21.418836+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-7898e890a475"
+    },
+    {
+      "command_id": "work-cmd-f025e01b907f",
+      "created_at": "2026-05-19T11:17:28.495092+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-7d5cd3f510c8"
+    },
+    {
+      "command_id": "work-cmd-6c979f7aadbe",
+      "created_at": "2026-05-19T11:18:44.838876+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-4416cbf802ad"
+    },
+    {
+      "command_id": "work-cmd-a79f5a953438",
+      "created_at": "2026-05-19T11:18:52.687313+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-d66542d6b546"
+    },
+    {
+      "command_id": "work-cmd-4f4a685b50bb",
+      "created_at": "2026-05-19T11:19:00.959468+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-db150835ebba"
+    },
+    {
+      "command_id": "work-cmd-804cbeed2b36",
+      "created_at": "2026-05-19T11:19:09.682215+00:00",
+      "project_id": "GOD_MODE",
+      "command_text": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "job_id": "request-job-065f1f0ee40b"
+    }
+  ],
+  "packages": [
+    {
+      "command_id": "work-cmd-174404a84af3",
+      "created_at": "2026-05-19T11:14:05.196971+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-d7770f76b612",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-22ab61986311",
+      "created_at": "2026-05-19T11:14:09.993234+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-22917f3f2408",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-fc626a883282",
+      "created_at": "2026-05-19T11:14:15.111699+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-9d33292550d0",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-0bd3213de89c",
+      "created_at": "2026-05-19T11:14:20.759992+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-ccce73adf814",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-5e1041afeeb7",
+      "created_at": "2026-05-19T11:17:08.505331+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-fecce1d6df97",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-8306d9102cd2",
+      "created_at": "2026-05-19T11:17:14.782242+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-e25af325b834",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-ce87e5df65fd",
+      "created_at": "2026-05-19T11:17:21.418836+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-7898e890a475",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-f025e01b907f",
+      "created_at": "2026-05-19T11:17:28.495092+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-7d5cd3f510c8",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-6c979f7aadbe",
+      "created_at": "2026-05-19T11:18:44.838876+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-4416cbf802ad",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-a79f5a953438",
+      "created_at": "2026-05-19T11:18:52.687313+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-d66542d6b546",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-4f4a685b50bb",
+      "created_at": "2026-05-19T11:19:00.959468+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-db150835ebba",
+        "status": "queued"
+      }
+    },
+    {
+      "command_id": "work-cmd-804cbeed2b36",
+      "created_at": "2026-05-19T11:19:09.682215+00:00",
+      "tenant_id": "owner-andre",
+      "project": {
+        "project_id": "GOD_MODE",
+        "label": "God Mode",
+        "priority": 1,
+        "enabled": true
+      },
+      "project_source": "explicit_request",
+      "operator_command": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "intent": "continue_project",
+      "auto_run_requested": false,
+      "approval_required": true,
+      "orchestrator_request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "execution_actions": [
+        {
+          "step": 1,
+          "label": "Resolver projeto ativo",
+          "risk": "low",
+          "detail": "GOD_MODE"
+        },
+        {
+          "step": 2,
+          "label": "Ler memória AndreOS do projeto",
+          "risk": "low",
+          "detail": "context compact + backlog + última sessão"
+        },
+        {
+          "step": 3,
+          "label": "Criar plano curto executável",
+          "risk": "low",
+          "detail": "fase pequena, resultado verificável"
+        },
+        {
+          "step": 4,
+          "label": "Executar próximo passo seguro",
+          "risk": "medium",
+          "detail": "branch/PR se houver escrita"
+        },
+        {
+          "step": 5,
+          "label": "Validar",
+          "risk": "low",
+          "detail": "checks/docs/tree"
+        },
+        {
+          "step": 6,
+          "label": "Reportar e bloquear se precisar OK",
+          "risk": "low",
+          "detail": "mobile approval"
+        }
+      ],
+      "stop_conditions": [
+        "needs_operator_ok",
+        "needs_credentials_or_login",
+        "destructive_action_requested",
+        "unclear_project_direction",
+        "checks_failed_after_safe_retry"
+      ],
+      "success_definition": "branch/PR/check/report or explicit blocked state with next approval card",
+      "orchestrator_submit": {
+        "ok": true,
+        "job_id": "request-job-065f1f0ee40b",
+        "status": "queued"
+      }
+    }
+  ],
+  "reports": [
+    {
+      "report_id": "work-report-0a4b5d592c54",
+      "created_at": "2026-05-19T11:14:05.200444+00:00",
+      "command_id": "work-cmd-174404a84af3",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-d7770f76b612",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-694ded108629",
+      "created_at": "2026-05-19T11:14:09.998102+00:00",
+      "command_id": "work-cmd-22ab61986311",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-22917f3f2408",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-ddc602f66504",
+      "created_at": "2026-05-19T11:14:15.117278+00:00",
+      "command_id": "work-cmd-fc626a883282",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-9d33292550d0",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-3a7b24868327",
+      "created_at": "2026-05-19T11:14:20.765741+00:00",
+      "command_id": "work-cmd-0bd3213de89c",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-ccce73adf814",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-f6268f1a0b36",
+      "created_at": "2026-05-19T11:17:08.512223+00:00",
+      "command_id": "work-cmd-5e1041afeeb7",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-fecce1d6df97",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-a673a4b0c416",
+      "created_at": "2026-05-19T11:17:14.789336+00:00",
+      "command_id": "work-cmd-8306d9102cd2",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-e25af325b834",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-1bb59cfc3649",
+      "created_at": "2026-05-19T11:17:21.427045+00:00",
+      "command_id": "work-cmd-ce87e5df65fd",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-7898e890a475",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-2eb2ad0381ff",
+      "created_at": "2026-05-19T11:17:28.504645+00:00",
+      "command_id": "work-cmd-f025e01b907f",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-7d5cd3f510c8",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-6346c254b64c",
+      "created_at": "2026-05-19T11:18:44.849151+00:00",
+      "command_id": "work-cmd-6c979f7aadbe",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-4416cbf802ad",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-2dbe9c73d7a0",
+      "created_at": "2026-05-19T11:18:52.698622+00:00",
+      "command_id": "work-cmd-a79f5a953438",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-d66542d6b546",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-a90c9dfa8d0b",
+      "created_at": "2026-05-19T11:19:00.971795+00:00",
+      "command_id": "work-cmd-4f4a685b50bb",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-db150835ebba",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    },
+    {
+      "report_id": "work-report-4314f6a6a941",
+      "created_at": "2026-05-19T11:19:09.695148+00:00",
+      "command_id": "work-cmd-804cbeed2b36",
+      "project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-065f1f0ee40b",
+      "job_status": "queued",
+      "worker_tick_ran": false,
+      "money_priority_enabled": false,
+      "operator_priority_obeyed": true,
+      "next_visible_step": "open request worker / approvals if blocked, otherwise follow PR/check report"
+    }
+  ]
+}

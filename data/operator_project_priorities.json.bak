@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "policy": "operator_order_first_money_is_consequence",
+  "active_project": "GOD_MODE",
+  "projects": [
+    {
+      "project_id": "GOD_MODE",
+      "label": "God Mode",
+      "priority": 1,
+      "enabled": true
+    },
+    {
+      "project_id": "PROVENTIL",
+      "label": "ProVentil",
+      "priority": 2,
+      "enabled": true
+    },
+    {
+      "project_id": "BARIBUDOS_STUDIO",
+      "label": "Baribudos Studio",
+      "priority": 3,
+      "enabled": true
+    },
+    {
+      "project_id": "BOT_FACTORY",
+      "label": "Bot Factory",
+      "priority": 4,
+      "enabled": true
+    },
+    {
+      "project_id": "BARIBUDOS_STUDIO_WEBSITE",
+      "label": "Baribudos Studio Website",
+      "priority": 5,
+      "enabled": true
+    },
+    {
+      "project_id": "VERBAFORGE",
+      "label": "VerbaForge",
+      "priority": 6,
+      "enabled": true
+    },
+    {
+      "project_id": "BOT_LORDS_MOBILE",
+      "label": "Bot Lords Mobile",
+      "priority": 7,
+      "enabled": true
+    },
+    {
+      "project_id": "ECU_REPRO",
+      "label": "ECU Repro",
+      "priority": 8,
+      "enabled": true
+    },
+    {
+      "project_id": "BUILD_CONTROL_CENTER",
+      "label": "Build Control Center",
+      "priority": 9,
+      "enabled": true
+    }
+  ],
+  "history": [
+    {
+      "created_at": "2026-05-19T11:14:04.379080+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:14:08.893166+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:14:13.936302+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:14:19.370007+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:17:07.152503+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:17:13.291532+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:17:19.844478+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:17:26.827256+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:18:43.086378+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:18:50.815106+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    },
+    {
+      "created_at": "2026-05-19T11:18:58.980041+00:00",
+      "event": "set_order",
+      "ordered_project_ids": [
+        "GOD_MODE",
+        "PROVENTIL",
+        "BARIBUDOS_STUDIO",
+        "BOT_FACTORY"
+      ],
+      "active_project": "GOD_MODE",
+      "note": "real operator rehearsal priority order"
+    }
+  ]
+}

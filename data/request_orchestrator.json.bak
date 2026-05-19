@@ -1,0 +1,2500 @@
+{
+  "jobs": [
+    {
+      "job_id": "request-job-d7770f76b612",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00002",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:14:05.197556+00:00",
+      "updated_at": "2026-05-19T11:14:05.233125+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:05.197696+00:00",
+          "updated_at": "2026-05-19T11:14:05.211494+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00002",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:05.197706+00:00",
+          "updated_at": "2026-05-19T11:14:05.216613+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:05.197714+00:00",
+          "updated_at": "2026-05-19T11:14:05.222190+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00002",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:14:05.197721+00:00",
+          "updated_at": "2026-05-19T11:14:05.233110+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-2fd454aa201a",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-d7770f76b612",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-d7770f76b612",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:14:05.225438+00:00",
+                "updated_at": "2026-05-19T11:14:05.225438+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-93d10bed4e94",
+                "thread_id": "thread-00002",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-0a49c328",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:14:05.229392+00:00",
+                "updated_at": "2026-05-19T11:14:05.229402+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00002",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-93d10bed4e94] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:14:05.197728+00:00",
+          "updated_at": "2026-05-19T11:14:05.197731+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-22917f3f2408",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00004",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:14:09.993960+00:00",
+      "updated_at": "2026-05-19T11:14:10.036396+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:09.993979+00:00",
+          "updated_at": "2026-05-19T11:14:10.011647+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00004",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:09.994112+00:00",
+          "updated_at": "2026-05-19T11:14:10.018533+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:09.994122+00:00",
+          "updated_at": "2026-05-19T11:14:10.024282+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00004",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:14:09.994129+00:00",
+          "updated_at": "2026-05-19T11:14:10.036384+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-6fe89723fb40",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-22917f3f2408",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-22917f3f2408",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:14:10.028354+00:00",
+                "updated_at": "2026-05-19T11:14:10.028354+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-c5f057b497bc",
+                "thread_id": "thread-00004",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-74241ae7",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:14:10.032089+00:00",
+                "updated_at": "2026-05-19T11:14:10.032097+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00004",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-c5f057b497bc] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:14:09.994136+00:00",
+          "updated_at": "2026-05-19T11:14:09.994139+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-9d33292550d0",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00006",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:14:15.112549+00:00",
+      "updated_at": "2026-05-19T11:14:15.153074+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:15.112567+00:00",
+          "updated_at": "2026-05-19T11:14:15.129041+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00006",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:15.112575+00:00",
+          "updated_at": "2026-05-19T11:14:15.135119+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:15.112715+00:00",
+          "updated_at": "2026-05-19T11:14:15.141380+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00006",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:14:15.112724+00:00",
+          "updated_at": "2026-05-19T11:14:15.153061+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-f42c96ccad60",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-9d33292550d0",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-9d33292550d0",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:14:15.145454+00:00",
+                "updated_at": "2026-05-19T11:14:15.145454+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-a0341b857f33",
+                "thread_id": "thread-00006",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-c051dd6c",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:14:15.149027+00:00",
+                "updated_at": "2026-05-19T11:14:15.149038+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00006",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-a0341b857f33] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:14:15.112731+00:00",
+          "updated_at": "2026-05-19T11:14:15.112734+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-ccce73adf814",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00008",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:14:20.761052+00:00",
+      "updated_at": "2026-05-19T11:14:20.802380+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:20.761071+00:00",
+          "updated_at": "2026-05-19T11:14:20.777189+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00008",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:20.761079+00:00",
+          "updated_at": "2026-05-19T11:14:20.783883+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:14:20.761211+00:00",
+          "updated_at": "2026-05-19T11:14:20.790868+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00008",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:14:20.761219+00:00",
+          "updated_at": "2026-05-19T11:14:20.802366+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-12455de11add",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-ccce73adf814",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-ccce73adf814",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:14:20.795114+00:00",
+                "updated_at": "2026-05-19T11:14:20.795114+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-1cd0ecf3fb83",
+                "thread_id": "thread-00008",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-d49ddb20",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:14:20.798319+00:00",
+                "updated_at": "2026-05-19T11:14:20.798327+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00008",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-1cd0ecf3fb83] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:14:20.761226+00:00",
+          "updated_at": "2026-05-19T11:14:20.761229+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-fecce1d6df97",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00010",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:17:08.506428+00:00",
+      "updated_at": "2026-05-19T11:17:08.554181+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:08.506447+00:00",
+          "updated_at": "2026-05-19T11:17:08.525462+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00010",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:08.506457+00:00",
+          "updated_at": "2026-05-19T11:17:08.533088+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:08.506465+00:00",
+          "updated_at": "2026-05-19T11:17:08.540737+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00010",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:17:08.506471+00:00",
+          "updated_at": "2026-05-19T11:17:08.554169+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-62fa5b65becf",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-fecce1d6df97",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-fecce1d6df97",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:17:08.545970+00:00",
+                "updated_at": "2026-05-19T11:17:08.545970+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-cf39257b05e9",
+                "thread_id": "thread-00010",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-33c88793",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:17:08.549936+00:00",
+                "updated_at": "2026-05-19T11:17:08.549947+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00010",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-cf39257b05e9] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:17:08.506477+00:00",
+          "updated_at": "2026-05-19T11:17:08.506480+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-e25af325b834",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00012",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:17:14.783424+00:00",
+      "updated_at": "2026-05-19T11:17:14.833504+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:14.783442+00:00",
+          "updated_at": "2026-05-19T11:17:14.802768+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00012",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:14.783450+00:00",
+          "updated_at": "2026-05-19T11:17:14.810863+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:14.783457+00:00",
+          "updated_at": "2026-05-19T11:17:14.819529+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00012",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:17:14.783464+00:00",
+          "updated_at": "2026-05-19T11:17:14.833491+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-e942f32dbd6a",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-e25af325b834",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-e25af325b834",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:17:14.825304+00:00",
+                "updated_at": "2026-05-19T11:17:14.825304+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-0f46702f58b6",
+                "thread_id": "thread-00012",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-d67f752c",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:17:14.828826+00:00",
+                "updated_at": "2026-05-19T11:17:14.828834+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00012",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-0f46702f58b6] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:17:14.783470+00:00",
+          "updated_at": "2026-05-19T11:17:14.783473+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-7898e890a475",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00014",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:17:21.420155+00:00",
+      "updated_at": "2026-05-19T11:17:21.475127+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:21.420172+00:00",
+          "updated_at": "2026-05-19T11:17:21.441506+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00014",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:21.420180+00:00",
+          "updated_at": "2026-05-19T11:17:21.450494+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:21.420187+00:00",
+          "updated_at": "2026-05-19T11:17:21.459816+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00014",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:17:21.420194+00:00",
+          "updated_at": "2026-05-19T11:17:21.475113+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-748cb6a911ac",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-7898e890a475",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-7898e890a475",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:17:21.466398+00:00",
+                "updated_at": "2026-05-19T11:17:21.466398+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-b493ce8d4e59",
+                "thread_id": "thread-00014",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-c2ba1920",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:17:21.470115+00:00",
+                "updated_at": "2026-05-19T11:17:21.470124+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00014",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-b493ce8d4e59] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:17:21.420200+00:00",
+          "updated_at": "2026-05-19T11:17:21.420203+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-7d5cd3f510c8",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00016",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:17:28.496723+00:00",
+      "updated_at": "2026-05-19T11:17:28.555696+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:28.496741+00:00",
+          "updated_at": "2026-05-19T11:17:28.519595+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00016",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:28.496749+00:00",
+          "updated_at": "2026-05-19T11:17:28.528599+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:17:28.496756+00:00",
+          "updated_at": "2026-05-19T11:17:28.538769+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00016",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:17:28.496762+00:00",
+          "updated_at": "2026-05-19T11:17:28.555683+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-8cfa0658b739",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-7d5cd3f510c8",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-7d5cd3f510c8",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:17:28.546132+00:00",
+                "updated_at": "2026-05-19T11:17:28.546132+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-89a090604cd7",
+                "thread_id": "thread-00016",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-79734a22",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:17:28.550343+00:00",
+                "updated_at": "2026-05-19T11:17:28.550355+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00016",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-89a090604cd7] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:17:28.496777+00:00",
+          "updated_at": "2026-05-19T11:17:28.496779+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-4416cbf802ad",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00018",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:18:44.840428+00:00",
+      "updated_at": "2026-05-19T11:18:44.905405+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:18:44.840453+00:00",
+          "updated_at": "2026-05-19T11:18:44.864667+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00018",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:18:44.840461+00:00",
+          "updated_at": "2026-05-19T11:18:44.875040+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:18:44.840470+00:00",
+          "updated_at": "2026-05-19T11:18:44.886447+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00018",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:18:44.840477+00:00",
+          "updated_at": "2026-05-19T11:18:44.905390+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-d25ff166bcab",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-4416cbf802ad",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-4416cbf802ad",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:18:44.894637+00:00",
+                "updated_at": "2026-05-19T11:18:44.894637+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-4402ce95e558",
+                "thread_id": "thread-00018",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-7b719056",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:18:44.899054+00:00",
+                "updated_at": "2026-05-19T11:18:44.899066+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00018",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-4402ce95e558] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:18:44.840484+00:00",
+          "updated_at": "2026-05-19T11:18:44.840486+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-d66542d6b546",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00020",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:18:52.689411+00:00",
+      "updated_at": "2026-05-19T11:18:52.757950+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:18:52.689433+00:00",
+          "updated_at": "2026-05-19T11:18:52.715748+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00020",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:18:52.689442+00:00",
+          "updated_at": "2026-05-19T11:18:52.726554+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:18:52.689454+00:00",
+          "updated_at": "2026-05-19T11:18:52.738595+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00020",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:18:52.689461+00:00",
+          "updated_at": "2026-05-19T11:18:52.757936+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-ce27a34d7650",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-d66542d6b546",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-d66542d6b546",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:18:52.747170+00:00",
+                "updated_at": "2026-05-19T11:18:52.747170+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-6e7860bed425",
+                "thread_id": "thread-00020",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-d1e871f0",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:18:52.751350+00:00",
+                "updated_at": "2026-05-19T11:18:52.751360+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00020",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-6e7860bed425] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:18:52.689468+00:00",
+          "updated_at": "2026-05-19T11:18:52.689471+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-db150835ebba",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00022",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "blocked_approval",
+      "blocking_reason": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:19:00.961687+00:00",
+      "updated_at": "2026-05-19T11:19:01.035559+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:19:00.961706+00:00",
+          "updated_at": "2026-05-19T11:19:00.990603+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00022",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:19:00.961714+00:00",
+          "updated_at": "2026-05-19T11:19:01.002156+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:19:00.961722+00:00",
+          "updated_at": "2026-05-19T11:19:01.015114+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00022",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "blocked",
+          "created_at": "2026-05-19T11:19:00.961729+00:00",
+          "updated_at": "2026-05-19T11:19:01.035533+00:00",
+          "result": {
+            "ok": true,
+            "mode": "blocked_for_approval",
+            "approval_card": {
+              "ok": true,
+              "mode": "mobile_approval_card_create",
+              "card": {
+                "card_id": "card-9bbfec1eef8d",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário: Aguardar OK para build/publicação",
+                "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+                "card_type": "operator_command",
+                "priority": "high",
+                "requires_approval": true,
+                "status": "pending_approval",
+                "actions": [
+                  {
+                    "action_id": "approve-request-job",
+                    "label": "Aprovar e continuar",
+                    "decision": "approved"
+                  },
+                  {
+                    "action_id": "reject-request-job",
+                    "label": "Parar",
+                    "decision": "rejected"
+                  },
+                  {
+                    "action_id": "revise-request-job",
+                    "label": "Pedir ajustes",
+                    "decision": "needs_changes"
+                  }
+                ],
+                "source_ref": {
+                  "type": "request_orchestrator",
+                  "job_id": "request-job-db150835ebba",
+                  "step_id": "build_approval"
+                },
+                "metadata": {
+                  "job_id": "request-job-db150835ebba",
+                  "step_snapshot": {
+                    "step_id": "build_approval",
+                    "title": "Aguardar OK para build/publicação",
+                    "step_type": "needs_approval",
+                    "detail": "Ações de build/deploy exigem aprovação.",
+                    "status_at_block": "pending"
+                  }
+                },
+                "created_at": "2026-05-19T11:19:01.024121+00:00",
+                "updated_at": "2026-05-19T11:19:01.024121+00:00",
+                "decision": null
+              }
+            },
+            "chat_card": {
+              "ok": true,
+              "mode": "chat_action_card_create",
+              "card": {
+                "card_id": "chat-card-470a83abcb03",
+                "thread_id": "thread-00022",
+                "tenant_id": "owner-andre",
+                "project_id": "GOD_MODE",
+                "title": "OK necessário para continuar",
+                "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+                "source": "request_orchestrator",
+                "priority": "high",
+                "status": "open",
+                "actions": [
+                  {
+                    "action_id": "card-action-b8baf06c",
+                    "label": "Abrir aprovações",
+                    "action_type": "open_url",
+                    "payload": {
+                      "url": "/app/mobile-approval-cockpit-v2"
+                    },
+                    "requires_approval": false
+                  }
+                ],
+                "created_at": "2026-05-19T11:19:01.028492+00:00",
+                "updated_at": "2026-05-19T11:19:01.028504+00:00"
+              },
+              "chat_append": {
+                "ok": true,
+                "mode": "operator_conversation_thread_append_result",
+                "append_status": "message_appended",
+                "thread_id": "thread-00022",
+                "message_count": 4,
+                "latest_summary": "[ACTION_CARD:chat-card-470a83abcb03] OK necessário para continuar\nO backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.\nAções: Abrir aprovações",
+                "suggested_next_steps": [
+                  "Abrir aprovações"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:19:00.961736+00:00",
+          "updated_at": "2026-05-19T11:19:00.961739+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    },
+    {
+      "job_id": "request-job-065f1f0ee40b",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "thread_id": "thread-00024",
+      "request": "Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.",
+      "intent": "build_or_publish",
+      "status": "running",
+      "blocking_reason": null,
+      "created_at": "2026-05-19T11:19:09.684478+00:00",
+      "updated_at": "2026-05-19T11:19:09.742793+00:00",
+      "steps": [
+        {
+          "step_id": "interpret",
+          "title": "Interpretar pedido",
+          "step_type": "auto",
+          "detail": "Intent: build_or_publish",
+          "status": "done",
+          "created_at": "2026-05-19T11:19:09.684495+00:00",
+          "updated_at": "2026-05-19T11:19:09.715810+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00024",
+            "message_count": 2,
+            "latest_summary": "Passo automático concluído: Interpretar pedido",
+            "suggested_next_steps": [
+              "Continuar"
+            ]
+          }
+        },
+        {
+          "step_id": "persist_context",
+          "title": "Guardar contexto operacional",
+          "step_type": "auto",
+          "detail": "Registar pedido em memória e thread.",
+          "status": "done",
+          "created_at": "2026-05-19T11:19:09.684503+00:00",
+          "updated_at": "2026-05-19T11:19:09.728602+00:00",
+          "result": {
+            "ok": true,
+            "mode": "persist_context"
+          }
+        },
+        {
+          "step_id": "prepare_build_plan",
+          "title": "Preparar plano de build/publicação",
+          "step_type": "auto",
+          "detail": "Identificar rota APK/EXE/deploy.",
+          "status": "done",
+          "created_at": "2026-05-19T11:19:09.684510+00:00",
+          "updated_at": "2026-05-19T11:19:09.742777+00:00",
+          "result": {
+            "ok": true,
+            "mode": "operator_conversation_thread_append_result",
+            "append_status": "message_appended",
+            "thread_id": "thread-00024",
+            "message_count": 3,
+            "latest_summary": "Plano preparado para: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocke",
+            "suggested_next_steps": [
+              "Aprovar",
+              "Pedir ajustes"
+            ]
+          }
+        },
+        {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:19:09.684517+00:00",
+          "updated_at": "2026-05-19T11:19:09.684520+00:00",
+          "result": null
+        },
+        {
+          "step_id": "execute_build",
+          "title": "Executar build/publicação aprovada",
+          "step_type": "manual_resume",
+          "detail": "Continuar quando aprovado.",
+          "status": "pending",
+          "created_at": "2026-05-19T11:19:09.684523+00:00",
+          "updated_at": "2026-05-19T11:19:09.684526+00:00",
+          "result": null
+        }
+      ],
+      "events": []
+    }
+  ],
+  "events": [
+    {
+      "event_id": "request-event-b4bf2b913464",
+      "job_id": "request-job-d7770f76b612",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:14:05.198345+00:00"
+    },
+    {
+      "event_id": "request-event-b6cdf995ae74",
+      "job_id": "request-job-d7770f76b612",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:14:05.211545+00:00"
+    },
+    {
+      "event_id": "request-event-7a12ecd446d0",
+      "job_id": "request-job-d7770f76b612",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:14:05.216652+00:00"
+    },
+    {
+      "event_id": "request-event-82b48b53b15b",
+      "job_id": "request-job-d7770f76b612",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:14:05.222242+00:00"
+    },
+    {
+      "event_id": "request-event-ec366f5699d6",
+      "job_id": "request-job-d7770f76b612",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:14:05.233158+00:00"
+    },
+    {
+      "event_id": "request-event-d95d09189341",
+      "job_id": "request-job-22917f3f2408",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:14:09.995054+00:00"
+    },
+    {
+      "event_id": "request-event-2f9ff8727134",
+      "job_id": "request-job-22917f3f2408",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:14:10.011697+00:00"
+    },
+    {
+      "event_id": "request-event-c42cd1548619",
+      "job_id": "request-job-22917f3f2408",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:14:10.018582+00:00"
+    },
+    {
+      "event_id": "request-event-6dfd0fea8947",
+      "job_id": "request-job-22917f3f2408",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:14:10.024328+00:00"
+    },
+    {
+      "event_id": "request-event-a8dfb52ce612",
+      "job_id": "request-job-22917f3f2408",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:14:10.036429+00:00"
+    },
+    {
+      "event_id": "request-event-b06cb1cf3d3d",
+      "job_id": "request-job-9d33292550d0",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:14:15.113943+00:00"
+    },
+    {
+      "event_id": "request-event-2a6b238d051b",
+      "job_id": "request-job-9d33292550d0",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:14:15.129091+00:00"
+    },
+    {
+      "event_id": "request-event-d054896ac54b",
+      "job_id": "request-job-9d33292550d0",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:14:15.135193+00:00"
+    },
+    {
+      "event_id": "request-event-184765729144",
+      "job_id": "request-job-9d33292550d0",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:14:15.141424+00:00"
+    },
+    {
+      "event_id": "request-event-6b96c75a34d3",
+      "job_id": "request-job-9d33292550d0",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:14:15.153107+00:00"
+    },
+    {
+      "event_id": "request-event-8b2a768a331f",
+      "job_id": "request-job-ccce73adf814",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:14:20.762645+00:00"
+    },
+    {
+      "event_id": "request-event-e1d77dfd9b0a",
+      "job_id": "request-job-ccce73adf814",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:14:20.777233+00:00"
+    },
+    {
+      "event_id": "request-event-7ee1caca4c4c",
+      "job_id": "request-job-ccce73adf814",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:14:20.783921+00:00"
+    },
+    {
+      "event_id": "request-event-a73dc185b76b",
+      "job_id": "request-job-ccce73adf814",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:14:20.790915+00:00"
+    },
+    {
+      "event_id": "request-event-0d243f8ff9c4",
+      "job_id": "request-job-ccce73adf814",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:14:20.802406+00:00"
+    },
+    {
+      "event_id": "request-event-1cd331e9c781",
+      "job_id": "request-job-fecce1d6df97",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:17:08.507867+00:00"
+    },
+    {
+      "event_id": "request-event-9e1b6698967e",
+      "job_id": "request-job-fecce1d6df97",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:17:08.525507+00:00"
+    },
+    {
+      "event_id": "request-event-77228d2bbaa0",
+      "job_id": "request-job-fecce1d6df97",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:17:08.533122+00:00"
+    },
+    {
+      "event_id": "request-event-c663572672ff",
+      "job_id": "request-job-fecce1d6df97",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:17:08.540776+00:00"
+    },
+    {
+      "event_id": "request-event-d89e25f4f819",
+      "job_id": "request-job-fecce1d6df97",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:17:08.554206+00:00"
+    },
+    {
+      "event_id": "request-event-c06d2a1bac04",
+      "job_id": "request-job-e25af325b834",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:17:14.785029+00:00"
+    },
+    {
+      "event_id": "request-event-b389345328b6",
+      "job_id": "request-job-e25af325b834",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:17:14.802808+00:00"
+    },
+    {
+      "event_id": "request-event-b0ffe04b7be8",
+      "job_id": "request-job-e25af325b834",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:17:14.810894+00:00"
+    },
+    {
+      "event_id": "request-event-b329ab380d5f",
+      "job_id": "request-job-e25af325b834",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:17:14.819568+00:00"
+    },
+    {
+      "event_id": "request-event-2020889db66a",
+      "job_id": "request-job-e25af325b834",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:17:14.833528+00:00"
+    },
+    {
+      "event_id": "request-event-4e2c5f33b218",
+      "job_id": "request-job-7898e890a475",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:17:21.422059+00:00"
+    },
+    {
+      "event_id": "request-event-8c1b1b5c6fef",
+      "job_id": "request-job-7898e890a475",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:17:21.441549+00:00"
+    },
+    {
+      "event_id": "request-event-6fe12fdaf790",
+      "job_id": "request-job-7898e890a475",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:17:21.450528+00:00"
+    },
+    {
+      "event_id": "request-event-1108a476a866",
+      "job_id": "request-job-7898e890a475",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:17:21.459860+00:00"
+    },
+    {
+      "event_id": "request-event-13d857d832a5",
+      "job_id": "request-job-7898e890a475",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:17:21.475155+00:00"
+    },
+    {
+      "event_id": "request-event-8aa608886006",
+      "job_id": "request-job-7d5cd3f510c8",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:17:28.498827+00:00"
+    },
+    {
+      "event_id": "request-event-2e43ad16628b",
+      "job_id": "request-job-7d5cd3f510c8",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:17:28.519634+00:00"
+    },
+    {
+      "event_id": "request-event-c803a9ac8cbe",
+      "job_id": "request-job-7d5cd3f510c8",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:17:28.528633+00:00"
+    },
+    {
+      "event_id": "request-event-5b0afa5ac20c",
+      "job_id": "request-job-7d5cd3f510c8",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:17:28.538822+00:00"
+    },
+    {
+      "event_id": "request-event-5b4e16f072a1",
+      "job_id": "request-job-7d5cd3f510c8",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:17:28.555721+00:00"
+    },
+    {
+      "event_id": "request-event-bbf7b0e88820",
+      "job_id": "request-job-4416cbf802ad",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:18:44.842738+00:00"
+    },
+    {
+      "event_id": "request-event-e374f7861fdd",
+      "job_id": "request-job-4416cbf802ad",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:18:44.864744+00:00"
+    },
+    {
+      "event_id": "request-event-b540be06fac1",
+      "job_id": "request-job-4416cbf802ad",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:18:44.875085+00:00"
+    },
+    {
+      "event_id": "request-event-6fcf6cd24155",
+      "job_id": "request-job-4416cbf802ad",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:18:44.886494+00:00"
+    },
+    {
+      "event_id": "request-event-969d738651cf",
+      "job_id": "request-job-4416cbf802ad",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:18:44.905438+00:00"
+    },
+    {
+      "event_id": "request-event-4781f74d2619",
+      "job_id": "request-job-d66542d6b546",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:18:52.692179+00:00"
+    },
+    {
+      "event_id": "request-event-42602278f9c2",
+      "job_id": "request-job-d66542d6b546",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:18:52.715790+00:00"
+    },
+    {
+      "event_id": "request-event-ccd15c5c9bbc",
+      "job_id": "request-job-d66542d6b546",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:18:52.726587+00:00"
+    },
+    {
+      "event_id": "request-event-4a1e10a9e7d3",
+      "job_id": "request-job-d66542d6b546",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:18:52.738638+00:00"
+    },
+    {
+      "event_id": "request-event-6ea693185236",
+      "job_id": "request-job-d66542d6b546",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:18:52.758006+00:00"
+    },
+    {
+      "event_id": "request-event-901f4e8f706c",
+      "job_id": "request-job-db150835ebba",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:19:00.964712+00:00"
+    },
+    {
+      "event_id": "request-event-3ca7ebf9f464",
+      "job_id": "request-job-db150835ebba",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:19:00.990651+00:00"
+    },
+    {
+      "event_id": "request-event-7cd2b000e6f1",
+      "job_id": "request-job-db150835ebba",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:19:01.002230+00:00"
+    },
+    {
+      "event_id": "request-event-cb144dcc923a",
+      "job_id": "request-job-db150835ebba",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:19:01.015164+00:00"
+    },
+    {
+      "event_id": "request-event-8555663c1ca2",
+      "job_id": "request-job-db150835ebba",
+      "event_type": "blocked_approval",
+      "message": "Aguardar OK para build/publicação",
+      "created_at": "2026-05-19T11:19:01.035598+00:00"
+    },
+    {
+      "event_id": "request-event-9b60ac9056c2",
+      "job_id": "request-job-065f1f0ee40b",
+      "event_type": "submitted",
+      "message": "Pedido submetido: build_or_publish",
+      "created_at": "2026-05-19T11:19:09.687756+00:00"
+    },
+    {
+      "event_id": "request-event-58b01b4f5c4e",
+      "job_id": "request-job-065f1f0ee40b",
+      "event_type": "step_done",
+      "message": "Interpretar pedido",
+      "created_at": "2026-05-19T11:19:09.715862+00:00"
+    },
+    {
+      "event_id": "request-event-c8923be717f6",
+      "job_id": "request-job-065f1f0ee40b",
+      "event_type": "step_done",
+      "message": "Guardar contexto operacional",
+      "created_at": "2026-05-19T11:19:09.728641+00:00"
+    },
+    {
+      "event_id": "request-event-c8e093f07fa8",
+      "job_id": "request-job-065f1f0ee40b",
+      "event_type": "step_done",
+      "message": "Preparar plano de build/publicação",
+      "created_at": "2026-05-19T11:19:09.742831+00:00"
+    }
+  ],
+  "credential_requests": []
+}

@@ -1,0 +1,269 @@
+{
+  "cards": [
+    {
+      "card_id": "chat-card-93d10bed4e94",
+      "thread_id": "thread-00002",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-0a49c328",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:14:05.229392+00:00",
+      "updated_at": "2026-05-19T11:14:05.229402+00:00"
+    },
+    {
+      "card_id": "chat-card-c5f057b497bc",
+      "thread_id": "thread-00004",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-74241ae7",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:14:10.032089+00:00",
+      "updated_at": "2026-05-19T11:14:10.032097+00:00"
+    },
+    {
+      "card_id": "chat-card-a0341b857f33",
+      "thread_id": "thread-00006",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-c051dd6c",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:14:15.149027+00:00",
+      "updated_at": "2026-05-19T11:14:15.149038+00:00"
+    },
+    {
+      "card_id": "chat-card-1cd0ecf3fb83",
+      "thread_id": "thread-00008",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-d49ddb20",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:14:20.798319+00:00",
+      "updated_at": "2026-05-19T11:14:20.798327+00:00"
+    },
+    {
+      "card_id": "chat-card-cf39257b05e9",
+      "thread_id": "thread-00010",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-33c88793",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:17:08.549936+00:00",
+      "updated_at": "2026-05-19T11:17:08.549947+00:00"
+    },
+    {
+      "card_id": "chat-card-0f46702f58b6",
+      "thread_id": "thread-00012",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-d67f752c",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:17:14.828826+00:00",
+      "updated_at": "2026-05-19T11:17:14.828834+00:00"
+    },
+    {
+      "card_id": "chat-card-b493ce8d4e59",
+      "thread_id": "thread-00014",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-c2ba1920",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:17:21.470115+00:00",
+      "updated_at": "2026-05-19T11:17:21.470124+00:00"
+    },
+    {
+      "card_id": "chat-card-89a090604cd7",
+      "thread_id": "thread-00016",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-79734a22",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:17:28.550343+00:00",
+      "updated_at": "2026-05-19T11:17:28.550355+00:00"
+    },
+    {
+      "card_id": "chat-card-4402ce95e558",
+      "thread_id": "thread-00018",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-7b719056",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:18:44.899054+00:00",
+      "updated_at": "2026-05-19T11:18:44.899066+00:00"
+    },
+    {
+      "card_id": "chat-card-6e7860bed425",
+      "thread_id": "thread-00020",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-d1e871f0",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:18:52.751350+00:00",
+      "updated_at": "2026-05-19T11:18:52.751360+00:00"
+    },
+    {
+      "card_id": "chat-card-470a83abcb03",
+      "thread_id": "thread-00022",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário para continuar",
+      "body": "O backend chegou a um passo que precisa da tua aprovação no Mobile Approval Cockpit.",
+      "source": "request_orchestrator",
+      "priority": "high",
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "card-action-b8baf06c",
+          "label": "Abrir aprovações",
+          "action_type": "open_url",
+          "payload": {
+            "url": "/app/mobile-approval-cockpit-v2"
+          },
+          "requires_approval": false
+        }
+      ],
+      "created_at": "2026-05-19T11:19:01.028492+00:00",
+      "updated_at": "2026-05-19T11:19:01.028504+00:00"
+    }
+  ],
+  "executions": []
+}
