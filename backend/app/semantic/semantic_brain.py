@@ -1,16 +1,38 @@
 import os
 import json
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from app.config import settings
+import logging
 
-MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+logger = logging.getLogger(__name__)
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    logger.warning("NumPy not found or failed to load. Semantic search will use fallback.")
+    HAS_NUMPY = False
+
+try:
+    from sentence_transformers import SentenceTransformer
+    MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+    HAS_TRANSFORMERS = True
+except Exception as e:
+    logger.warning(f"SentenceTransformers failed to load: {e}. Embedding disabled.")
+    HAS_TRANSFORMERS = False
+    MODEL = None
+
+from app.config import settings
 
 INDEX_DIR = settings.SEMANTIC_INDEX_PATH
 INDEX_FILE = os.path.join(INDEX_DIR, "index.json")
 
+def dot_product(v1, v2):
+    """Pure Python dot product fallback."""
+    return sum(x * y for x, y in zip(v1, v2))
+
 def embed(text):
-    return MODEL.encode(text).tolist()
+    if HAS_TRANSFORMERS and MODEL:
+        return MODEL.encode(text).tolist()
+    return [0.0] * 384  # Dummy vector if embedding is disabled
 
 def load_index():
     if not os.path.exists(INDEX_FILE):
@@ -48,13 +70,20 @@ def search(query, top_k=5):
     if not index:
         return []
 
-    q_vec = np.array(embed(query))
+    q_vec_list = embed(query)
 
     results = []
 
     for item in index:
-        # Use dot product as requested in prompt
-        score = np.dot(q_vec, np.array(item["vector"]))
+        item_vec = item.get("vector", [])
+        if not item_vec:
+            continue
+
+        if HAS_NUMPY:
+            score = np.dot(np.array(q_vec_list), np.array(item_vec))
+        else:
+            score = dot_product(q_vec_list, item_vec)
+
         results.append((score, item))
 
     results.sort(reverse=True, key=lambda x: x[0])
