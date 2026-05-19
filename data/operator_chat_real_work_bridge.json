@@ -1,0 +1,571 @@
+{
+  "version": 1,
+  "submissions": [
+    {
+      "bridge_id": "chat-work-f14bce06b011",
+      "created_at": "2026-05-19T11:14:05.243151+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00001",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-d85b23c70b2f",
+      "created_at": "2026-05-19T11:14:10.046761+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00003",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-bb32750b0d68",
+      "created_at": "2026-05-19T11:14:15.163540+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00005",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-d83d4e7173ee",
+      "created_at": "2026-05-19T11:14:20.812696+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00007",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-0153a8593043",
+      "created_at": "2026-05-19T11:17:08.565762+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00009",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-44dbd9aa0593",
+      "created_at": "2026-05-19T11:17:14.845853+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00011",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-6b6cde37b35f",
+      "created_at": "2026-05-19T11:17:21.489504+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00013",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-01b78f1c0f16",
+      "created_at": "2026-05-19T11:17:28.570654+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00015",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-0188a35d2d66",
+      "created_at": "2026-05-19T11:18:44.921583+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00017",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-3401dc1733b1",
+      "created_at": "2026-05-19T11:18:52.774328+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00019",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-f09548cf3648",
+      "created_at": "2026-05-19T11:19:01.052783+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00021",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    },
+    {
+      "bridge_id": "chat-work-44f025a73233",
+      "created_at": "2026-05-19T11:19:09.784841+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00023",
+      "requested_project": "GOD_MODE",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK"
+    }
+  ],
+  "reports": [
+    {
+      "report_id": "chat-work-report-09b28a70ecb7",
+      "bridge_id": "chat-work-f14bce06b011",
+      "created_at": "2026-05-19T11:14:05.243151+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00001",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-d7770f76b612",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-08461b083fa7",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-74ab5b220646",
+      "bridge_id": "chat-work-d85b23c70b2f",
+      "created_at": "2026-05-19T11:14:10.046761+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00003",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-22917f3f2408",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-d3c6d7ed7fbe",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-f3c78c796018",
+      "bridge_id": "chat-work-bb32750b0d68",
+      "created_at": "2026-05-19T11:14:15.163540+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00005",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-9d33292550d0",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-d483420cdbb0",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-fbbd77c7398a",
+      "bridge_id": "chat-work-d83d4e7173ee",
+      "created_at": "2026-05-19T11:14:20.812696+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00007",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-ccce73adf814",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-80b3f8bb53ff",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-81e16c903669",
+      "bridge_id": "chat-work-0153a8593043",
+      "created_at": "2026-05-19T11:17:08.565762+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00009",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-fecce1d6df97",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-55b6d588ddc7",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-ce88d05a998d",
+      "bridge_id": "chat-work-44dbd9aa0593",
+      "created_at": "2026-05-19T11:17:14.845853+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00011",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-e25af325b834",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-df343adc40ea",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-34e3e803ecaf",
+      "bridge_id": "chat-work-6b6cde37b35f",
+      "created_at": "2026-05-19T11:17:21.489504+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00013",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-7898e890a475",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-57559b1b9a1d",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-c32de87baac5",
+      "bridge_id": "chat-work-01b78f1c0f16",
+      "created_at": "2026-05-19T11:17:28.570654+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00015",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-7d5cd3f510c8",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-e451dd05a90f",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-ed3f37fa704d",
+      "bridge_id": "chat-work-0188a35d2d66",
+      "created_at": "2026-05-19T11:18:44.921583+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00017",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-4416cbf802ad",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-cfd4a221ab00",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-5b08e3dfb0f8",
+      "bridge_id": "chat-work-3401dc1733b1",
+      "created_at": "2026-05-19T11:18:52.774328+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00019",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-d66542d6b546",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-d852ef6459d7",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-a22a847a4865",
+      "bridge_id": "chat-work-f09548cf3648",
+      "created_at": "2026-05-19T11:19:01.052783+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00021",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-db150835ebba",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-12276c9e3778",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    },
+    {
+      "report_id": "chat-work-report-77ccb00e4381",
+      "bridge_id": "chat-work-44f025a73233",
+      "created_at": "2026-05-19T11:19:09.784841+00:00",
+      "tenant_id": "owner-andre",
+      "thread_id": "thread-00023",
+      "message": "continua o projeto GOD_MODE até terminares ou precisares do meu OK",
+      "requested_project": "GOD_MODE",
+      "resolved_project_id": "GOD_MODE",
+      "intent": "continue_project",
+      "job_id": "request-job-065f1f0ee40b",
+      "job_status": "queued",
+      "worker_tick_ran": true,
+      "autopilot_run_id": "autopilot-675b30cc2d7e",
+      "autopilot_stop_reason": "blocked_waiting_operator",
+      "autopilot_round_count": 1,
+      "autopilot_processed_total": 1,
+      "needs_operator": true,
+      "operator_priority_obeyed": true,
+      "money_priority_enabled": false,
+      "next_actions": [
+        {
+          "label": "Abrir aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Ver worker",
+          "route": "/app/request-worker"
+        },
+        {
+          "label": "Ver autopilot",
+          "route": "/api/chat-autopilot/latest"
+        },
+        {
+          "label": "Ver prioridades",
+          "route": "/app/operator-priority"
+        }
+      ]
+    }
+  ]
+}

@@ -419,6 +419,648 @@
       "created_at": "2026-05-19T10:28:32.513314+00:00",
       "updated_at": "2026-05-19T10:28:32.513314+00:00",
       "decision": null
+    },
+    {
+      "card_id": "card-2fd454aa201a",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-d7770f76b612",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-d7770f76b612",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:14:05.225438+00:00",
+      "updated_at": "2026-05-19T11:14:05.225438+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-6fe89723fb40",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-22917f3f2408",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-22917f3f2408",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:14:10.028354+00:00",
+      "updated_at": "2026-05-19T11:14:10.028354+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-f42c96ccad60",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-9d33292550d0",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-9d33292550d0",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:14:15.145454+00:00",
+      "updated_at": "2026-05-19T11:14:15.145454+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-12455de11add",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-ccce73adf814",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-ccce73adf814",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:14:20.795114+00:00",
+      "updated_at": "2026-05-19T11:14:20.795114+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-9a5deb957504",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "God Mode self-diagnosis ready",
+      "body": "5 lacunas criadas; 2 bloqueiam instalação/uso real. Nada corrige sem PR/gates.",
+      "card_type": "progress_update",
+      "priority": "high",
+      "requires_approval": false,
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "review-self-fix-queue",
+          "label": "Rever lacunas",
+          "decision": "review"
+        }
+      ],
+      "source_ref": {
+        "type": "god_mode_self_diagnosis",
+        "diagnostic_run_id": "self-diagnosis-run-395650f7295a"
+      },
+      "metadata": {
+        "gap_count": 5,
+        "install_blocker_count": 2,
+        "can_apply_fix_directly": false
+      },
+      "created_at": "2026-05-19T11:14:22.540571+00:00",
+      "updated_at": "2026-05-19T11:14:22.540571+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-62fa5b65becf",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-fecce1d6df97",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-fecce1d6df97",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:17:08.545970+00:00",
+      "updated_at": "2026-05-19T11:17:08.545970+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-e942f32dbd6a",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-e25af325b834",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-e25af325b834",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:17:14.825304+00:00",
+      "updated_at": "2026-05-19T11:17:14.825304+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-748cb6a911ac",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-7898e890a475",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-7898e890a475",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:17:21.466398+00:00",
+      "updated_at": "2026-05-19T11:17:21.466398+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-8cfa0658b739",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-7d5cd3f510c8",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-7d5cd3f510c8",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:17:28.546132+00:00",
+      "updated_at": "2026-05-19T11:17:28.546132+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-76daa1f84843",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "God Mode self-diagnosis ready",
+      "body": "5 lacunas criadas; 2 bloqueiam instalação/uso real. Nada corrige sem PR/gates.",
+      "card_type": "progress_update",
+      "priority": "high",
+      "requires_approval": false,
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "review-self-fix-queue",
+          "label": "Rever lacunas",
+          "decision": "review"
+        }
+      ],
+      "source_ref": {
+        "type": "god_mode_self_diagnosis",
+        "diagnostic_run_id": "self-diagnosis-run-82099c8cfa7b"
+      },
+      "metadata": {
+        "gap_count": 5,
+        "install_blocker_count": 2,
+        "can_apply_fix_directly": false
+      },
+      "created_at": "2026-05-19T11:17:30.684676+00:00",
+      "updated_at": "2026-05-19T11:17:30.684676+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-d25ff166bcab",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-4416cbf802ad",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-4416cbf802ad",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:18:44.894637+00:00",
+      "updated_at": "2026-05-19T11:18:44.894637+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-ce27a34d7650",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-d66542d6b546",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-d66542d6b546",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:18:52.747170+00:00",
+      "updated_at": "2026-05-19T11:18:52.747170+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-9bbfec1eef8d",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-db150835ebba",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-db150835ebba",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:19:01.024121+00:00",
+      "updated_at": "2026-05-19T11:19:01.024121+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-f87c90eb88b3",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "OK necessário: Aguardar OK para build/publicação",
+      "body": "Pedido: Project: GOD_MODE\nOperator command: continua o projeto GOD_MODE até terminares ou precisares do meu OK\nIntent: continue_project\nPolicy: obey operator project priority; money is consequence, not the selection criterion.\nExecute safe steps until done or blocked by approval/credentials/manual input.\n\nO backend executou tudo o que era seguro e parou aqui para aprovação explícita.",
+      "card_type": "operator_command",
+      "priority": "high",
+      "requires_approval": true,
+      "status": "pending_approval",
+      "actions": [
+        {
+          "action_id": "approve-request-job",
+          "label": "Aprovar e continuar",
+          "decision": "approved"
+        },
+        {
+          "action_id": "reject-request-job",
+          "label": "Parar",
+          "decision": "rejected"
+        },
+        {
+          "action_id": "revise-request-job",
+          "label": "Pedir ajustes",
+          "decision": "needs_changes"
+        }
+      ],
+      "source_ref": {
+        "type": "request_orchestrator",
+        "job_id": "request-job-065f1f0ee40b",
+        "step_id": "build_approval"
+      },
+      "metadata": {
+        "job_id": "request-job-065f1f0ee40b",
+        "step_snapshot": {
+          "step_id": "build_approval",
+          "title": "Aguardar OK para build/publicação",
+          "step_type": "needs_approval",
+          "detail": "Ações de build/deploy exigem aprovação.",
+          "status_at_block": "pending"
+        }
+      },
+      "created_at": "2026-05-19T11:19:09.752682+00:00",
+      "updated_at": "2026-05-19T11:19:09.752682+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-dcc4ab6fcb6a",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "God Mode self-diagnosis ready",
+      "body": "5 lacunas criadas; 2 bloqueiam instalação/uso real. Nada corrige sem PR/gates.",
+      "card_type": "progress_update",
+      "priority": "high",
+      "requires_approval": false,
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "review-self-fix-queue",
+          "label": "Rever lacunas",
+          "decision": "review"
+        }
+      ],
+      "source_ref": {
+        "type": "god_mode_self_diagnosis",
+        "diagnostic_run_id": "self-diagnosis-run-64dbbb2dd606"
+      },
+      "metadata": {
+        "gap_count": 5,
+        "install_blocker_count": 2,
+        "can_apply_fix_directly": false
+      },
+      "created_at": "2026-05-19T11:19:12.346882+00:00",
+      "updated_at": "2026-05-19T11:19:12.346882+00:00",
+      "decision": null
     }
   ],
   "threads": {
@@ -434,9 +1076,24 @@
         "card-eab29d7a6c83",
         "card-bb184d3c3832",
         "card-1541c3f9fde0",
-        "card-883a8afffcb0"
+        "card-883a8afffcb0",
+        "card-2fd454aa201a",
+        "card-6fe89723fb40",
+        "card-f42c96ccad60",
+        "card-12455de11add",
+        "card-9a5deb957504",
+        "card-62fa5b65becf",
+        "card-e942f32dbd6a",
+        "card-748cb6a911ac",
+        "card-8cfa0658b739",
+        "card-76daa1f84843",
+        "card-d25ff166bcab",
+        "card-ce27a34d7650",
+        "card-9bbfec1eef8d",
+        "card-f87c90eb88b3",
+        "card-dcc4ab6fcb6a"
       ],
-      "last_seen_at": "2026-05-19T10:28:32.513314+00:00"
+      "last_seen_at": "2026-05-19T11:19:12.346882+00:00"
     }
   }
 }

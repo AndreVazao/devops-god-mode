@@ -1,13 +1,10 @@
 # GOD_MODE - ÚLTIMA SESSÃO
 
+## Atualizado em
+2026-05-19T11:19:09.805020+00:00
+
 ## Resumo
-
-AndreOS Memory Core criado para dar memória longa ao God Mode.
-
-## Estado final
-
-Estrutura Obsidian, templates, schemas, API e cockpit em implementação.
+Phase 90 rehearsed AndreOS Memory Core with safe writes and compact context.
 
 ## Próximos passos
-
-Validar PR e ligar o Memory Core aos fluxos automáticos de decisão e histórico.
+Continue improving God Mode as a mobile-first operator system that does not lose project context.

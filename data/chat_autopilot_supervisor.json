@@ -1,0 +1,895 @@
+{
+  "version": 1,
+  "runs": [
+    {
+      "run_id": "autopilot-08461b083fa7",
+      "created_at": "2026-05-19T11:14:05.239429+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-d7770f76b612",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-d3c6d7ed7fbe",
+      "created_at": "2026-05-19T11:14:10.042336+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-22917f3f2408",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-d483420cdbb0",
+      "created_at": "2026-05-19T11:14:15.158941+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-9d33292550d0",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-80b3f8bb53ff",
+      "created_at": "2026-05-19T11:14:20.808387+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-ccce73adf814",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-55b6d588ddc7",
+      "created_at": "2026-05-19T11:17:08.561109+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-fecce1d6df97",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-df343adc40ea",
+      "created_at": "2026-05-19T11:17:14.840727+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-e25af325b834",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-57559b1b9a1d",
+      "created_at": "2026-05-19T11:17:21.483729+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-7898e890a475",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-e451dd05a90f",
+      "created_at": "2026-05-19T11:17:28.564438+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-7d5cd3f510c8",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-cfd4a221ab00",
+      "created_at": "2026-05-19T11:18:44.915102+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-4416cbf802ad",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-d852ef6459d7",
+      "created_at": "2026-05-19T11:18:52.767710+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-d66542d6b546",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-12276c9e3778",
+      "created_at": "2026-05-19T11:19:01.046034+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-db150835ebba",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    },
+    {
+      "run_id": "autopilot-675b30cc2d7e",
+      "created_at": "2026-05-19T11:19:09.777672+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-065f1f0ee40b",
+      "reason": "chat_real_work_bridge",
+      "stop_reason": "blocked_waiting_operator",
+      "processed_total": 1
+    }
+  ],
+  "reports": [
+    {
+      "report_id": "autopilot-report-8c11060205d7",
+      "run_id": "autopilot-08461b083fa7",
+      "created_at": "2026-05-19T11:14:05.239429+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-d7770f76b612",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-3753ea31c65a",
+              "created_at": "2026-05-19T11:14:05.237651+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-d7770f76b612",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-3d89dd4c596f",
+      "run_id": "autopilot-d3c6d7ed7fbe",
+      "created_at": "2026-05-19T11:14:10.042336+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-22917f3f2408",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-b44a07c041cd",
+              "created_at": "2026-05-19T11:14:10.040200+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-22917f3f2408",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-ec4a75fdc1c2",
+      "run_id": "autopilot-d483420cdbb0",
+      "created_at": "2026-05-19T11:14:15.158941+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-9d33292550d0",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-e708d4c3d3bc",
+              "created_at": "2026-05-19T11:14:15.156838+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-9d33292550d0",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-5a3c8cfcfe37",
+      "run_id": "autopilot-80b3f8bb53ff",
+      "created_at": "2026-05-19T11:14:20.808387+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-ccce73adf814",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-c0852245160c",
+              "created_at": "2026-05-19T11:14:20.806391+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-ccce73adf814",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-e61674bca650",
+      "run_id": "autopilot-55b6d588ddc7",
+      "created_at": "2026-05-19T11:17:08.561109+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-fecce1d6df97",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-7bf2d3d8e588",
+              "created_at": "2026-05-19T11:17:08.559134+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-fecce1d6df97",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-4abcb40b65bb",
+      "run_id": "autopilot-df343adc40ea",
+      "created_at": "2026-05-19T11:17:14.840727+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-e25af325b834",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-5665b2f3ff5a",
+              "created_at": "2026-05-19T11:17:14.838728+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-e25af325b834",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-52aa0cd732b6",
+      "run_id": "autopilot-57559b1b9a1d",
+      "created_at": "2026-05-19T11:17:21.483729+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-7898e890a475",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-585438a82bcd",
+              "created_at": "2026-05-19T11:17:21.481504+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-7898e890a475",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-4066e915ce09",
+      "run_id": "autopilot-e451dd05a90f",
+      "created_at": "2026-05-19T11:17:28.564438+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-7d5cd3f510c8",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-0a0661669364",
+              "created_at": "2026-05-19T11:17:28.562113+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-7d5cd3f510c8",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-8b62b7a3145e",
+      "run_id": "autopilot-cfd4a221ab00",
+      "created_at": "2026-05-19T11:18:44.915102+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-4416cbf802ad",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-d2b1fae3b0e5",
+              "created_at": "2026-05-19T11:18:44.912767+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-4416cbf802ad",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-369d23e5b88f",
+      "run_id": "autopilot-d852ef6459d7",
+      "created_at": "2026-05-19T11:18:52.767710+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-d66542d6b546",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-800c9dde50e1",
+              "created_at": "2026-05-19T11:18:52.765528+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-d66542d6b546",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-cb25f6db8194",
+      "run_id": "autopilot-12276c9e3778",
+      "created_at": "2026-05-19T11:19:01.046034+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-db150835ebba",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-6c501c2d0930",
+              "created_at": "2026-05-19T11:19:01.043772+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-db150835ebba",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    },
+    {
+      "report_id": "autopilot-report-16c4af15b572",
+      "run_id": "autopilot-675b30cc2d7e",
+      "created_at": "2026-05-19T11:19:09.777672+00:00",
+      "tenant_id": "owner-andre",
+      "job_id": "request-job-065f1f0ee40b",
+      "reason": "chat_real_work_bridge",
+      "rounds_budget": 6,
+      "jobs_budget": 4,
+      "rounds": [
+        {
+          "round": 1,
+          "processed_count": 1,
+          "blocked_count": 1,
+          "failed_count": 0,
+          "completed_count": 0,
+          "tick_mode": "request_worker_loop_tick",
+          "tick_status": null,
+          "tick": {
+            "ok": true,
+            "mode": "request_worker_loop_tick",
+            "tick": {
+              "tick_id": "request-worker-tick-b534d761d5a6",
+              "created_at": "2026-05-19T11:19:09.775294+00:00",
+              "tenant_id": "owner-andre",
+              "status": "completed",
+              "processed_count": 1,
+              "blocked_count": 1,
+              "completed_count": 0,
+              "results": [
+                {
+                  "job_id": "request-job-065f1f0ee40b",
+                  "ok": true,
+                  "from_status": "queued",
+                  "to_status": "blocked_approval",
+                  "blocking_reason": "Aguardar OK para build/publicação",
+                  "processed_steps": 3
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "round_count": 1,
+      "processed_total": 1,
+      "blocked_total": 1,
+      "failed_total": 0,
+      "stop_reason": "blocked_waiting_operator",
+      "needs_operator": true,
+      "approval_bypass": false,
+      "next_routes": [
+        {
+          "label": "Aprovações",
+          "route": "/app/mobile-approval-cockpit-v2"
+        },
+        {
+          "label": "Chat",
+          "route": "/app/operator-chat-sync-cards"
+        },
+        {
+          "label": "Worker",
+          "route": "/app/request-worker"
+        }
+      ]
+    }
+  ]
+}

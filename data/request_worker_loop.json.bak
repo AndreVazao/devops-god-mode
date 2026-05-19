@@ -1,0 +1,218 @@
+{
+  "ticks": [
+    {
+      "tick_id": "request-worker-tick-3753ea31c65a",
+      "created_at": "2026-05-19T11:14:05.237651+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-d7770f76b612",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-b44a07c041cd",
+      "created_at": "2026-05-19T11:14:10.040200+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-22917f3f2408",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-e708d4c3d3bc",
+      "created_at": "2026-05-19T11:14:15.156838+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-9d33292550d0",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-c0852245160c",
+      "created_at": "2026-05-19T11:14:20.806391+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-ccce73adf814",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-7bf2d3d8e588",
+      "created_at": "2026-05-19T11:17:08.559134+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-fecce1d6df97",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-5665b2f3ff5a",
+      "created_at": "2026-05-19T11:17:14.838728+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-e25af325b834",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-585438a82bcd",
+      "created_at": "2026-05-19T11:17:21.481504+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-7898e890a475",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-0a0661669364",
+      "created_at": "2026-05-19T11:17:28.562113+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-7d5cd3f510c8",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-d2b1fae3b0e5",
+      "created_at": "2026-05-19T11:18:44.912767+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-4416cbf802ad",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-800c9dde50e1",
+      "created_at": "2026-05-19T11:18:52.765528+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-d66542d6b546",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    },
+    {
+      "tick_id": "request-worker-tick-6c501c2d0930",
+      "created_at": "2026-05-19T11:19:01.043772+00:00",
+      "tenant_id": "owner-andre",
+      "status": "completed",
+      "processed_count": 1,
+      "blocked_count": 1,
+      "completed_count": 0,
+      "results": [
+        {
+          "job_id": "request-job-db150835ebba",
+          "ok": true,
+          "from_status": "queued",
+          "to_status": "blocked_approval",
+          "blocking_reason": "Aguardar OK para build/publicação",
+          "processed_steps": 3
+        }
+      ]
+    }
+  ],
+  "runs": [],
+  "settings": {
+    "enabled": true,
+    "max_jobs_per_tick": 5
+  }
+}

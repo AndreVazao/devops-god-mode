@@ -1,0 +1,399 @@
+{
+  "version": 1,
+  "diagnostic_runs": [
+    {
+      "diagnostic_run_id": "self-diagnosis-run-395650f7295a",
+      "created_at": "2026-05-19T11:14:22.528611+00:00",
+      "tenant_id": "owner-andre",
+      "focus": "install_first_then_self_evolve",
+      "gap_count": 5,
+      "blocker_count": 1,
+      "high_count": 1,
+      "evidence_summary": {
+        "current_phase": 212,
+        "ready_for_first_pc_install": null,
+        "artifact_status": "ready",
+        "official_tree_present": false
+      },
+      "gaps": [
+        {
+          "gap_id": "pc_install_not_fully_ready",
+          "severity": "blocker",
+          "target_module": "first_pc_install_ready_pack",
+          "reason": "First PC install readiness is not fully green.",
+          "recommended_next_step": "Fix install/artifact/readiness blockers first.",
+          "install_blocker": true,
+          "priority": 100,
+          "reuse_first_query": "first pc install ready pack"
+        },
+        {
+          "gap_id": "first_real_pc_feedback_missing",
+          "severity": "high",
+          "target_module": "first_pc_install_ready_pack",
+          "reason": "No real PC first-run feedback has been recorded yet.",
+          "recommended_next_step": "Install/run GodModeDesktop.exe and record first-run outcome in the cockpit.",
+          "install_blocker": true,
+          "priority": 85,
+          "reuse_first_query": "first pc install ready pack"
+        },
+        {
+          "gap_id": "self_evolution_queue_empty",
+          "severity": "medium",
+          "target_module": "native_skills_adoption_queue",
+          "reason": "No native self-evolution queue items are active yet.",
+          "recommended_next_step": "Seed or promote candidates after first PC run.",
+          "install_blocker": false,
+          "priority": 70,
+          "reuse_first_query": "native skills adoption queue"
+        },
+        {
+          "gap_id": "project_tree_missing",
+          "severity": "medium",
+          "target_module": "module_registry_snapshot",
+          "reason": "Official GOD_MODE tree is missing until autorefresh runs.",
+          "recommended_next_step": "Run project tree autorefresh after next main push.",
+          "install_blocker": false,
+          "priority": 60,
+          "reuse_first_query": "module registry snapshot"
+        },
+        {
+          "gap_id": "candidate_to_pr_generator_missing",
+          "severity": "medium",
+          "target_module": "self_evolution",
+          "reason": "Adoption queue can plan, but does not yet generate PR-ready patch plans automatically.",
+          "recommended_next_step": "Build Candidate-to-PR Plan Generator after first PC install path is proven.",
+          "install_blocker": false,
+          "priority": 50,
+          "reuse_first_query": "self evolution"
+        }
+      ],
+      "can_apply_fix_without_gate": false
+    },
+    {
+      "diagnostic_run_id": "self-diagnosis-run-82099c8cfa7b",
+      "created_at": "2026-05-19T11:17:30.670649+00:00",
+      "tenant_id": "owner-andre",
+      "focus": "install_first_then_self_evolve",
+      "gap_count": 5,
+      "blocker_count": 1,
+      "high_count": 1,
+      "evidence_summary": {
+        "current_phase": 212,
+        "ready_for_first_pc_install": null,
+        "artifact_status": "ready",
+        "official_tree_present": false
+      },
+      "gaps": [
+        {
+          "gap_id": "pc_install_not_fully_ready",
+          "severity": "blocker",
+          "target_module": "first_pc_install_ready_pack",
+          "reason": "First PC install readiness is not fully green.",
+          "recommended_next_step": "Fix install/artifact/readiness blockers first.",
+          "install_blocker": true,
+          "priority": 100,
+          "reuse_first_query": "first pc install ready pack"
+        },
+        {
+          "gap_id": "first_real_pc_feedback_missing",
+          "severity": "high",
+          "target_module": "first_pc_install_ready_pack",
+          "reason": "No real PC first-run feedback has been recorded yet.",
+          "recommended_next_step": "Install/run GodModeDesktop.exe and record first-run outcome in the cockpit.",
+          "install_blocker": true,
+          "priority": 85,
+          "reuse_first_query": "first pc install ready pack"
+        },
+        {
+          "gap_id": "self_evolution_queue_empty",
+          "severity": "medium",
+          "target_module": "native_skills_adoption_queue",
+          "reason": "No native self-evolution queue items are active yet.",
+          "recommended_next_step": "Seed or promote candidates after first PC run.",
+          "install_blocker": false,
+          "priority": 70,
+          "reuse_first_query": "native skills adoption queue"
+        },
+        {
+          "gap_id": "project_tree_missing",
+          "severity": "medium",
+          "target_module": "module_registry_snapshot",
+          "reason": "Official GOD_MODE tree is missing until autorefresh runs.",
+          "recommended_next_step": "Run project tree autorefresh after next main push.",
+          "install_blocker": false,
+          "priority": 60,
+          "reuse_first_query": "module registry snapshot"
+        },
+        {
+          "gap_id": "candidate_to_pr_generator_missing",
+          "severity": "medium",
+          "target_module": "self_evolution",
+          "reason": "Adoption queue can plan, but does not yet generate PR-ready patch plans automatically.",
+          "recommended_next_step": "Build Candidate-to-PR Plan Generator after first PC install path is proven.",
+          "install_blocker": false,
+          "priority": 50,
+          "reuse_first_query": "self evolution"
+        }
+      ],
+      "can_apply_fix_without_gate": false
+    },
+    {
+      "diagnostic_run_id": "self-diagnosis-run-64dbbb2dd606",
+      "created_at": "2026-05-19T11:19:12.331447+00:00",
+      "tenant_id": "owner-andre",
+      "focus": "install_first_then_self_evolve",
+      "gap_count": 5,
+      "blocker_count": 1,
+      "high_count": 1,
+      "evidence_summary": {
+        "current_phase": 212,
+        "ready_for_first_pc_install": null,
+        "artifact_status": "ready",
+        "official_tree_present": false
+      },
+      "gaps": [
+        {
+          "gap_id": "pc_install_not_fully_ready",
+          "severity": "blocker",
+          "target_module": "first_pc_install_ready_pack",
+          "reason": "First PC install readiness is not fully green.",
+          "recommended_next_step": "Fix install/artifact/readiness blockers first.",
+          "install_blocker": true,
+          "priority": 100,
+          "reuse_first_query": "first pc install ready pack"
+        },
+        {
+          "gap_id": "first_real_pc_feedback_missing",
+          "severity": "high",
+          "target_module": "first_pc_install_ready_pack",
+          "reason": "No real PC first-run feedback has been recorded yet.",
+          "recommended_next_step": "Install/run GodModeDesktop.exe and record first-run outcome in the cockpit.",
+          "install_blocker": true,
+          "priority": 85,
+          "reuse_first_query": "first pc install ready pack"
+        },
+        {
+          "gap_id": "self_evolution_queue_empty",
+          "severity": "medium",
+          "target_module": "native_skills_adoption_queue",
+          "reason": "No native self-evolution queue items are active yet.",
+          "recommended_next_step": "Seed or promote candidates after first PC run.",
+          "install_blocker": false,
+          "priority": 70,
+          "reuse_first_query": "native skills adoption queue"
+        },
+        {
+          "gap_id": "project_tree_missing",
+          "severity": "medium",
+          "target_module": "module_registry_snapshot",
+          "reason": "Official GOD_MODE tree is missing until autorefresh runs.",
+          "recommended_next_step": "Run project tree autorefresh after next main push.",
+          "install_blocker": false,
+          "priority": 60,
+          "reuse_first_query": "module registry snapshot"
+        },
+        {
+          "gap_id": "candidate_to_pr_generator_missing",
+          "severity": "medium",
+          "target_module": "self_evolution",
+          "reason": "Adoption queue can plan, but does not yet generate PR-ready patch plans automatically.",
+          "recommended_next_step": "Build Candidate-to-PR Plan Generator after first PC install path is proven.",
+          "install_blocker": false,
+          "priority": 50,
+          "reuse_first_query": "self evolution"
+        }
+      ],
+      "can_apply_fix_without_gate": false
+    }
+  ],
+  "self_fix_queue": [
+    {
+      "self_fix_queue_item_id": "self-fix-pc_install_not_fully_ready",
+      "diagnostic_run_id": "self-diagnosis-run-64dbbb2dd606",
+      "created_at": "2026-05-19T11:14:22.530559+00:00",
+      "updated_at": "2026-05-19T11:19:12.334488+00:00",
+      "tenant_id": "owner-andre",
+      "title": "Pc Install Not Fully Ready",
+      "status": "open",
+      "severity": "blocker",
+      "install_blocker": true,
+      "target_module": "first_pc_install_ready_pack",
+      "reason": "First PC install readiness is not fully green.",
+      "recommended_next_step": "Fix install/artifact/readiness blockers first.",
+      "priority": 100,
+      "reuse_first_query": "first pc install ready pack",
+      "can_apply_fix_directly": false,
+      "requires_pr": true,
+      "requires_tests": true
+    },
+    {
+      "self_fix_queue_item_id": "self-fix-first_real_pc_feedback_missing",
+      "diagnostic_run_id": "self-diagnosis-run-64dbbb2dd606",
+      "created_at": "2026-05-19T11:14:22.530582+00:00",
+      "updated_at": "2026-05-19T11:19:12.334508+00:00",
+      "tenant_id": "owner-andre",
+      "title": "First Real Pc Feedback Missing",
+      "status": "open",
+      "severity": "high",
+      "install_blocker": true,
+      "target_module": "first_pc_install_ready_pack",
+      "reason": "No real PC first-run feedback has been recorded yet.",
+      "recommended_next_step": "Install/run GodModeDesktop.exe and record first-run outcome in the cockpit.",
+      "priority": 85,
+      "reuse_first_query": "first pc install ready pack",
+      "can_apply_fix_directly": false,
+      "requires_pr": true,
+      "requires_tests": true
+    },
+    {
+      "self_fix_queue_item_id": "self-fix-self_evolution_queue_empty",
+      "diagnostic_run_id": "self-diagnosis-run-64dbbb2dd606",
+      "created_at": "2026-05-19T11:14:22.530594+00:00",
+      "updated_at": "2026-05-19T11:19:12.334521+00:00",
+      "tenant_id": "owner-andre",
+      "title": "Self Evolution Queue Empty",
+      "status": "needs_review",
+      "severity": "medium",
+      "install_blocker": false,
+      "target_module": "native_skills_adoption_queue",
+      "reason": "No native self-evolution queue items are active yet.",
+      "recommended_next_step": "Seed or promote candidates after first PC run.",
+      "priority": 70,
+      "reuse_first_query": "native skills adoption queue",
+      "can_apply_fix_directly": false,
+      "requires_pr": true,
+      "requires_tests": true
+    },
+    {
+      "self_fix_queue_item_id": "self-fix-project_tree_missing",
+      "diagnostic_run_id": "self-diagnosis-run-64dbbb2dd606",
+      "created_at": "2026-05-19T11:14:22.530604+00:00",
+      "updated_at": "2026-05-19T11:19:12.334530+00:00",
+      "tenant_id": "owner-andre",
+      "title": "Project Tree Missing",
+      "status": "needs_review",
+      "severity": "medium",
+      "install_blocker": false,
+      "target_module": "module_registry_snapshot",
+      "reason": "Official GOD_MODE tree is missing until autorefresh runs.",
+      "recommended_next_step": "Run project tree autorefresh after next main push.",
+      "priority": 60,
+      "reuse_first_query": "module registry snapshot",
+      "can_apply_fix_directly": false,
+      "requires_pr": true,
+      "requires_tests": true
+    },
+    {
+      "self_fix_queue_item_id": "self-fix-candidate_to_pr_generator_missing",
+      "diagnostic_run_id": "self-diagnosis-run-64dbbb2dd606",
+      "created_at": "2026-05-19T11:14:22.530614+00:00",
+      "updated_at": "2026-05-19T11:19:12.334540+00:00",
+      "tenant_id": "owner-andre",
+      "title": "Candidate To Pr Generator Missing",
+      "status": "needs_review",
+      "severity": "medium",
+      "install_blocker": false,
+      "target_module": "self_evolution",
+      "reason": "Adoption queue can plan, but does not yet generate PR-ready patch plans automatically.",
+      "recommended_next_step": "Build Candidate-to-PR Plan Generator after first PC install path is proven.",
+      "priority": 50,
+      "reuse_first_query": "self evolution",
+      "can_apply_fix_directly": false,
+      "requires_pr": true,
+      "requires_tests": true
+    }
+  ],
+  "review_cards": [
+    {
+      "card_id": "card-9a5deb957504",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "God Mode self-diagnosis ready",
+      "body": "5 lacunas criadas; 2 bloqueiam instalação/uso real. Nada corrige sem PR/gates.",
+      "card_type": "progress_update",
+      "priority": "high",
+      "requires_approval": false,
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "review-self-fix-queue",
+          "label": "Rever lacunas",
+          "decision": "review"
+        }
+      ],
+      "source_ref": {
+        "type": "god_mode_self_diagnosis",
+        "diagnostic_run_id": "self-diagnosis-run-395650f7295a"
+      },
+      "metadata": {
+        "gap_count": 5,
+        "install_blocker_count": 2,
+        "can_apply_fix_directly": false
+      },
+      "created_at": "2026-05-19T11:14:22.540571+00:00",
+      "updated_at": "2026-05-19T11:14:22.540571+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-76daa1f84843",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "God Mode self-diagnosis ready",
+      "body": "5 lacunas criadas; 2 bloqueiam instalação/uso real. Nada corrige sem PR/gates.",
+      "card_type": "progress_update",
+      "priority": "high",
+      "requires_approval": false,
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "review-self-fix-queue",
+          "label": "Rever lacunas",
+          "decision": "review"
+        }
+      ],
+      "source_ref": {
+        "type": "god_mode_self_diagnosis",
+        "diagnostic_run_id": "self-diagnosis-run-82099c8cfa7b"
+      },
+      "metadata": {
+        "gap_count": 5,
+        "install_blocker_count": 2,
+        "can_apply_fix_directly": false
+      },
+      "created_at": "2026-05-19T11:17:30.684676+00:00",
+      "updated_at": "2026-05-19T11:17:30.684676+00:00",
+      "decision": null
+    },
+    {
+      "card_id": "card-dcc4ab6fcb6a",
+      "tenant_id": "owner-andre",
+      "project_id": "GOD_MODE",
+      "title": "God Mode self-diagnosis ready",
+      "body": "5 lacunas criadas; 2 bloqueiam instalação/uso real. Nada corrige sem PR/gates.",
+      "card_type": "progress_update",
+      "priority": "high",
+      "requires_approval": false,
+      "status": "open",
+      "actions": [
+        {
+          "action_id": "review-self-fix-queue",
+          "label": "Rever lacunas",
+          "decision": "review"
+        }
+      ],
+      "source_ref": {
+        "type": "god_mode_self_diagnosis",
+        "diagnostic_run_id": "self-diagnosis-run-64dbbb2dd606"
+      },
+      "metadata": {
+        "gap_count": 5,
+        "install_blocker_count": 2,
+        "can_apply_fix_directly": false
+      },
+      "created_at": "2026-05-19T11:19:12.346882+00:00",
+      "updated_at": "2026-05-19T11:19:12.346882+00:00",
+      "decision": null
+    }
+  ],
+  "decision_log": []
+}
