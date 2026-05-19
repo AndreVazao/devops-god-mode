@@ -1299,9 +1299,6 @@ async function pullResponses() {
 }
 
 function handleSidebarAction(event) {
-  const actionTarget = event.target.closest("[data-action], [data-chat-action], [data-chat-id]");
-  if (!actionTarget) return;
-
   const nav = event.target.closest("[data-nav]");
   if (nav) {
     state.activeTab = nav.dataset.nav;
@@ -1309,6 +1306,9 @@ function handleSidebarAction(event) {
     renderAll();
     return;
   }
+
+  const actionTarget = event.target.closest("[data-action], [data-chat-action], [data-chat-id]");
+  if (!actionTarget) return;
 
   const chatId = actionTarget.dataset.chatId;
   const chatAction = actionTarget.dataset.chatAction;
@@ -1320,6 +1320,13 @@ function handleSidebarAction(event) {
       saveState();
       renderAll();
     }
+    return;
+  }
+
+  if (chatId && !chatAction) {
+    state.activeChatId = chatId;
+    saveState();
+    renderAll();
     return;
   }
 
