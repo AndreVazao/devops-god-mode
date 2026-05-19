@@ -16,19 +16,25 @@ from fastapi.responses import JSONResponse
 # Ensure we can import from app
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Force UTF-8 for stdout/stderr on Windows before logger initialization.
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+os.environ.setdefault('PYTHONUTF8', '1')
+
 # Setup structured logging first
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler("backend.log")
+        logging.FileHandler("backend.log", encoding="utf-8")
     ]
 )
 logger = logging.getLogger(__name__)
 
 try:
-    from app import routes
     from app.config import settings
 
     # Deferred imports to prevent early crashes during module loading
@@ -112,6 +118,12 @@ CANONICAL_HOME_ROUTE = "/app/home"
 def _include_all_route_modules() -> List[str]:
     loaded: List[str] = []
     try:
+        try:
+            routes = importlib.import_module("app.routes")
+        except Exception:
+            logger.warning("Routes package not available; skipping route auto-load.")
+            return loaded
+
         if not hasattr(routes, "__path__"):
             logger.warning("Routes path not found")
             return loaded

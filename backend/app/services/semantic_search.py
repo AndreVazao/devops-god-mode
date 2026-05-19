@@ -2,12 +2,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-try:
-    import numpy as np
-    HAS_NUMPY = True
-except ImportError:
-    logger.warning("NumPy not found in semantic_search. Fallback mode enabled.")
-    HAS_NUMPY = False
+np = None
+HAS_NUMPY = False
+_NUMPY_ATTEMPTED = False
+
+
+def _ensure_numpy():
+    global np, HAS_NUMPY, _NUMPY_ATTEMPTED
+    if _NUMPY_ATTEMPTED:
+        return HAS_NUMPY
+    _NUMPY_ATTEMPTED = True
+    try:
+        import numpy as _np
+        np = _np
+        HAS_NUMPY = True
+        logger.info("NumPy loaded for semantic search.")
+    except Exception as e:
+        logger.warning("NumPy not available or failed to load for semantic search. %s", e)
+        np = None
+        HAS_NUMPY = False
+    return HAS_NUMPY
+
 
 def search_code(query, top_k=5):
     # Re-import to get the updated global variables from the module
@@ -16,7 +31,7 @@ def search_code(query, top_k=5):
     meta = semantic_index_builder.metadata
     model = semantic_index_builder.MODEL
 
-    if idx is None or model is None or not HAS_NUMPY:
+    if idx is None or model is None or not _ensure_numpy():
         # Fallback to simple keyword search if metadata exists
         if meta:
             logger.info("Semantic index not available, using keyword fallback.")

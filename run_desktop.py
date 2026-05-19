@@ -65,6 +65,8 @@ def main() -> int:
     _ensure_runtime_dirs()
 
     env = os.environ.copy()
+    env.setdefault("PYTHONUTF8", "1")
+    env.setdefault("PYTHONIOENCODING", "utf-8:replace")
     python_path = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = f"{BACKEND_DIR}{os.pathsep}{python_path}"
 
@@ -78,6 +80,8 @@ def main() -> int:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         bufsize=1
     )
 

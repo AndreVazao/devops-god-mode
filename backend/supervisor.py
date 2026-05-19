@@ -12,7 +12,7 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] SUPERVISOR: %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("supervisor.log")
+        logging.FileHandler("supervisor.log", encoding="utf-8")
     ]
 )
 logger = logging.getLogger(__name__)
@@ -35,6 +35,12 @@ class ProcessManager:
         if str(BACKEND_DIR) not in python_path:
             self.env["PYTHONPATH"] = f"{BACKEND_DIR}{os.pathsep}{python_path}"
 
+        # Ensure UTF-8 is enabled in child process output on Windows.
+        self.env.setdefault("PYTHONUTF8", "1")
+        # Force Python IO encoding to UTF-8 with replacement for invalid chars
+        # so child process logging can't raise UnicodeEncodeError on Windows consoles.
+        self.env.setdefault("PYTHONIOENCODING", "utf-8:replace")
+
         self.process = subprocess.Popen(
             self.command,
             cwd=self.cwd,
@@ -42,6 +48,8 @@ class ProcessManager:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             bufsize=1
         )
 

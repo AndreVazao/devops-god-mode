@@ -4,21 +4,47 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-try:
-    import numpy as np
-    HAS_NUMPY = True
-except ImportError:
-    logger.warning("NumPy not found or failed to load. Semantic search will use fallback.")
-    HAS_NUMPY = False
+np = None
+HAS_NUMPY = False
+_NUMPY_ATTEMPTED = False
 
-try:
-    from sentence_transformers import SentenceTransformer
-    MODEL = SentenceTransformer("all-MiniLM-L6-v2")
-    HAS_TRANSFORMERS = True
-except Exception as e:
-    logger.warning(f"SentenceTransformers failed to load: {e}. Embedding disabled.")
-    HAS_TRANSFORMERS = False
-    MODEL = None
+MODEL = None
+HAS_TRANSFORMERS = False
+_TRANSFORMER_LOAD_ATTEMPTED = False
+
+
+def _ensure_numpy():
+    global np, HAS_NUMPY, _NUMPY_ATTEMPTED
+    if _NUMPY_ATTEMPTED:
+        return HAS_NUMPY
+    _NUMPY_ATTEMPTED = True
+    try:
+        import numpy as _np
+        np = _np
+        HAS_NUMPY = True
+        logger.info("NumPy loaded for semantic brain.")
+    except Exception as e:
+        logger.warning("NumPy not available or failed to load for semantic brain. Falling back to pure-Python operations. %s", e)
+        np = None
+        HAS_NUMPY = False
+    return HAS_NUMPY
+
+
+def _load_transformer_model():
+    global MODEL, HAS_TRANSFORMERS, _TRANSFORMER_LOAD_ATTEMPTED
+    if _TRANSFORMER_LOAD_ATTEMPTED:
+        return MODEL
+    _TRANSFORMER_LOAD_ATTEMPTED = True
+    try:
+        from sentence_transformers import SentenceTransformer
+        MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+        HAS_TRANSFORMERS = True
+        logger.info("SentenceTransformers model loaded for semantic brain.")
+    except Exception as e:
+        logger.warning(f"SentenceTransformers failed to load: {e}. Embedding disabled.")
+        HAS_TRANSFORMERS = False
+        MODEL = None
+    return MODEL
 
 from app.config import settings
 
@@ -30,8 +56,13 @@ def dot_product(v1, v2):
     return sum(x * y for x, y in zip(v1, v2))
 
 def embed(text):
+    if MODEL is None and not _TRANSFORMER_LOAD_ATTEMPTED:
+        _load_transformer_model()
     if HAS_TRANSFORMERS and MODEL:
-        return MODEL.encode(text).tolist()
+        try:
+            return MODEL.encode(text).tolist()
+        except Exception as e:
+            logger.warning(f"Embedding failed: {e}. Using fallback vector.")
     return [0.0] * 384  # Dummy vector if embedding is disabled
 
 def load_index():
@@ -79,8 +110,11 @@ def search(query, top_k=5):
         if not item_vec:
             continue
 
-        if HAS_NUMPY:
-            score = np.dot(np.array(q_vec_list), np.array(item_vec))
+        if _ensure_numpy():
+            try:
+                score = float(np.dot(np.array(q_vec_list), np.array(item_vec)))
+            except Exception:
+                score = dot_product(q_vec_list, item_vec)
         else:
             score = dot_product(q_vec_list, item_vec)
 
