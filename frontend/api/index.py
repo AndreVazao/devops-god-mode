@@ -14,6 +14,91 @@ UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
 QUEUE_PREFIX = os.environ.get("RELAY_QUEUE_PREFIX", "godmode:relay")
 
+PROVIDER_CATALOG = [
+    {
+        "id": "chatgpt",
+        "name": "ChatGPT",
+        "tier": "web free / capped",
+        "note": "generalist and coding",
+    },
+    {
+        "id": "grok",
+        "name": "Grok",
+        "tier": "web free / capped",
+        "note": "live web reasoning",
+    },
+    {
+        "id": "gemini",
+        "name": "Gemini",
+        "tier": "web free / capped",
+        "note": "google ecosystem",
+    },
+    {
+        "id": "claude",
+        "name": "Claude",
+        "tier": "web free / capped",
+        "note": "long-form analysis",
+    },
+    {
+        "id": "deepseek",
+        "name": "DeepSeek",
+        "tier": "web free / capped",
+        "note": "strong coding and cost",
+    },
+    {
+        "id": "perplexity",
+        "name": "Perplexity",
+        "tier": "web free / capped",
+        "note": "research and citation flow",
+    },
+]
+
+AGENT_CATEGORIES = [
+    {
+        "category": "Orchestration",
+        "agents": [
+            {"id": "planner", "name": "Planner", "fn": "define sequence, scope and execution plan"},
+            {"id": "dispatcher", "name": "Dispatcher", "fn": "route work to the right worker"},
+        ],
+    },
+    {
+        "category": "Coding",
+        "agents": [
+            {"id": "frontend-agent", "name": "Frontend Agent", "fn": "UI, state, shell and browser flows"},
+            {"id": "backend-agent", "name": "Backend Agent", "fn": "APIs, queues, orchestration and persistence"},
+            {"id": "integration-agent", "name": "Integration Agent", "fn": "contracts, payloads and connectors"},
+        ],
+    },
+    {
+        "category": "Quality",
+        "agents": [
+            {"id": "qa-agent", "name": "QA Agent", "fn": "smoke tests, regressions and validation"},
+            {"id": "review-agent", "name": "Review Agent", "fn": "risk review and diff audit"},
+        ],
+    },
+    {
+        "category": "Operations",
+        "agents": [
+            {"id": "deploy-agent", "name": "Deploy Agent", "fn": "build, publish and rollback checks"},
+            {"id": "incident-agent", "name": "Incident Agent", "fn": "runtime triage and recovery"},
+        ],
+    },
+]
+
+DEPLOYERS = [
+    {"id": "vercel", "name": "Vercel", "fn": "frontend shell, relay and production web"},
+    {"id": "supabase", "name": "Supabase", "fn": "database, auth, functions and storage"},
+    {"id": "render", "name": "Render", "fn": "backend services and worker hosting"},
+    {"id": "cloudflare", "name": "Cloudflare", "fn": "edge, DNS and tunnel-style exposure"},
+    {"id": "github-actions", "name": "GitHub Actions", "fn": "CI, smoke tests and automation workflows"},
+]
+
+DEFAULT_REPOS = [
+    "AndreVazao/devops-god-mode",
+    "AndreVazao/devop-god-mode-jules",
+    "AndreVazao/devops-god-mode-mobile",
+]
+
 STATE = {
     "tasks": [],
     "inflight": {},
@@ -242,8 +327,17 @@ def _public_config() -> dict:
         "relay_url": f"{RELAY_PUBLIC_URL}/api",
         "mobile_entry": mobile_entry,
         "apk_entry": f"{RELAY_PUBLIC_URL}/app/apk-start",
+        "desktop_entry": f"{RELAY_PUBLIC_URL}/app/home",
         "storage": STORE.mode,
         "lease_seconds": LEASE_SECONDS,
+        "catalog": {
+            "repos": DEFAULT_REPOS,
+            "providers": PROVIDER_CATALOG,
+            "workers": {
+                "agents": AGENT_CATEGORIES,
+                "deployers": DEPLOYERS,
+            },
+        },
     }
 
 
